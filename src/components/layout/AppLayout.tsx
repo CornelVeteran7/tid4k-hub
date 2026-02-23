@@ -151,7 +151,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top header */}
-        <header className="relative flex items-center border-b bg-card px-4 py-3 lg:px-6">
+        <header className="relative flex items-center border-b bg-card px-4 py-3 lg:px-6 safe-top">
           {/* Left: hamburger */}
           <div className="flex items-center">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>

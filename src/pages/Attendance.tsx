@@ -63,6 +63,13 @@ export default function Attendance() {
   const presentCount = records.filter((r) => r.prezent).length;
   const absentCount = records.length - presentCount;
 
+  const allPresent = records.length > 0 && records.every((r) => r.prezent);
+
+  const toggleAll = () => {
+    const newValue = !allPresent;
+    setRecords((prev) => prev.map((r) => ({ ...r, prezent: newValue })));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -78,11 +85,15 @@ export default function Attendance() {
         </div>
       </div>
 
-      {/* Summary badges */}
-      <div className="flex gap-2">
+      {/* Summary badges + Select All */}
+      <div className="flex items-center gap-2 flex-wrap">
         <Badge className="bg-success text-success-foreground">{presentCount} prezenți</Badge>
         <Badge variant="destructive">{absentCount} absenți</Badge>
         <Badge variant="secondary">{records.length} total</Badge>
+        <Button variant="outline" size="sm" className="ml-auto gap-2" onClick={toggleAll}>
+          <Checkbox checked={allPresent} onCheckedChange={toggleAll} className="pointer-events-none" />
+          {allPresent ? 'Deselectează toți' : 'Selectează toți'}
+        </Button>
       </div>
 
       {/* Attendance Form */}
@@ -147,8 +158,8 @@ export default function Attendance() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 pr-4 font-medium">Copil</th>
+                  <tr className="bg-primary text-primary-foreground">
+                    <th className="text-left py-2 pr-4 px-3 font-medium">Copil</th>
                     <th className="text-center py-2 px-2 font-medium">Prezent</th>
                     <th className="text-center py-2 px-2 font-medium">Absent</th>
                     <th className="text-center py-2 px-2 font-medium">%</th>
