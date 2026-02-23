@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
-import { useNotifications } from '@/contexts/NotificationContext';
 import { getRoles, getRoleLabel, areRol } from '@/utils/roles';
 import { getAttendance, saveAttendance } from '@/api/attendance';
 import type { AttendanceRecord } from '@/types';
@@ -9,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Users, ClipboardList, MessageSquare, Megaphone, FileText, Send, Upload, ChevronDown, ChevronUp, Save, Loader2 } from 'lucide-react';
+import { Users, ClipboardList, MessageSquare, Megaphone, FileText, Upload, ChevronDown, ChevronUp, Save, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -25,7 +24,7 @@ const fadeIn = {
 export default function Dashboard() {
   const { user } = useAuth();
   const { currentGroup } = useGroup();
-  const { unreadMessages, newAnnouncements } = useNotifications();
+  
   const navigate = useNavigate();
 
   const [attendanceOpen, setAttendanceOpen] = useState(false);
@@ -67,11 +66,7 @@ export default function Dashboard() {
   const roles = getRoles(user.status);
   const presentCount = records.filter((r) => r.prezent).length;
 
-  const stats = [
-    { label: 'Copii în grupă', value: records.length || 5, icon: Users, color: 'text-primary' },
-    { label: 'Mesaje necitite', value: unreadMessages, icon: MessageSquare, color: 'text-accent' },
-    { label: 'Anunțuri noi', value: newAnnouncements, icon: Megaphone, color: 'text-warning' },
-  ];
+  
 
   const recentActivity = [
     { text: 'Maria Popescu a încărcat „activitate_pictura.jpg"', time: 'acum 2 ore', icon: Upload },
@@ -192,26 +187,8 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-4">
-        {stats.map((stat, i) => (
-          <motion.div key={stat.label} {...fadeIn} transition={{ delay: i * 0.05 }}>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg bg-muted ${stat.color}`}>
-                    <stat.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold font-mono">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+
+
 
       {/* Recent Activity */}
       <div>

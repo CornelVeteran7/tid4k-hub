@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell
 } from 'lucide-react';
 import { useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
@@ -41,8 +42,9 @@ const INKY_ITEMS = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { currentGroup, availableGroups, switchGroup } = useGroup();
-  const { unreadMessages } = useNotifications();
+  const { unreadMessages, newAnnouncements } = useNotifications();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -176,8 +178,48 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           )}
 
-          {/* Right: logo */}
-          <div className="ml-auto">
+          {/* Right: notifications + logo */}
+          <div className="ml-auto flex items-center gap-2">
+            <Popover open={notifOpen} onOpenChange={setNotifOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {(unreadMessages + newAnnouncements > 0) && (
+                    <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                      {unreadMessages + newAnnouncements}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 p-0">
+                <div className="px-4 py-3 border-b">
+                  <p className="text-sm font-semibold">Notificări</p>
+                </div>
+                <div className="p-2 space-y-1">
+                  {unreadMessages > 0 && (
+                    <button
+                      onClick={() => { navigate('/mesaje'); setNotifOpen(false); }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted transition-colors text-left"
+                    >
+                      <MessageSquare className="h-4 w-4 text-accent shrink-0" />
+                      <span className="flex-1">{unreadMessages} mesaje necitite</span>
+                    </button>
+                  )}
+                  {newAnnouncements > 0 && (
+                    <button
+                      onClick={() => { navigate('/anunturi'); setNotifOpen(false); }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted transition-colors text-left"
+                    >
+                      <Megaphone className="h-4 w-4 text-warning shrink-0" />
+                      <span className="flex-1">{newAnnouncements} anunțuri noi</span>
+                    </button>
+                  )}
+                  {unreadMessages === 0 && newAnnouncements === 0 && (
+                    <p className="px-3 py-4 text-sm text-muted-foreground text-center">Nicio notificare nouă</p>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
             <button onClick={() => navigate('/')} className="focus:outline-none">
               <img src="/favicon.png" alt="InfoDisplay — Acasă" className="h-8 w-8" />
             </button>
