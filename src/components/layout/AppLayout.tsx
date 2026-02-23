@@ -166,7 +166,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {availableGroups.length > 1 && (
             <div className="absolute left-1/2 -translate-x-1/2">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Selectează grupa" />
                 </SelectTrigger>
                 <SelectContent>
