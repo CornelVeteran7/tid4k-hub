@@ -70,7 +70,7 @@ export default function Announcements() {
         {canCreate && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="h-4 w-4" /> Adaugă Anunț</Button>
+              <Button className="gap-2" size="sm"><Plus className="h-4 w-4" /> Adaugă Anunț</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Anunț nou</DialogTitle></DialogHeader>
