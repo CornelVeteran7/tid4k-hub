@@ -43,6 +43,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { unreadMessages } = useNotifications();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
