@@ -40,6 +40,16 @@
 
     --radius: 0.75rem;
 
+    /* Glass tokens */
+    --glass-bg: 0 0% 100% / 0.65;
+    --glass-border: 204 20% 90% / 0.5;
+    --glass-blur: 16px;
+
+    /* Accent gradient */
+    --gradient-primary: linear-gradient(135deg, hsl(204 42% 29%), hsl(214 100% 34%));
+    --gradient-warm: linear-gradient(135deg, hsl(37 90% 51% / 0.15), hsl(1 66% 46% / 0.08));
+    --gradient-cool: linear-gradient(135deg, hsl(204 42% 29% / 0.08), hsl(145 63% 42% / 0.06));
+
     --sidebar-background: 204 42% 22%;
     --sidebar-foreground: 204 10% 92%;
     --sidebar-primary: 0 0% 100%;
@@ -85,6 +95,10 @@
     --input: 204 20% 20%;
     --ring: 204 42% 50%;
 
+    --glass-bg: 204 35% 12% / 0.7;
+    --glass-border: 204 20% 25% / 0.5;
+    --glass-blur: 16px;
+
     --sidebar-background: 204 40% 6%;
     --sidebar-foreground: 204 10% 85%;
     --sidebar-primary: 204 42% 50%;
@@ -101,12 +115,51 @@
     @apply border-border;
   }
 
+  html, body, #root {
+    @apply overflow-x-hidden;
+  }
+
   body {
     @apply bg-background text-foreground font-sans;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display font-bold;
+  }
+}
+
+@layer components {
+  /* Liquid glass card */
+  .glass-card {
+    background: hsla(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid hsla(var(--glass-border));
+    box-shadow:
+      0 4px 24px -4px hsl(204 42% 29% / 0.08),
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.12);
+  }
+
+  /* Glass header */
+  .glass-header {
+    background: hsla(var(--glass-bg));
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-bottom: 1px solid hsla(var(--glass-border));
+  }
+
+  /* Gradient accent strip */
+  .gradient-accent {
+    background: var(--gradient-primary);
+  }
+
+  /* Colorful stat badge */
+  .stat-pill {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+    background: hsla(var(--glass-bg));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid hsla(var(--glass-border));
   }
 }
 
