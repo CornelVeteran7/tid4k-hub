@@ -1,133 +1,86 @@
 
+# Inky Floating Assistant Button + Stories Character Selection
 
-# Comprehensive UI/UX Improvement Plan
+## Part 1: Inky Floating Button (Global Smart Quick Actions)
 
-This plan addresses all the issues and feature requests from David's feedback, organized by priority and complexity.
+### What it does
+A floating button in the bottom-right corner of every page showing the Inky owl image. When tapped, it opens a popover/sheet with context-aware quick actions that change based on:
+- Which page the user is currently on
+- What role the user has (teacher, parent, director, admin)
 
----
+### Implementation
 
-## Phase 1: Critical Fixes
+**1. Copy the Inky image asset**
+- Copy `user-uploads://inky_pentru_buton_smart.png` to `src/assets/inky-button.png`
 
-### 1.1 iOS Safe Area (Notch / Dynamic Island)
-The header is being cut off by the iPhone notch and Dynamic Island because the viewport meta tag lacks `viewport-fit=cover` and the layout doesn't use `safe-area-inset` padding.
+**2. Create `src/components/InkyAssistant.tsx`**
+- A floating button fixed at `bottom-6 right-6` (accounting for safe-area-inset-bottom)
+- Uses the Inky owl image (round, with subtle shadow and a gentle bounce/pulse animation)
+- On click, opens a popover or bottom sheet with a list of smart action buttons
+- Actions are determined by `useLocation()` (current route) and `useAuth()` (user role)
 
-**Files:** `index.html`, `src/components/layout/AppLayout.tsx`, `src/index.css`
-- Add `viewport-fit=cover` to the viewport meta tag
-- Add `padding-top: env(safe-area-inset-top)` to the header
-- Add `padding-bottom: env(safe-area-inset-bottom)` to the bottom announcement bar (if present)
+**3. Context-aware actions per page and role:**
 
-### 1.2 Attendance Confirmation Click-Through Bug
-When the attendance confirmation overlay/toast appears, clicks pass through to buttons underneath (e.g., Messages). The confirmation needs to block interaction with elements behind it.
+| Page | Teacher Actions | Parent Actions |
+|------|----------------|----------------|
+| `/` (Dashboard) | "Inregistreaza prezenta", "Trimite mesaj", "Incarca document" | "Vezi mesaje", "Vezi anunturi" |
+| `/prezenta` | "Selecteaza toti copiii", "Salveaza prezenta", "Vezi statistici" | -- |
+| `/mesaje` | "Mesaj nou", "Mesaj catre toti parintii" | "Mesaj nou catre profesor" |
+| `/povesti` | "Adauga poveste noua", "Citeste o poveste aleatoare" | "Citeste o poveste aleatoare" |
+| `/meniu` | "Vezi meniul de saptamana aceasta" | "Vezi meniul de saptamana aceasta" |
+| `/documente` | "Incarca document", "Cauta document" | "Cauta document" |
+| `/anunturi` | "Creeaza anunt nou" | "Marcheaza toate ca citite" |
+| Other pages | Contextual fallback actions | Contextual fallback actions |
 
-**File:** `src/pages/Attendance.tsx` (or wherever the confirmation modal lives)
-- Add a full-screen transparent overlay behind the confirmation dialog that captures all clicks
-- Use `pointer-events: none` on background content while confirmation is showing
-- Ensure the confirmation toast/modal uses proper z-index and blocks underlying interactions
+**4. Integration in `AppLayout.tsx`**
+- Add `<InkyAssistant />` inside the main content area, after `{children}`, as a fixed-position element
+- Remove the "Actiuni rapide" card from `Dashboard.tsx` (lines 213-229)
 
-### 1.3 Header Overlapping First Card
-The search bar and header cover the first card ("Prezenta"). Need to ensure proper spacing so content starts below the fixed header.
-
-**File:** `src/components/layout/AppLayout.tsx`
-- Ensure the main content area has proper top padding/margin to clear the header
-- The header should not overlap scrollable content
-
----
-
-## Phase 2: UI Consistency & Theming
-
-### 2.1 Uniform Header/Footer Across All Pages
-Pages like "Istoric prezenta", "Statistici", "Povesti", and "Meniu" have different visual styles from the main dashboard. They should share the same header, footer, background, fonts, and colors.
-
-**Files:** All page components
-- All pages already render inside `AppLayout`, so the header/sidebar are consistent
-- Ensure sub-pages (attendance history, statistics) don't use custom headers that diverge from the brand
-- The background color, fonts (Poppins/Lora/Space Mono), and color palette (#2b516a primary, #c32b28 accent) must be uniform
-
-### 2.2 Table Header Styling Fix
-Table headers show individual cell backgrounds with rounded corners creating visual gaps. They should have a solid, continuous background color.
-
-**Files:** `src/pages/Attendance.tsx`, `src/pages/WeeklyMenu.tsx`
-- Change table header styling from `bg-muted` on individual `th` cells to a row-level background
-- Remove rounded corners from individual header cells
-- Use the primary color or a branded muted tone for table headers
-
-### 2.3 Stories Page Redesign
-The stories page looks inconsistent with the rest of the app. The back button is on the right side but should be on the left.
-
-**File:** `src/pages/Stories.tsx`
-- Move the "Inapoi" button to the left side of the screen (it's already using `ArrowLeft` icon but may be placed wrong in layout)
-- Match card styling, colors, and typography to the dashboard's design language
-- Ensure the story reader view uses consistent branded colors
+### Visual Design
+- Round button (64x64px) with the Inky owl image, white background, shadow-lg
+- Subtle scale animation on hover
+- When open: a card/sheet appears above the button with the action list
+- Each action has an icon + label, styled consistently with the app theme
 
 ---
 
-## Phase 3: Feature Improvements
+## Part 2: Stories Character Selection
 
-### 3.1 Menu Page: Replace "Vezi toate" with Expandable "Vezi mai multe"
-The current popup showing all menus is redundant. Replace with an inline expand button.
+### What it does
+Add 5 storyteller characters to the Stories page. When reading/listening to a story, the user picks which character "tells" the story, each with a distinct personality and TTS voice.
 
-**File:** `src/pages/WeeklyMenu.tsx`
-- Remove the popup/dialog for "Vezi toate"
-- Add a "Vezi mai multe" button with a down-arrow icon that expands the menu list inline
-- Add month/year filter controls for browsing menus
-- When collapsed, show only the 3 most recent menus
+### Characters
+1. **Inky** - Owl (wise, calm) 
+2. **Vixie** - Fox (playful, energetic)
+3. **Nuko** - Hedgehog (gentle, warm)
+4. **Eli** - Butterfly (dreamy, soft)
+5. **Poki** - Fish (bubbly, funny)
 
-### 3.2 Mobile Swipe for Workshop/Atelier Cards
-On mobile, users should swipe between workshop cards. On desktop, show dot indicators.
+### Implementation
 
-**File:** The page showing "Ateliere" cards (likely part of Dashboard or a dedicated component)
-- Use `embla-carousel-react` (already installed) for swipe functionality on mobile
-- NO arrow buttons -- remove any navigation arrows
-- Add dot indicators below the carousel showing current position
-- Dots should highlight the active card (e.g., 2/6 fills dot #2)
+**1. Create `src/data/storyCharacters.ts`**
+- Export an array of character objects with: `id`, `name`, `animal`, `description`, `color` (theme color for each), and `voiceDescription` (text describing the voice style for future TTS integration)
+- No actual TTS integration yet (mock only), but the structure is ready for when voice IDs are assigned
 
-### 3.3 "Select All Children" for Attendance
-Add a bulk select/deselect feature for attendance.
+**2. Update `src/pages/Stories.tsx`**
+- Add a character selector in the story reader view (below the title, above the audio player)
+- Show 5 small circular character avatars (using colored initials or emoji icons since we don't have character images yet: owl emoji, fox emoji, hedgehog emoji, butterfly emoji, fish emoji)
+- Selected character is highlighted with a colored ring
+- The character name appears below: "Povestita de Inky"
+- Store selected character in state; pass to TTS call when implemented
 
-**File:** `src/pages/Attendance.tsx`
-- Add a "Selecteaza toti" checkbox/button above the children list
-- When clicked, marks all children as present
-- Teachers can then deselect only the absent ones
-- This is faster for groups where most children are present
-
----
-
-## Phase 4: PWA Setup
-
-### 4.1 Progressive Web App Configuration
-The app should be installable from the browser.
-
-**Files:** `vite.config.ts`, `public/manifest.json` (new), `index.html`
-- Install `vite-plugin-pwa`
-- Configure PWA manifest with app name "TID4K", theme color (#2b516a), icons
-- Add mobile-optimized meta tags (apple-mobile-web-app-capable, theme-color, apple-touch-icon)
-- Add `navigateFallbackDenylist: [/^\/~oauth/]` to workbox config
-- Create PWA icons in multiple sizes from the existing favicon
-
----
-
-## Phase 5: Future Features (Noted, Not Implemented Now)
-
-These are noted for future implementation:
-- **Inky Smart Quick Actions**: Floating Inky assistant button on all pages with context-aware suggestions
-- **Simple Stories for Kindergartens**: Simplified story format
-- **Gamification/Tutorial System**: Points system to encourage app usage
-- **Profile Page Improvements**: Fix back button reliability on iPhone
-- **Color Uniformity for Ateliere Page**: Align workshop page colors with brand palette
+**3. Update the `Story` type** (optional)
+- No type changes needed; character selection is a UI-only feature for now
 
 ---
 
 ## Technical Summary
 
-| File | Changes |
-|------|---------|
-| `index.html` | viewport-fit=cover, PWA meta tags, manifest link |
-| `vite.config.ts` | Add vite-plugin-pwa |
-| `src/index.css` | Safe area CSS utilities |
-| `src/components/layout/AppLayout.tsx` | Safe area padding on header, content spacing fix |
-| `src/pages/Attendance.tsx` | Confirmation overlay fix, "select all" button, table header fix |
-| `src/pages/Stories.tsx` | Back button to left, visual consistency |
-| `src/pages/WeeklyMenu.tsx` | Replace "Vezi toate" with expand button, month/year filters, table header fix |
-| Dashboard/Ateliere component | Embla carousel with swipe + dot indicators, no arrows |
-| `public/manifest.json` | New PWA manifest file |
-
+| File | Action |
+|------|--------|
+| `src/assets/inky-button.png` | New - copy uploaded Inky image |
+| `src/components/InkyAssistant.tsx` | New - floating button + smart actions popover |
+| `src/components/layout/AppLayout.tsx` | Edit - add `<InkyAssistant />` |
+| `src/pages/Dashboard.tsx` | Edit - remove "Actiuni rapide" card (lines 213-229) |
+| `src/data/storyCharacters.ts` | New - character definitions |
+| `src/pages/Stories.tsx` | Edit - add character selector in reader view |
