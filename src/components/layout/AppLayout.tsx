@@ -166,7 +166,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {availableGroups.length > 1 && (
             <div className="absolute left-1/2 -translate-x-1/2">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Selectează grupa" />
                 </SelectTrigger>
                 <SelectContent>
@@ -221,7 +221,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </PopoverContent>
             </Popover>
             <button onClick={() => navigate('/')} className="focus:outline-none">
-              <img src="/favicon.png" alt="InfoDisplay — Acasă" className="h-8 w-8" />
+              <img src="/favicon.png" alt="InfoDisplay — Acasă" className="h-7 w-7" />
             </button>
           </div>
         </header>
@@ -229,8 +229,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           {children}
-          <InkyAssistant />
         </main>
+        <InkyAssistant />
       </div>
     </div>
   );
