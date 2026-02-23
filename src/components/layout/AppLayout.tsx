@@ -42,8 +42,9 @@ const INKY_ITEMS = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { currentGroup, availableGroups, switchGroup } = useGroup();
-  const { unreadMessages } = useNotifications();
+  const { unreadMessages, newAnnouncements } = useNotifications();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
