@@ -69,7 +69,6 @@ export default function Dashboard() {
 
   const stats = [
     { label: 'Copii în grupă', value: records.length || 5, icon: Users, color: 'text-primary' },
-    { label: 'Prezență azi', value: attendanceOpen ? `${presentCount}/${records.length}` : '4/5', icon: ClipboardList, color: 'text-success' },
     { label: 'Mesaje necitite', value: unreadMessages, icon: MessageSquare, color: 'text-accent' },
     { label: 'Anunțuri noi', value: newAnnouncements, icon: Megaphone, color: 'text-warning' },
   ];
@@ -87,8 +86,7 @@ export default function Dashboard() {
       {/* Welcome — tap to open attendance */}
       <motion.div {...fadeIn}>
         <Card
-          className={`bg-primary text-primary-foreground ${isTeacher ? 'cursor-pointer' : ''}`}
-          onClick={() => isTeacher && setAttendanceOpen(!attendanceOpen)}
+          className="bg-primary text-primary-foreground"
         >
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -106,9 +104,15 @@ export default function Dashboard() {
                 </div>
               </div>
               {isTeacher && (
-                <div className="flex items-center gap-2 text-primary-foreground/70">
-                  <span className="text-sm">{attendanceOpen ? 'Ascunde prezența' : 'Prezența'}</span>
-                  {attendanceOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                <div className="flex items-center gap-3 bg-primary-foreground/15 rounded-xl px-4 py-2.5 cursor-pointer hover:bg-primary-foreground/20 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setAttendanceOpen(!attendanceOpen); }}
+                >
+                  <ClipboardList className="h-5 w-5 text-primary-foreground/80" />
+                  <div className="text-left">
+                    <p className="text-lg font-bold font-mono leading-none">{attendanceOpen ? `${presentCount}/${records.length}` : '4/5'}</p>
+                    <p className="text-[11px] text-primary-foreground/70">Prezența azi</p>
+                  </div>
+                  {attendanceOpen ? <ChevronUp className="h-4 w-4 text-primary-foreground/60" /> : <ChevronDown className="h-4 w-4 text-primary-foreground/60" />}
                 </div>
               )}
             </div>
@@ -189,7 +193,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {stats.map((stat, i) => (
           <motion.div key={stat.label} {...fadeIn} transition={{ delay: i * 0.05 }}>
             <Card>
