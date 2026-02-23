@@ -105,9 +105,15 @@ export default function Dashboard() {
                 </div>
               </div>
               {isTeacher && (
-                <div className="flex items-center gap-2 text-primary-foreground/70">
-                  <span className="text-sm">{attendanceOpen ? 'Ascunde prezența' : 'Prezența'}</span>
-                  {attendanceOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                <div className="flex items-center gap-3 bg-primary-foreground/15 rounded-xl px-4 py-2.5 cursor-pointer hover:bg-primary-foreground/20 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setAttendanceOpen(!attendanceOpen); }}
+                >
+                  <ClipboardList className="h-5 w-5 text-primary-foreground/80" />
+                  <div className="text-left">
+                    <p className="text-lg font-bold font-mono leading-none">{attendanceOpen ? `${presentCount}/${records.length}` : '4/5'}</p>
+                    <p className="text-[11px] text-primary-foreground/70">Prezența azi</p>
+                  </div>
+                  {attendanceOpen ? <ChevronUp className="h-4 w-4 text-primary-foreground/60" /> : <ChevronDown className="h-4 w-4 text-primary-foreground/60" />}
                 </div>
               )}
             </div>
