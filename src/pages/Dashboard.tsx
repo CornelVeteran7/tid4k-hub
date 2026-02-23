@@ -193,7 +193,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {stats.map((stat, i) => (
           <motion.div key={stat.label} {...fadeIn} transition={{ delay: i * 0.05 }}>
             <Card>
