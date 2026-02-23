@@ -20,31 +20,31 @@ export default function Schedule() {
   const getCell = (zi: string, ora: string) => cells.find((c) => c.zi === zi && c.ora === ora);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold">Orar</h1>
-          <p className="text-muted-foreground">{currentGroup?.nume}</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Orar</h1>
+          <p className="text-muted-foreground text-sm">{currentGroup?.nume}</p>
         </div>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
           <Printer className="h-4 w-4" /> Printează
         </Button>
       </div>
 
-      <Card>
+      <Card className="glass-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Calendar className="h-5 w-5" /> Program Săptămânal
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" /> Program Săptămânal
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
+          <div className="overflow-x-auto -mx-px">
+            <table className="w-full text-sm border-collapse min-w-[500px]">
               <thead>
                 <tr>
-                  <th className="border p-2 bg-muted text-left w-16">Ora</th>
+                  <th className="border p-2 bg-muted text-left w-14 text-xs">Ora</th>
                   {DAYS.map((d) => (
-                    <th key={d} className="border p-2 bg-muted text-center font-medium">{d}</th>
+                    <th key={d} className="border p-2 bg-muted text-center font-medium text-xs">{d}</th>
                   ))}
                 </tr>
               </thead>

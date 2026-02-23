@@ -63,7 +63,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen overflow-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/20 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
@@ -130,7 +130,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {/* User info at bottom */}
           <div className="border-t border-sidebar-border p-4">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-bold">
+              <div className="h-9 w-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-bold shrink-0">
                 {user.nume_prenume.split(' ').map((n) => n[0]).join('')}
               </div>
               <div className="flex-1 min-w-0">
@@ -143,7 +143,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   ))}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent" onClick={logout}>
+              <Button variant="ghost" size="icon" className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0" onClick={logout}>
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -152,21 +152,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top header */}
-        <header className="relative flex items-center border-b bg-card px-4 py-3 lg:px-6 safe-top">
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+        {/* Top header - glass style */}
+        <header className="glass-header relative flex items-center px-3 py-3 lg:px-6 safe-top z-10">
           {/* Left: hamburger */}
-          <div className="flex items-center">
+          <div className="flex items-center shrink-0">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu className="h-5 w-5" />
             </Button>
           </div>
 
-          {/* Center: group selector (absolute centered) */}
+          {/* Center: group selector */}
           {availableGroups.length > 1 && (
-            <div className="absolute left-1/2 -translate-x-1/2">
+            <div className="flex-1 flex justify-center min-w-0 px-2">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full max-w-[180px]">
                   <SelectValue placeholder="Selectează grupa" />
                 </SelectTrigger>
                 <SelectContent>
@@ -179,11 +179,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           )}
 
           {/* Right: notifications + logo */}
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1.5 shrink-0">
             <Popover open={notifOpen} onOpenChange={setNotifOpen}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                  <Bell className="h-4.5 w-4.5" />
                   {(unreadMessages + newAnnouncements > 0) && (
                     <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
                       {unreadMessages + newAnnouncements}
@@ -191,8 +191,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-64 p-0">
-                <div className="px-4 py-3 border-b">
+              <PopoverContent align="end" className="w-64 p-0 glass-card">
+                <div className="px-4 py-3 border-b border-border/50">
                   <p className="text-sm font-semibold">Notificări</p>
                 </div>
                 <div className="p-2 space-y-1">
@@ -220,14 +220,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
               </PopoverContent>
             </Popover>
-            <button onClick={() => navigate('/')} className="focus:outline-none">
+            <button onClick={() => navigate('/')} className="focus:outline-none shrink-0">
               <img src="/favicon.png" alt="InfoDisplay — Acasă" className="h-7 w-7" />
             </button>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-24">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 pb-24">
           {children}
         </main>
         <InkyAssistant />

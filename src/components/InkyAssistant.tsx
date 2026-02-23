@@ -109,13 +109,13 @@ export default function InkyAssistant() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-foreground/10 backdrop-blur-[2px]"
+            className="fixed inset-0 z-[60] bg-foreground/10 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-6 right-6 z-[70]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-[70]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {/* Action sheet */}
         <AnimatePresence>
           {open && (
@@ -124,9 +124,9 @@ export default function InkyAssistant() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.9 }}
               transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="absolute bottom-20 right-0 w-64 bg-card border rounded-xl shadow-xl overflow-hidden"
+              className="absolute bottom-[72px] right-0 w-60 sm:w-64 glass-card rounded-xl shadow-xl overflow-hidden"
             >
-              <div className="px-4 py-3 border-b bg-muted/50 flex items-center justify-between">
+              <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
                 <span className="text-sm font-semibold text-foreground">Ce vrei să faci?</span>
                 <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
                   <X className="h-4 w-4" />
@@ -137,7 +137,7 @@ export default function InkyAssistant() {
                   <button
                     key={action.label}
                     onClick={() => handleAction(action)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors text-left"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-primary/10 transition-colors text-left"
                   >
                     <action.icon className="h-4 w-4 text-primary shrink-0" />
                     <span>{action.label}</span>
@@ -155,9 +155,9 @@ export default function InkyAssistant() {
           whileTap={{ scale: 0.95 }}
           animate={open ? { rotate: 0 } : { rotate: [0, -5, 5, 0] }}
           transition={open ? {} : { repeat: Infinity, repeatDelay: 4, duration: 0.5 }}
-          className="h-16 w-16 rounded-full bg-card shadow-lg border border-primary/20 flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-lg border border-primary/20 flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 glass-card"
         >
-          <img src={inkyImg} alt="Inky Assistant" className="h-14 w-14 object-contain" />
+          <img src={inkyImg} alt="Inky Assistant" className="h-12 w-12 sm:h-14 sm:w-14 object-contain" />
         </motion.button>
       </div>
     </>

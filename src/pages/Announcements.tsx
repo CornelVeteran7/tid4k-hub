@@ -61,16 +61,16 @@ export default function Announcements() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold">Anunțuri</h1>
-          <p className="text-muted-foreground">{currentGroup?.nume}</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Anunțuri</h1>
+          <p className="text-muted-foreground text-sm">{currentGroup?.nume}</p>
         </div>
         {canCreate && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="h-4 w-4" /> Adaugă Anunț</Button>
+              <Button className="gap-2" size="sm"><Plus className="h-4 w-4" /> Adaugă Anunț</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Anunț nou</DialogTitle></DialogHeader>
@@ -96,10 +96,10 @@ export default function Announcements() {
 
       {/* Ticker Management */}
       {canCreate && (
-        <Card>
+        <Card className="glass-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Megaphone className="h-4 w-4" /> Bandă anunțuri (Ticker)
+              <Megaphone className="h-4 w-4 text-primary" /> Bandă anunțuri (Ticker)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -126,8 +126,8 @@ export default function Announcements() {
       {/* Announcements List */}
       <div className="space-y-4">
         {announcements.map((ann) => (
-          <Card key={ann.id_info} className={ann.prioritate === 'urgent' ? 'border-destructive/50' : ''}>
-            <CardContent className="p-5">
+          <Card key={ann.id_info} className={`glass-card ${ann.prioritate === 'urgent' ? 'border-destructive/50' : ''}`}>
+            <CardContent className="p-4 sm:p-5">
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold">{ann.titlu}</h3>
