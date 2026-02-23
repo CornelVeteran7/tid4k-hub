@@ -112,13 +112,13 @@ export default function Attendance() {
           ) : (
             <div className="space-y-3">
               {records.map((record) => (
-                <div key={record.id_copil} className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
+                <div key={record.id_copil} className="flex flex-wrap items-center gap-2 sm:gap-4 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
                   <Checkbox
                     checked={record.prezent}
                     onCheckedChange={() => togglePresent(record.id_copil)}
                     id={`child-${record.id_copil}`}
                   />
-                  <label htmlFor={`child-${record.id_copil}`} className="flex-1 font-medium text-sm cursor-pointer">
+                  <label htmlFor={`child-${record.id_copil}`} className="font-medium text-sm cursor-pointer min-w-[80px]">
                     {record.nume_prenume_copil}
                   </label>
                   <Badge variant={record.prezent ? 'default' : 'destructive'} className={record.prezent ? 'bg-success text-success-foreground' : ''}>
@@ -128,7 +128,7 @@ export default function Attendance() {
                     placeholder="Observații..."
                     value={record.observatii}
                     onChange={(e) => updateNote(record.id_copil, e.target.value)}
-                    className="max-w-[200px] text-sm"
+                    className="w-full sm:max-w-[200px] text-sm"
                   />
                 </div>
               ))}
