@@ -55,9 +55,7 @@ export default function Login() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-primary text-primary-foreground mb-4">
-            <span className="font-display font-bold text-xl">T4K</span>
-          </div>
+          <img src={logoBlack} alt="InfoDisplay" className="h-12 mx-auto mb-3" />
           <h1 className="text-2xl font-display font-bold text-foreground">TID4K</h1>
           <p className="text-sm text-muted-foreground mt-1 font-serif">Talk-to-Infodisplay</p>
         </div>

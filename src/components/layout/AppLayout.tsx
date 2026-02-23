@@ -71,10 +71,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {/* Logo */}
           <div className="flex items-center justify-between px-4 py-5 border-b border-sidebar-border">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm">
-                T4K
-              </div>
-              <span className="font-display font-bold text-lg">TID4K</span>
+              <img src={logoBlack} alt="InfoDisplay" className="h-7" />
             </div>
             <Button variant="ghost" size="icon" className="lg:hidden text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => setSidebarOpen(false)}>
               <X className="h-5 w-5" />
