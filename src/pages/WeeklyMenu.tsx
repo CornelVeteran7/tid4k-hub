@@ -180,9 +180,9 @@ export default function WeeklyMenu() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr>
-                    <th className="border p-2 bg-muted text-left">Nutrient</th>
-                    {DAYS.map((d) => <th key={d} className="border p-2 bg-muted text-center">{d}</th>)}
+                  <tr className="bg-primary text-primary-foreground">
+                    <th className="border border-primary/30 p-2 text-left">Nutrient</th>
+                    {DAYS.map((d) => <th key={d} className="border border-primary/30 p-2 text-center">{d}</th>)}
                   </tr>
                 </thead>
                 <tbody>

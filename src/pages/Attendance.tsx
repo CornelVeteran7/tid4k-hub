@@ -158,8 +158,8 @@ export default function Attendance() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 pr-4 font-medium">Copil</th>
+                  <tr className="bg-primary text-primary-foreground">
+                    <th className="text-left py-2 pr-4 px-3 font-medium">Copil</th>
                     <th className="text-center py-2 px-2 font-medium">Prezent</th>
                     <th className="text-center py-2 px-2 font-medium">Absent</th>
                     <th className="text-center py-2 px-2 font-medium">%</th>

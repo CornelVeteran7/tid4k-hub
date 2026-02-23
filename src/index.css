@@ -109,3 +109,12 @@
     @apply font-display font-bold;
   }
 }
+
+/* Safe area utilities for iOS notch / Dynamic Island */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
