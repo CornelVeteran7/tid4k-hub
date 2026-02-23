@@ -11,9 +11,10 @@ import {
   BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList
 } from 'lucide-react';
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
+import infodisplayLogoHeader from '@/assets/infodisplay-logo-header.png';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Acasă', icon: Home, roles: ['all'] },
@@ -42,6 +43,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { unreadMessages } = useNotifications();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
@@ -155,7 +157,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </Button>
 
           <div className="flex-1">
-            <h2 className="text-sm font-medium text-muted-foreground hidden sm:block">Grădinița Floarea Soarelui</h2>
+            <button onClick={() => navigate('/')} className="focus:outline-none">
+              <img src={infodisplayLogoHeader} alt="InfoDisplay — Acasă" className="h-7" />
+            </button>
           </div>
 
           {availableGroups.length > 1 && (
