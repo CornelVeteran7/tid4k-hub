@@ -126,8 +126,8 @@ export default function Announcements() {
       {/* Announcements List */}
       <div className="space-y-4">
         {announcements.map((ann) => (
-          <Card key={ann.id_info} className={ann.prioritate === 'urgent' ? 'border-destructive/50' : ''}>
-            <CardContent className="p-5">
+          <Card key={ann.id_info} className={`glass-card ${ann.prioritate === 'urgent' ? 'border-destructive/50' : ''}`}>
+            <CardContent className="p-4 sm:p-5">
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold">{ann.titlu}</h3>
