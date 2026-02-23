@@ -69,7 +69,6 @@ export default function Dashboard() {
 
   const stats = [
     { label: 'Copii în grupă', value: records.length || 5, icon: Users, color: 'text-primary' },
-    { label: 'Prezență azi', value: attendanceOpen ? `${presentCount}/${records.length}` : '4/5', icon: ClipboardList, color: 'text-success' },
     { label: 'Mesaje necitite', value: unreadMessages, icon: MessageSquare, color: 'text-accent' },
     { label: 'Anunțuri noi', value: newAnnouncements, icon: Megaphone, color: 'text-warning' },
   ];
