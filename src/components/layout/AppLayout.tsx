@@ -178,7 +178,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {/* Right: logo */}
           <div className="ml-auto">
             <button onClick={() => navigate('/')} className="focus:outline-none">
-              <img src={infodisplayLogoHeader} alt="InfoDisplay — Acasă" className="h-9" />
+              <img src="/favicon.png" alt="InfoDisplay — Acasă" className="h-8 w-8" />
             </button>
           </div>
         </header>
