@@ -112,10 +112,10 @@ export default function WeeklyMenu() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr>
-                  <th className="border p-3 bg-muted text-left w-28">Masa</th>
+                <tr className="bg-primary text-primary-foreground">
+                  <th className="border border-primary/30 p-3 text-left w-28">Masa</th>
                   {DAYS.map((d) => (
-                    <th key={d} className="border p-3 bg-muted text-center font-medium">{d}</th>
+                    <th key={d} className="border border-primary/30 p-3 text-center font-medium">{d}</th>
                   ))}
                 </tr>
               </thead>
