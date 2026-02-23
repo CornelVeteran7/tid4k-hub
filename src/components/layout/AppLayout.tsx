@@ -221,7 +221,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </PopoverContent>
             </Popover>
             <button onClick={() => navigate('/')} className="focus:outline-none">
-              <img src="/favicon.png" alt="InfoDisplay — Acasă" className="h-8 w-8" />
+              <img src="/favicon.png" alt="InfoDisplay — Acasă" className="h-7 w-7" />
             </button>
           </div>
         </header>
