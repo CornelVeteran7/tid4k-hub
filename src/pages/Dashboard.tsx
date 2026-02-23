@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Users, ClipboardList, MessageSquare, Megaphone, FileText, Send, Upload, ChevronDown, ChevronUp, Save, Loader2 } from 'lucide-react';
+import { Users, ClipboardList, MessageSquare, Megaphone, FileText, Upload, ChevronDown, ChevronUp, Save, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
