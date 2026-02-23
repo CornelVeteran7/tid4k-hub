@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
-import { useNotifications } from '@/contexts/NotificationContext';
 import { getRoles, getRoleLabel, areRol } from '@/utils/roles';
 import { getAttendance, saveAttendance } from '@/api/attendance';
 import type { AttendanceRecord } from '@/types';
