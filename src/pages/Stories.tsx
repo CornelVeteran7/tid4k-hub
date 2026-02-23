@@ -38,6 +38,7 @@ export default function Stories() {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
   const [newStory, setNewStory] = useState({ titlu: '', continut: '', categorie: 'educative', varsta: '3-5' });
+  const [selectedCharacter, setSelectedCharacter] = useState<StoryCharacter>(storyCharacters[0]);
 
   const canCreate = user && areRol(user.status, 'profesor');
 
