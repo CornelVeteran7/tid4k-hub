@@ -9,6 +9,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Phone, QrCode, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useEffect } from 'react';
+import logoBlack from '@/assets/logo-black.png';
 
 export default function Login() {
   const { login, qrLogin, isLoading } = useAuth();

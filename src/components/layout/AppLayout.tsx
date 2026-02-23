@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import logoBlack from '@/assets/logo-black.png';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Acasă', icon: Home, roles: ['all'] },
