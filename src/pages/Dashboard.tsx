@@ -1,13 +1,20 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { getRoles, getRoleLabel } from '@/utils/roles';
+import { getRoles, getRoleLabel, areRol } from '@/utils/roles';
+import { getAttendance, saveAttendance } from '@/api/attendance';
+import type { AttendanceRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, ClipboardList, MessageSquare, Megaphone, FileText, Send, Upload } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Users, ClipboardList, MessageSquare, Megaphone, FileText, Send, Upload, ChevronDown, ChevronUp, Save, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
+import { ro } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 const fadeIn = {
   initial: { opacity: 0, y: 12 },
@@ -21,13 +28,48 @@ export default function Dashboard() {
   const { unreadMessages, newAnnouncements } = useNotifications();
   const navigate = useNavigate();
 
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const [records, setRecords] = useState<AttendanceRecord[]>([]);
+  const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const isTeacher = user && areRol(user.status, 'profesor');
+
+  useEffect(() => {
+    if (attendanceOpen && currentGroup) {
+      setLoadingAttendance(true);
+      getAttendance(currentGroup.id, today).then((day) => {
+        setRecords(day.records);
+        setLoadingAttendance(false);
+      });
+    }
+  }, [attendanceOpen, currentGroup, today]);
+
+  const togglePresent = (id: number) => {
+    setRecords((prev) => prev.map((r) => (r.id_copil === id ? { ...r, prezent: !r.prezent } : r)));
+  };
+
+  const handleSaveAttendance = async () => {
+    if (!currentGroup) return;
+    setSaving(true);
+    try {
+      await saveAttendance(currentGroup.id, today, records);
+      toast.success('Prezența a fost salvată!');
+    } catch {
+      toast.error('Eroare la salvarea prezenței.');
+    }
+    setSaving(false);
+  };
+
   if (!user) return null;
 
   const roles = getRoles(user.status);
+  const presentCount = records.filter((r) => r.prezent).length;
 
   const stats = [
-    { label: 'Copii în grupă', value: 5, icon: Users, color: 'text-primary' },
-    { label: 'Prezență azi', value: '4/5', icon: ClipboardList, color: 'text-success' },
+    { label: 'Copii în grupă', value: records.length || 5, icon: Users, color: 'text-primary' },
+    { label: 'Prezență azi', value: attendanceOpen ? `${presentCount}/${records.length}` : '4/5', icon: ClipboardList, color: 'text-success' },
     { label: 'Mesaje necitite', value: unreadMessages, icon: MessageSquare, color: 'text-accent' },
     { label: 'Anunțuri noi', value: newAnnouncements, icon: Megaphone, color: 'text-warning' },
   ];
@@ -42,9 +84,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome */}
+      {/* Welcome — tap to open attendance */}
       <motion.div {...fadeIn}>
-        <Card className="bg-primary text-primary-foreground">
+        <Card
+          className={`bg-primary text-primary-foreground ${isTeacher ? 'cursor-pointer' : ''}`}
+          onClick={() => isTeacher && setAttendanceOpen(!attendanceOpen)}
+        >
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -60,10 +105,88 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
+              {isTeacher && (
+                <div className="flex items-center gap-2 text-primary-foreground/70">
+                  <span className="text-sm">{attendanceOpen ? 'Ascunde prezența' : 'Prezența'}</span>
+                  {attendanceOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Inline Attendance Panel */}
+      <AnimatePresence>
+        {attendanceOpen && isTeacher && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5" />
+                    Prezența — {format(new Date(), 'EEEE, d MMMM', { locale: ro })}
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-success text-success-foreground">{presentCount} prezenți</Badge>
+                    <Badge variant="destructive">{records.length - presentCount} absenți</Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loadingAttendance ? (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {records.map((record) => (
+                      <motion.div
+                        key={record.id_copil}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.15 }}
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                          record.prezent ? 'bg-success/10 border-success/30' : 'bg-card hover:bg-muted/50'
+                        }`}
+                        onClick={() => togglePresent(record.id_copil)}
+                      >
+                        <Checkbox
+                          checked={record.prezent}
+                          onCheckedChange={() => togglePresent(record.id_copil)}
+                          className="pointer-events-none"
+                        />
+                        <span className="text-sm font-medium flex-1">{record.nume_prenume_copil}</span>
+                        <Badge
+                          variant={record.prezent ? 'default' : 'destructive'}
+                          className={record.prezent ? 'bg-success text-success-foreground' : ''}
+                        >
+                          {record.prezent ? 'P' : 'A'}
+                        </Badge>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2 mt-4">
+                  <Button onClick={handleSaveAttendance} disabled={saving} size="sm" className="gap-2">
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Salvează Prezența
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => navigate('/prezenta')}>
+                    Deschide pagina completă
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -88,7 +211,6 @@ export default function Dashboard() {
 
       {/* Quick Actions + Recent Activity */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Quick Actions */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Acțiuni rapide</CardTitle>
@@ -106,7 +228,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">Activitate recentă</CardTitle>
