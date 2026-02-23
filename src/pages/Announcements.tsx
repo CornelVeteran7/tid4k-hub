@@ -61,11 +61,11 @@ export default function Announcements() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold">Anunțuri</h1>
-          <p className="text-muted-foreground">{currentGroup?.nume}</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Anunțuri</h1>
+          <p className="text-muted-foreground text-sm">{currentGroup?.nume}</p>
         </div>
         {canCreate && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
