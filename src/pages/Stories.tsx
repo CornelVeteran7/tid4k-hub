@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
 import { getStories, createStory } from '@/api/stories';
+import { storyCharacters, type StoryCharacter } from '@/data/storyCharacters';
 import type { Story } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
