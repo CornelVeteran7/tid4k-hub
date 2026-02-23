@@ -151,29 +151,36 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top header */}
-        <header className="flex items-center gap-4 border-b bg-card px-4 py-3 lg:px-6">
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
-            <Menu className="h-5 w-5" />
-          </Button>
-
-          <div className="flex-1">
-            <button onClick={() => navigate('/')} className="focus:outline-none">
-              <img src={infodisplayLogoHeader} alt="InfoDisplay — Acasă" className="h-7" />
-            </button>
+        <header className="relative flex items-center border-b bg-card px-4 py-3 lg:px-6">
+          {/* Left: hamburger */}
+          <div className="flex items-center">
+            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
+              <Menu className="h-5 w-5" />
+            </Button>
           </div>
 
+          {/* Center: group selector (absolute centered) */}
           {availableGroups.length > 1 && (
-            <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Selectează grupa" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableGroups.map((g) => (
-                  <SelectItem key={g.id} value={g.id}>{g.nume}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="absolute left-1/2 -translate-x-1/2">
+              <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Selectează grupa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableGroups.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.nume}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
+
+          {/* Right: logo */}
+          <div className="ml-auto">
+            <button onClick={() => navigate('/')} className="focus:outline-none">
+              <img src={infodisplayLogoHeader} alt="InfoDisplay — Acasă" className="h-9" />
+            </button>
+          </div>
         </header>
 
         {/* Page content */}
