@@ -24,7 +24,7 @@ const fadeIn = {
 export default function Dashboard() {
   const { user } = useAuth();
   const { currentGroup } = useGroup();
-  const { unreadMessages, newAnnouncements } = useNotifications();
+  
   const navigate = useNavigate();
 
   const [attendanceOpen, setAttendanceOpen] = useState(false);
