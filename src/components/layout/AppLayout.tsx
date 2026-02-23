@@ -157,7 +157,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </Button>
 
           <div className="flex-1">
-            <h2 className="text-sm font-medium text-muted-foreground hidden sm:block">Grădinița Floarea Soarelui</h2>
+            <button onClick={() => navigate('/')} className="focus:outline-none">
+              <img src={infodisplayLogoHeader} alt="InfoDisplay — Acasă" className="h-7" />
+            </button>
           </div>
 
           {availableGroups.length > 1 && (
