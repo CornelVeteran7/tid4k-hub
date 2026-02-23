@@ -187,26 +187,8 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-4">
-        {stats.map((stat, i) => (
-          <motion.div key={stat.label} {...fadeIn} transition={{ delay: i * 0.05 }}>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg bg-muted ${stat.color}`}>
-                    <stat.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold font-mono">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+
+
 
       {/* Recent Activity */}
       <div>
