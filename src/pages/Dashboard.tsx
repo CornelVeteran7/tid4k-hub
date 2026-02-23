@@ -209,26 +209,9 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Quick Actions + Recent Activity */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      {/* Recent Activity */}
+      <div>
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Acțiuni rapide</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button className="w-full justify-start gap-2" onClick={() => navigate('/prezenta')}>
-              <ClipboardList className="h-4 w-4" /> Înregistrează Prezența
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate('/mesaje')}>
-              <Send className="h-4 w-4" /> Trimite Mesaj
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate('/documente')}>
-              <Upload className="h-4 w-4" /> Încarcă Document
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">Activitate recentă</CardTitle>
           </CardHeader>

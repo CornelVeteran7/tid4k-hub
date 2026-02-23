@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
 import { getStories, createStory } from '@/api/stories';
+import { storyCharacters, type StoryCharacter } from '@/data/storyCharacters';
 import type { Story } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ export default function Stories() {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
   const [newStory, setNewStory] = useState({ titlu: '', continut: '', categorie: 'educative', varsta: '3-5' });
+  const [selectedCharacter, setSelectedCharacter] = useState<StoryCharacter>(storyCharacters[0]);
 
   const canCreate = user && areRol(user.status, 'profesor');
 
@@ -72,6 +74,31 @@ export default function Stories() {
             <Badge className={AGE_COLORS[selectedStory.varsta]}>{selectedStory.varsta} ani</Badge>
           </div>
           <h1 className="text-3xl font-serif font-bold">{selectedStory.titlu}</h1>
+        </div>
+
+        {/* Character Selector */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex items-center gap-4">
+            {storyCharacters.map((char) => (
+              <button
+                key={char.id}
+                onClick={() => setSelectedCharacter(char)}
+                className={`flex flex-col items-center gap-1 transition-transform ${
+                  selectedCharacter.id === char.id ? 'scale-110' : 'opacity-60 hover:opacity-90'
+                }`}
+              >
+                <div className={`h-12 w-12 rounded-full ${char.bgColor} flex items-center justify-center text-xl ring-2 ${
+                  selectedCharacter.id === char.id ? char.color : 'ring-transparent'
+                } ring-offset-2 transition-all`}>
+                  {char.emoji}
+                </div>
+                <span className="text-[10px] font-medium text-muted-foreground">{char.name}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground italic">
+            Povestită de <span className="font-semibold text-foreground">{selectedCharacter.name}</span> — {selectedCharacter.description}
+          </p>
         </div>
 
         <Card>

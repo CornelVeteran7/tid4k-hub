@@ -15,6 +15,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
 import infodisplayLogoHeader from '@/assets/infodisplay-logo-header.png';
+import InkyAssistant from '@/components/InkyAssistant';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Acasă', icon: Home, roles: ['all'] },
@@ -186,6 +187,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           {children}
+          <InkyAssistant />
         </main>
       </div>
     </div>
