@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell
 } from 'lucide-react';
 import { useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
