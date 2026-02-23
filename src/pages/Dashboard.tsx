@@ -66,8 +66,6 @@ export default function Dashboard() {
   const roles = getRoles(user.status);
   const presentCount = records.filter((r) => r.prezent).length;
 
-  
-
   const recentActivity = [
     { text: 'Maria Popescu a încărcat „activitate_pictura.jpg"', time: 'acum 2 ore', icon: Upload },
     { text: 'Ion Ionescu a trimis un mesaj', time: 'acum 3 ore', icon: MessageSquare },
@@ -77,29 +75,28 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Welcome — tap to open attendance */}
+    <div className="space-y-6 min-w-0">
+      {/* Welcome card with gradient accent */}
       <motion.div {...fadeIn}>
-        <Card
-          className="bg-primary text-primary-foreground"
-        >
-          <CardContent className="p-6">
+        <Card className="overflow-hidden border-0 shadow-lg">
+          <div className="h-1 gradient-accent" />
+          <CardContent className="p-5 sm:p-6 bg-primary text-primary-foreground">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-display font-bold">Bun venit, {user.nume_prenume.split(' ')[0]}! 👋</h1>
-                <p className="text-primary-foreground/80 mt-1">
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-display font-bold truncate">Bun venit, {user.nume_prenume.split(' ')[0]}! 👋</h1>
+                <p className="text-primary-foreground/80 mt-1 text-sm">
                   {currentGroup ? `${currentGroup.nume} — ${currentGroup.tip === 'gradinita' ? 'Grădiniță' : 'Școală'}` : 'Selectează o grupă'}
                 </p>
                 <div className="flex flex-wrap gap-1.5 mt-3">
                   {roles.map((r) => (
-                    <Badge key={r} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0">
+                    <Badge key={r} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs">
                       {getRoleLabel(r)}
                     </Badge>
                   ))}
                 </div>
               </div>
               {isTeacher && (
-                <div className="flex items-center gap-3 bg-primary-foreground/15 rounded-xl px-4 py-2.5 cursor-pointer hover:bg-primary-foreground/20 transition-colors"
+                <div className="flex items-center gap-3 bg-primary-foreground/15 rounded-xl px-4 py-2.5 cursor-pointer hover:bg-primary-foreground/20 transition-colors shrink-0"
                   onClick={(e) => { e.stopPropagation(); setAttendanceOpen(!attendanceOpen); }}
                 >
                   <ClipboardList className="h-5 w-5 text-primary-foreground/80" />
@@ -125,11 +122,11 @@ export default function Dashboard() {
             transition={{ duration: 0.25 }}
             className="overflow-hidden"
           >
-            <Card>
+            <Card className="glass-card">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5 text-primary" />
                     Prezența — {format(new Date(), 'EEEE, d MMMM', { locale: ro })}
                   </CardTitle>
                   <div className="flex items-center gap-2">
@@ -161,7 +158,7 @@ export default function Dashboard() {
                           onCheckedChange={() => togglePresent(record.id_copil)}
                           className="pointer-events-none"
                         />
-                        <span className="text-sm font-medium flex-1">{record.nume_prenume_copil}</span>
+                        <span className="text-sm font-medium flex-1 truncate">{record.nume_prenume_copil}</span>
                         <Badge
                           variant={record.prezent ? 'default' : 'destructive'}
                           className={record.prezent ? 'bg-success text-success-foreground' : ''}
@@ -172,12 +169,12 @@ export default function Dashboard() {
                     ))}
                   </div>
                 )}
-                <div className="flex gap-2 mt-4">
-                  <Button onClick={handleSaveAttendance} disabled={saving} size="sm" className="gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                  <Button onClick={handleSaveAttendance} disabled={saving} size="sm" className="gap-2 w-full sm:w-auto">
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     Salvează Prezența
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/prezenta')}>
+                  <Button variant="outline" size="sm" onClick={() => navigate('/prezenta')} className="w-full sm:w-auto">
                     Deschide pagina completă
                   </Button>
                 </div>
@@ -187,12 +184,9 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-
-
-
       {/* Recent Activity */}
       <div>
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-lg">Activitate recentă</CardTitle>
           </CardHeader>
@@ -200,8 +194,8 @@ export default function Dashboard() {
             <div className="space-y-3">
               {recentActivity.map((item, i) => (
                 <div key={i} className="flex items-start gap-3 text-sm">
-                  <div className="p-1.5 rounded bg-muted mt-0.5">
-                    <item.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                  <div className="p-1.5 rounded-lg bg-primary/10 mt-0.5 shrink-0">
+                    <item.icon className="h-3.5 w-3.5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-foreground">{item.text}</p>

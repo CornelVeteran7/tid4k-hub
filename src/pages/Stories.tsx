@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { BookOpen, Plus, Heart, Play, Pause, Download, Volume2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -63,64 +63,67 @@ export default function Stories() {
   // Story Reader View
   if (selectedStory) {
     return (
-      <div className="space-y-6 max-w-3xl mx-auto">
+      <div className="space-y-5 max-w-3xl mx-auto min-w-0">
         <Button variant="ghost" className="gap-2" onClick={() => setSelectedStory(null)}>
           <ArrowLeft className="h-4 w-4" /> Înapoi la povești
         </Button>
 
         <div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <Badge variant="secondary">{CATEGORIES.find((c) => c.value === selectedStory.categorie)?.label}</Badge>
             <Badge className={AGE_COLORS[selectedStory.varsta]}>{selectedStory.varsta} ani</Badge>
           </div>
-          <h1 className="text-3xl font-serif font-bold">{selectedStory.titlu}</h1>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold">{selectedStory.titlu}</h1>
         </div>
 
         {/* Character Selector */}
         <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center gap-4">
-            {storyCharacters.map((char) => (
-              <button
-                key={char.id}
-                onClick={() => setSelectedCharacter(char)}
-                className={`flex flex-col items-center gap-1 transition-transform ${
-                  selectedCharacter.id === char.id ? 'scale-110' : 'opacity-60 hover:opacity-90'
-                }`}
-              >
-                <div className={`h-12 w-12 rounded-full ${char.bgColor} flex items-center justify-center text-xl ring-2 ${
-                  selectedCharacter.id === char.id ? char.color : 'ring-transparent'
-                } ring-offset-2 transition-all`}>
-                  {char.emoji}
-                </div>
-                <span className="text-[10px] font-medium text-muted-foreground">{char.name}</span>
-              </button>
-            ))}
-          </div>
-          <p className="text-sm text-muted-foreground italic">
+          <ScrollArea className="w-full max-w-sm">
+            <div className="flex items-center gap-3 px-2 pb-2">
+              {storyCharacters.map((char) => (
+                <button
+                  key={char.id}
+                  onClick={() => setSelectedCharacter(char)}
+                  className={`flex flex-col items-center gap-1 transition-transform shrink-0 ${
+                    selectedCharacter.id === char.id ? 'scale-110' : 'opacity-60 hover:opacity-90'
+                  }`}
+                >
+                  <div className={`h-11 w-11 rounded-full ${char.bgColor} flex items-center justify-center text-lg ring-2 ${
+                    selectedCharacter.id === char.id ? char.color : 'ring-transparent'
+                  } ring-offset-2 transition-all`}>
+                    {char.emoji}
+                  </div>
+                  <span className="text-[10px] font-medium text-muted-foreground">{char.name}</span>
+                </button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+          <p className="text-sm text-muted-foreground italic text-center px-4">
             Povestită de <span className="font-semibold text-foreground">{selectedCharacter.name}</span> — {selectedCharacter.description}
           </p>
         </div>
 
-        <Card>
-          <CardContent className="p-6 lg:p-8">
-            <div className="font-serif text-lg leading-relaxed whitespace-pre-wrap">
+        <Card className="glass-card">
+          <CardContent className="p-5 sm:p-6 lg:p-8">
+            <div className="font-serif text-base sm:text-lg leading-relaxed whitespace-pre-wrap">
               {selectedStory.continut}
             </div>
           </CardContent>
         </Card>
 
         {/* Audio Player */}
-        <Card>
+        <Card className="glass-card">
           <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <Button size="icon" variant="outline" onClick={() => setIsPlaying(!isPlaying)}>
+            <div className="flex items-center gap-3">
+              <Button size="icon" variant="outline" onClick={() => setIsPlaying(!isPlaying)} className="shrink-0">
                 {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </Button>
-              <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-primary rounded-full" style={{ width: isPlaying ? '35%' : '0%' }} />
+              <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden min-w-0">
+                <div className="h-full bg-primary rounded-full transition-all" style={{ width: isPlaying ? '35%' : '0%' }} />
               </div>
               <Select value={String(playbackSpeed)} onValueChange={(v) => setPlaybackSpeed(Number(v))}>
-                <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-16 h-9 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="0.5">0.5x</SelectItem>
                   <SelectItem value="1">1x</SelectItem>
@@ -128,10 +131,10 @@ export default function Stories() {
                   <SelectItem value="2">2x</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="icon"><Download className="h-4 w-4" /></Button>
+              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0"><Download className="h-4 w-4" /></Button>
             </div>
             <div className="mt-3">
-              <Button variant="outline" className="gap-2 w-full">
+              <Button variant="outline" className="gap-2 w-full" size="sm">
                 <Volume2 className="h-4 w-4" /> Citește Povestea (TTS)
               </Button>
             </div>
@@ -143,16 +146,16 @@ export default function Stories() {
 
   // Stories Grid
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold">Biblioteca de Povești</h1>
-          <p className="text-muted-foreground">{stories.length} povești disponibile</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Biblioteca de Povești</h1>
+          <p className="text-muted-foreground text-sm">{stories.length} povești disponibile</p>
         </div>
         {canCreate && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="h-4 w-4" /> Adaugă Poveste</Button>
+              <Button className="gap-2" size="sm"><Plus className="h-4 w-4" /> Adaugă Poveste</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Poveste nouă</DialogTitle></DialogHeader>
@@ -190,30 +193,42 @@ export default function Stories() {
         )}
       </div>
 
-      <Tabs value={category} onValueChange={setCategory}>
-        <TabsList>
+      {/* Category filter pills - scrollable */}
+      <ScrollArea className="w-full">
+        <div className="flex gap-2 pb-2">
           {CATEGORIES.map((c) => (
-            <TabsTrigger key={c.value} value={c.value}>{c.label}</TabsTrigger>
+            <button
+              key={c.value}
+              onClick={() => setCategory(c.value)}
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                category === c.value
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              {c.label}
+            </button>
           ))}
-        </TabsList>
-      </Tabs>
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((story) => (
           <Card
             key={story.id_poveste}
-            className="cursor-pointer hover:shadow-md transition-shadow"
+            className="glass-card cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5"
             onClick={() => setSelectedStory(story)}
           >
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex gap-1.5">
+                <div className="flex gap-1.5 flex-wrap">
                   <Badge variant="secondary" className="text-xs">{CATEGORIES.find((c) => c.value === story.categorie)?.label}</Badge>
                   <Badge className={`text-xs ${AGE_COLORS[story.varsta]}`}>{story.varsta} ani</Badge>
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); toggleFavorite(story.id_poveste); }}
-                  className="text-muted-foreground hover:text-destructive transition-colors"
+                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
                 >
                   <Heart className={`h-4 w-4 ${story.favorit ? 'fill-destructive text-destructive' : ''}`} />
                 </button>
@@ -222,8 +237,8 @@ export default function Stories() {
                 <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <BookOpen className="h-5 w-5 text-primary" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-sm">{story.titlu}</h3>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm truncate">{story.titlu}</h3>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{story.continut.slice(0, 100)}...</p>
                 </div>
               </div>

@@ -20,43 +20,49 @@ export default function Reports() {
   }, [startDate, endDate]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 min-w-0">
+      <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold">Rapoarte</h1>
-          <p className="text-muted-foreground">Statistici și analize</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Rapoarte</h1>
+          <p className="text-muted-foreground text-sm">Statistici și analize</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2"><Download className="h-4 w-4" /> Export PDF</Button>
-          <Button variant="outline" className="gap-2"><Download className="h-4 w-4" /> Export Excel</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" className="gap-2"><Download className="h-4 w-4" /> Export PDF</Button>
+          <Button variant="outline" size="sm" className="gap-2"><Download className="h-4 w-4" /> Export Excel</Button>
         </div>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4 flex flex-wrap gap-4 items-end">
-          <div><Label className="text-xs">De la</Label><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-auto" /></div>
-          <div><Label className="text-xs">Până la</Label><Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-auto" /></div>
+      <Card className="glass-card">
+        <CardContent className="p-4 flex flex-col sm:flex-row flex-wrap gap-3 items-start sm:items-end">
+          <div className="w-full sm:w-auto">
+            <Label className="text-xs">De la</Label>
+            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full sm:w-auto" />
+          </div>
+          <div className="w-full sm:w-auto">
+            <Label className="text-xs">Până la</Label>
+            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full sm:w-auto" />
+          </div>
         </CardContent>
       </Card>
 
       {report && (
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid lg:grid-cols-2 gap-5">
           {/* Attendance Trends */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 glass-card">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" /> Tendințe prezență (ultimele 30 zile)
+                <BarChart3 className="h-4 w-4 text-primary" /> Tendințe prezență (ultimele 30 zile)
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+            <CardContent className="pr-0 sm:pr-6">
+              <ResponsiveContainer width="100%" height={260}>
                 <LineChart data={report.attendance_trends.slice(0, 28)}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="data" tickFormatter={(v) => v.split('-')[2]} fontSize={12} />
-                  <YAxis fontSize={12} />
+                  <XAxis dataKey="data" tickFormatter={(v) => v.split('-')[2]} fontSize={11} />
+                  <YAxis fontSize={11} width={30} />
                   <Tooltip />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
                   <Line type="monotone" dataKey="prezenti" stroke="hsl(145,63%,42%)" name="Prezenți" strokeWidth={2} />
                   <Line type="monotone" dataKey="absenti" stroke="hsl(1,66%,46%)" name="Absenți" strokeWidth={2} />
                 </LineChart>
@@ -65,16 +71,16 @@ export default function Reports() {
           </Card>
 
           {/* User Activity */}
-          <Card>
+          <Card className="glass-card">
             <CardHeader>
               <CardTitle className="text-base">Activitate utilizatori</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pr-0 sm:pr-6">
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={report.user_activity} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" fontSize={12} />
-                  <YAxis dataKey="nume" type="category" fontSize={11} width={120} />
+                  <XAxis type="number" fontSize={11} />
+                  <YAxis dataKey="nume" type="category" fontSize={10} width={80} />
                   <Tooltip />
                   <Bar dataKey="actiuni" fill="hsl(204,42%,29%)" radius={[0, 4, 4, 0]} />
                 </BarChart>
@@ -83,20 +89,20 @@ export default function Reports() {
           </Card>
 
           {/* Documents by Category */}
-          <Card>
+          <Card className="glass-card">
             <CardHeader>
               <CardTitle className="text-base">Documente pe categorii</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
-                  <Pie data={report.documents_by_category} dataKey="numar" nameKey="categorie" cx="50%" cy="50%" outerRadius={90} label>
+                  <Pie data={report.documents_by_category} dataKey="numar" nameKey="categorie" cx="50%" cy="50%" outerRadius={80} label>
                     {report.documents_by_category.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>

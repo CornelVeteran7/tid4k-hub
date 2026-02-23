@@ -70,66 +70,66 @@ export default function WeeklyMenu() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 min-w-0">
+      <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-2xl font-display font-bold">Meniul Săptămânal</h1>
-          <p className="text-muted-foreground">Săptămâna {week}</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Meniul Săptămânal</h1>
+          <p className="text-muted-foreground text-sm">Săptămâna {week}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => {
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => {
             const [y, w] = week.split('-W').map(Number);
             setWeek(`${y}-W${String(w - 1).padStart(2, '0')}`);
           }}><ChevronLeft className="h-4 w-4" /></Button>
-          <Input value={week} onChange={(e) => setWeek(e.target.value)} className="w-32 text-center font-mono" />
-          <Button variant="outline" size="icon" onClick={() => {
+          <Input value={week} onChange={(e) => setWeek(e.target.value)} className="w-28 text-center font-mono h-9" />
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => {
             const [y, w] = week.split('-W').map(Number);
             setWeek(`${y}-W${String(w + 1).padStart(2, '0')}`);
           }}><ChevronRight className="h-4 w-4" /></Button>
-          <Button variant="outline" className="gap-2"><Printer className="h-4 w-4" /> Print</Button>
+          <Button variant="outline" size="sm" className="gap-2 ml-auto"><Printer className="h-4 w-4" /> Print</Button>
         </div>
       </div>
 
       {/* Toggles */}
-      <div className="flex flex-wrap gap-6">
+      <div className="flex flex-wrap gap-4">
         <div className="flex items-center gap-2">
           <Switch checked={showEmoji} onCheckedChange={setShowEmoji} id="emoji" />
-          <Label htmlFor="emoji">Emoji</Label>
+          <Label htmlFor="emoji" className="text-sm">Emoji</Label>
         </div>
         <div className="flex items-center gap-2">
           <Switch checked={showNutrients} onCheckedChange={setShowNutrients} id="nutrients" />
-          <Label htmlFor="nutrients">Nutrienți</Label>
+          <Label htmlFor="nutrients" className="text-sm">Nutrienți</Label>
         </div>
         <div className="flex items-center gap-2">
           <Switch checked={showKcal} onCheckedChange={setShowKcal} id="kcal" />
-          <Label htmlFor="kcal">kcal/zi</Label>
+          <Label htmlFor="kcal" className="text-sm">kcal/zi</Label>
         </div>
       </div>
 
       {/* Menu Table */}
-      <Card>
+      <Card className="glass-card">
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-px">
+            <table className="w-full text-sm min-w-[600px]">
               <thead>
                 <tr className="bg-primary text-primary-foreground">
-                  <th className="border border-primary/30 p-3 text-left w-28">Masa</th>
+                  <th className="border border-primary/30 p-2.5 text-left w-24 text-xs">Masa</th>
                   {DAYS.map((d) => (
-                    <th key={d} className="border border-primary/30 p-3 text-center font-medium">{d}</th>
+                    <th key={d} className="border border-primary/30 p-2.5 text-center font-medium text-xs">{d}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {MEALS.map((meal) => (
                   <tr key={meal.key}>
-                    <td className="border p-3 font-medium bg-muted/50">{meal.label}</td>
+                    <td className="border p-2.5 font-medium bg-muted/50 text-xs">{meal.label}</td>
                     {DAYS.map((zi) => {
                       const cellKey = `${meal.key}-${zi}`;
                       const content = getCellContent(meal.key, zi);
                       return (
                         <td
                           key={cellKey}
-                          className="border p-3 text-xs leading-relaxed cursor-pointer hover:bg-muted/30 transition-colors min-w-[140px]"
+                          className="border p-2.5 text-xs leading-relaxed cursor-pointer hover:bg-muted/30 transition-colors"
                           onDoubleClick={() => isAdmin && setEditingCell(cellKey)}
                         >
                           {editingCell === cellKey ? (
@@ -148,15 +148,14 @@ export default function WeeklyMenu() {
                     })}
                   </tr>
                 ))}
-                {/* kcal row */}
                 {showKcal && menu && (
                   <tr>
-                    <td className="border p-3 font-medium bg-muted/50">kcal/zi</td>
+                    <td className="border p-2.5 font-medium bg-muted/50 text-xs">kcal/zi</td>
                     {DAYS.map((zi) => {
                       const nut = menu.nutritional.find((n) => n.zi === zi);
                       return (
-                        <td key={zi} className="border p-3 text-center">
-                          <span className={`font-mono font-bold ${nut ? getKcalColor(nut.kcal) : ''}`}>
+                        <td key={zi} className="border p-2.5 text-center">
+                          <span className={`font-mono font-bold text-xs ${nut ? getKcalColor(nut.kcal) : ''}`}>
                             {nut?.kcal || '—'}
                           </span>
                         </td>
@@ -172,26 +171,26 @@ export default function WeeklyMenu() {
 
       {/* Nutritional Section */}
       {showNutrients && menu && (
-        <Card>
+        <Card className="glass-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Valori nutriționale</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto -mx-px">
+              <table className="w-full text-sm min-w-[500px]">
                 <thead>
                   <tr className="bg-primary text-primary-foreground">
-                    <th className="border border-primary/30 p-2 text-left">Nutrient</th>
-                    {DAYS.map((d) => <th key={d} className="border border-primary/30 p-2 text-center">{d}</th>)}
+                    <th className="border border-primary/30 p-2 text-left text-xs">Nutrient</th>
+                    {DAYS.map((d) => <th key={d} className="border border-primary/30 p-2 text-center text-xs">{d}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {(['kcal', 'carbohidrati', 'proteine', 'grasimi', 'fibre'] as const).map((key) => (
                     <tr key={key}>
-                      <td className="border p-2 font-medium capitalize">{key === 'kcal' ? 'Calorii (kcal)' : key.charAt(0).toUpperCase() + key.slice(1) + ' (g)'}</td>
+                      <td className="border p-2 font-medium capitalize text-xs">{key === 'kcal' ? 'Calorii (kcal)' : key.charAt(0).toUpperCase() + key.slice(1) + ' (g)'}</td>
                       {DAYS.map((zi) => {
                         const nut = menu.nutritional.find((n) => n.zi === zi);
-                        return <td key={zi} className="border p-2 text-center font-mono">{nut?.[key] || '—'}</td>;
+                        return <td key={zi} className="border p-2 text-center font-mono text-xs">{nut?.[key] || '—'}</td>;
                       })}
                     </tr>
                   ))}
@@ -206,14 +205,14 @@ export default function WeeklyMenu() {
       )}
 
       {/* Allergens */}
-      <Card>
+      <Card className="glass-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Alergeni prezenți</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {(menu?.alergeni || []).map((a) => (
-              <Badge key={a} variant="outline">{a}</Badge>
+              <Badge key={a} variant="outline" className="bg-warning/10 text-warning border-warning/30">{a}</Badge>
             ))}
             {ALLERGENS.filter((a) => !menu?.alergeni?.includes(a)).map((a) => (
               <Badge key={a} variant="secondary" className="opacity-40">{a}</Badge>
@@ -224,8 +223,8 @@ export default function WeeklyMenu() {
 
       {/* Signatures */}
       {menu && (
-        <Card>
-          <CardContent className="p-4 flex flex-wrap gap-8 text-sm">
+        <Card className="glass-card">
+          <CardContent className="p-4 flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-8 text-sm">
             <div><span className="text-muted-foreground">Director:</span> <strong>{menu.semnaturi.director}</strong></div>
             <div><span className="text-muted-foreground">Asistent medical:</span> <strong>{menu.semnaturi.asistent_medical}</strong></div>
             <div><span className="text-muted-foreground">Administrator:</span> <strong>{menu.semnaturi.administrator}</strong></div>
@@ -235,7 +234,7 @@ export default function WeeklyMenu() {
 
       {/* Floating Save */}
       {hasChanges && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-20 right-6 z-50">
           <Button size="lg" className="gap-2 shadow-lg" onClick={handleSave}>
             <Save className="h-4 w-4" /> Salvează Meniul
           </Button>
