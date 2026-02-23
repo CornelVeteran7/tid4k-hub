@@ -128,25 +128,23 @@ export default function Announcements() {
         {announcements.map((ann) => (
           <Card key={ann.id_info} className={ann.prioritate === 'urgent' ? 'border-destructive/50' : ''}>
             <CardContent className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold">{ann.titlu}</h3>
-                    <Badge variant={ann.prioritate === 'urgent' ? 'destructive' : 'secondary'}>
-                      {ann.prioritate === 'urgent' ? '⚠️ Urgent' : 'Normal'}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{ann.continut}</p>
-                  <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
-                    <span>{ann.autor}</span>
-                    <span>·</span>
-                    <span>{format(new Date(ann.data_upload), 'd MMMM yyyy, HH:mm', { locale: ro })}</span>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-semibold">{ann.titlu}</h3>
+                  <Badge variant={ann.prioritate === 'urgent' ? 'destructive' : 'secondary'}>
+                    {ann.prioritate === 'urgent' ? '⚠️ Urgent' : 'Normal'}
+                  </Badge>
+                  <Button variant={ann.citit ? 'secondary' : 'outline'} size="sm" className="ml-auto shrink-0 gap-1">
+                    <Check className="h-3.5 w-3.5" />
+                    {ann.citit ? 'Citit' : 'Marchează citit'}
+                  </Button>
                 </div>
-                <Button variant={ann.citit ? 'secondary' : 'outline'} size="sm" className="shrink-0 gap-1">
-                  <Check className="h-3.5 w-3.5" />
-                  {ann.citit ? 'Citit' : 'Marchează citit'}
-                </Button>
+                <p className="text-sm text-muted-foreground leading-relaxed">{ann.continut}</p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{ann.autor}</span>
+                  <span>·</span>
+                  <span>{format(new Date(ann.data_upload), 'd MMMM yyyy, HH:mm', { locale: ro })}</span>
+                </div>
               </div>
             </CardContent>
           </Card>

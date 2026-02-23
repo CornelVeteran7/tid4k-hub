@@ -138,12 +138,12 @@ export default function Attendance() {
       </Card>
 
       {/* Save button */}
-      <div className="flex gap-2">
-        <Button onClick={handleSave} disabled={saving} className="gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Button onClick={handleSave} disabled={saving} className="gap-2 w-full sm:w-auto">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Salvează Prezența
         </Button>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2 w-full sm:w-auto">
           <Download className="h-4 w-4" /> Export Excel
         </Button>
       </div>
