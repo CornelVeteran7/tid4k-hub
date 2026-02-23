@@ -15,6 +15,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
 import infodisplayLogoHeader from '@/assets/infodisplay-logo-header.png';
+import InkyAssistant from '@/components/InkyAssistant';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Acasă', icon: Home, roles: ['all'] },
