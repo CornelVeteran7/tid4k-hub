@@ -96,10 +96,10 @@ export default function Announcements() {
 
       {/* Ticker Management */}
       {canCreate && (
-        <Card>
+        <Card className="glass-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Megaphone className="h-4 w-4" /> Bandă anunțuri (Ticker)
+              <Megaphone className="h-4 w-4 text-primary" /> Bandă anunțuri (Ticker)
             </CardTitle>
           </CardHeader>
           <CardContent>
