@@ -86,8 +86,7 @@ export default function Dashboard() {
       {/* Welcome — tap to open attendance */}
       <motion.div {...fadeIn}>
         <Card
-          className={`bg-primary text-primary-foreground ${isTeacher ? 'cursor-pointer' : ''}`}
-          onClick={() => isTeacher && setAttendanceOpen(!attendanceOpen)}
+          className="bg-primary text-primary-foreground"
         >
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
