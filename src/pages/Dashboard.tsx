@@ -66,11 +66,7 @@ export default function Dashboard() {
   const roles = getRoles(user.status);
   const presentCount = records.filter((r) => r.prezent).length;
 
-  const stats = [
-    { label: 'Copii în grupă', value: records.length || 5, icon: Users, color: 'text-primary' },
-    { label: 'Mesaje necitite', value: unreadMessages, icon: MessageSquare, color: 'text-accent' },
-    { label: 'Anunțuri noi', value: newAnnouncements, icon: Megaphone, color: 'text-warning' },
-  ];
+  
 
   const recentActivity = [
     { text: 'Maria Popescu a încărcat „activitate_pictura.jpg"', time: 'acum 2 ore', icon: Upload },
