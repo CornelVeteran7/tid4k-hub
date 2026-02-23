@@ -72,7 +72,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {/* Logo */}
           <div className="flex items-center justify-between px-4 py-5 border-b border-sidebar-border">
             <div className="flex items-center gap-2">
-              <img src={logoBlack} alt="InfoDisplay" className="h-7" />
+              <img src={logoWhite} alt="InfoDisplay" className="h-7" />
             </div>
             <Button variant="ghost" size="icon" className="lg:hidden text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => setSidebarOpen(false)}>
               <X className="h-5 w-5" />
