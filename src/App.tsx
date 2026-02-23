@@ -2,11 +2,72 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { GroupProvider } from "@/contexts/GroupContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import { AppLayout } from "@/components/layout/AppLayout";
+
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Attendance from "./pages/Attendance";
+import Documents from "./pages/Documents";
+import Messages from "./pages/Messages";
+import Announcements from "./pages/Announcements";
+import Schedule from "./pages/Schedule";
+import ScheduleCancelarie from "./pages/ScheduleCancelarie";
+import WeeklyMenu from "./pages/WeeklyMenu";
+import Stories from "./pages/Stories";
+import Reports from "./pages/Reports";
+import UserManagement from "./pages/UserManagement";
+import Settings from "./pages/Settings";
+import Infodisplay from "./pages/Infodisplay";
+import SocialMediaFacebook from "./pages/SocialMediaFacebook";
+import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function ProtectedRoutes() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  return (
+    <GroupProvider>
+      <NotificationProvider>
+        <AppLayout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/prezenta" element={<Attendance />} />
+            <Route path="/documente" element={<Documents />} />
+            <Route path="/mesaje" element={<Messages />} />
+            <Route path="/anunturi" element={<Announcements />} />
+            <Route path="/orar" element={<Schedule />} />
+            <Route path="/orar-cancelarie" element={<ScheduleCancelarie />} />
+            <Route path="/meniu" element={<WeeklyMenu />} />
+            <Route path="/povesti" element={<Stories />} />
+            <Route path="/rapoarte" element={<Reports />} />
+            <Route path="/utilizatori" element={<UserManagement />} />
+            <Route path="/configurari" element={<Settings />} />
+            <Route path="/infodisplay" element={<Infodisplay />} />
+            <Route path="/social-facebook" element={<SocialMediaFacebook />} />
+            <Route path="/social-whatsapp" element={<SocialMediaWhatsapp />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AppLayout>
+      </NotificationProvider>
+    </GroupProvider>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -14,14 +75,21 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginRoute />} />
+            <Route path="/*" element={<ProtectedRoutes />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+function LoginRoute() {
+  const { isAuthenticated } = useAuth();
+  if (isAuthenticated) return <Navigate to="/" replace />;
+  return <Login />;
+}
 
 export default App;
