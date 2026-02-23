@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
+import infodisplayLogoHeader from '@/assets/infodisplay-logo-header.png';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Acasă', icon: Home, roles: ['all'] },
