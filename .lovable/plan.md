@@ -1,156 +1,89 @@
 
+# App UX Audit and Improvements
 
-# Redesign Attendance Page - Weekly Tabular View
+## Issues Found
 
-## Overview
+### 1. Redundant Group Selector in Header
+The header shows a "Grupa Mare" dropdown for ALL users. But teachers typically have 1 group, and that info is already displayed in the welcome banner ("Grupa Mare -- Gradinita"). The dropdown should only appear for users with the `director` or `administrator` role who manage multiple groups. For single-group teachers, the header space is wasted.
 
-Replace the current single-day attendance list (vertical scroll with individual cards per child) with a **weekly tabular grid** matching the screenshot: a compact table where each row is a child and each column is a weekday (L, Ma, Mi, J, V), with checkboxes at each intersection.
+**Fix**: Show the group selector only when the user has `director`/`administrator` role OR has more than 1 group. Otherwise, hide it entirely (the welcome banner already displays the group name).
 
-This format is faster for teachers (tick checkboxes across a row instead of scrolling), and prints cleanly on paper.
+### 2. Sidebar Navigation Duplicates the Hub
+The left sidebar (desktop) and burger menu (mobile) list: Prezenta, Documente, Mesaje, Povesti, Meniu, Orar, etc. These are the same items as the colorful module cards on the homepage. For the "zero learning curve" philosophy, the homepage IS the navigation. The sidebar creates confusion.
 
----
+**Fix**: 
+- On mobile: Remove the burger menu entirely. The homepage hub cards ARE the navigation. Add a small back-to-home button on inner pages instead.
+- On desktop: Keep the sidebar but make it minimal -- only show admin/management links (Rapoarte, Utilizatori, Configurari, Infodisplay) that don't have hub cards. The hub cards handle the main modules.
 
-## Reference Screenshot Analysis
+### 3. Module Cards Should Expand In-Place (Full-Screen Panels)
+Currently, tapping a module card navigates to a completely separate page (e.g., `/prezenta`), losing the hub context. The user wants a "reveal" behavior: tapping a card should expand it smoothly to fill the screen (below the header, above the ticker), showing the module's content. A close/collapse button slides it back down.
 
-The uploaded image shows:
+**Fix**: Create a `ModulePanel` overlay system:
+- Tapping a card triggers a full-screen panel that slides up from the card's position
+- The panel fills the area between header and ticker
+- A close button (X or swipe-down) collapses it back
+- The header and announcements ticker remain visible
+- Uses `framer-motion` `AnimatePresence` with `layoutId` for a smooth card-to-panel transition
 
-```text
-+----------------------------------------------------------+
-| PREZENTA                          Prezenti: 0/2    [^]   |
-| clasa V                                                   |
-| 24 February 2026                                          |
-+----------------------------------------------------------+
-| Saptamana curenta: 23-27 februarie 2026                   |
-+--------+----------+----+----+----+----+----+              |
-| Avatar | Nume     | L  | Ma | Mi | J  | V  |             |
-+--------+----------+----+----+----+----+----+              |
-|  [img] | CI_V_1   | [] | [] | [] | [] | [] |             |
-|  [img] | CI_V_2   | [] | [] | [] | [] | [] |             |
-+--------+----------+----+----+----+----+----+              |
-|       [ Salveaza  ]                                       |
-|       [ Printeaza ]                                       |
-|       [ Adauga copil ]                                    |
-+----------------------------------------------------------+
-```
+### 4. Desktop Layout Needs Refinement
+On desktop (1920px), the module cards stretch the full width which looks awkward. The children scroller cards are tiny relative to the space. The layout should use the extra space better.
 
-Key features:
-- **Yellow header card** with module title, group name, date, and live "Prezenti: X/Y" counter
-- **Week label** showing the date range
-- **Table** with Avatar, Nume, and 5 weekday columns (L, Ma, Mi, J, V)
-- **Today's column is highlighted** (light green/yellow tint)
-- **Three action buttons**: Salveaza (green), Printeaza (purple), Adauga copil (gray)
+**Fix**: On desktop, constrain the hub content to `max-w-4xl mx-auto` and optionally show a 2-column grid for module cards.
 
 ---
 
-## Data Model Changes
+## Technical Implementation Plan
 
-### `src/types/index.ts`
+### Step 1: Create `ModulePanel` Component
+**New file: `src/components/dashboard/ModulePanel.tsx`**
 
-Add a new interface for weekly attendance:
+A full-screen overlay panel that:
+- Receives the module key, color, title, and children (the page content)
+- Animates from the bottom up using framer-motion (`y: "100%"` to `y: 0`)
+- Fills `position: fixed; inset: 0; top: [header-height]; bottom: [ticker-height]`
+- Has a colored header bar matching the module color with title + close button
+- Scrollable content area inside
+- Close button triggers exit animation
 
-```typescript
-export interface WeeklyAttendanceRecord {
-  id_copil: number;
-  nume_prenume_copil: string;
-  zile: {
-    [date: string]: boolean; // e.g. "2026-02-24": true
-  };
-  observatii?: string;
-}
+### Step 2: Refactor `ModuleCard` to Open Panel Instead of Navigate
+**Edit: `src/components/dashboard/ModuleCard.tsx`**
 
-export interface WeeklyAttendanceData {
-  saptamana_start: string; // Monday date
-  saptamana_end: string;   // Friday date
-  records: WeeklyAttendanceRecord[];
-}
-```
+- Remove `useNavigate` and the `onClick={() => navigate(route)}` behavior
+- Instead, accept an `onOpen` callback prop
+- The parent (`ModuleHub`) manages which panel is open via state
 
-### `src/api/attendance.ts`
+### Step 3: Refactor `ModuleHub` to Manage Panel State
+**Edit: `src/components/dashboard/ModuleHub.tsx`**
 
-Add a new mock function `getWeeklyAttendance(grupa, mondayDate)` that returns `WeeklyAttendanceData`. The mock generates 5 weekday dates from the given Monday and random presence booleans for each child. Also add `saveWeeklyAttendance(grupa, data)`.
+- Add `openModule` state (string | null)
+- Pass `onOpen` to each `ModuleCard`
+- Render the corresponding `ModulePanel` with the matching page component as children
+- Lazy-load the page content inside the panel
 
----
+### Step 4: Embed Page Components Inside Panels
+**Edit: `src/pages/Attendance.tsx`, `Documents.tsx`, `Messages.tsx`, etc.**
 
-## UI Rewrite
+- These pages need to work both standalone (via sidebar/direct URL) and embedded inside a panel
+- Add an optional `embedded` prop that hides redundant headers (the panel already shows the module title)
 
-### `src/pages/Attendance.tsx` - Complete rewrite
+### Step 5: Simplify Header -- Conditional Group Selector
+**Edit: `src/components/layout/AppLayout.tsx`**
 
-**Header section** (yellow card, matching screenshot):
-- Solid yellow (`#FFC107`) background with rounded corners
-- "PREZENTA" title (bold), group name, formatted current date
-- "Prezenti: X/Y" pill badge (counts today's column only)
-- Collapse/expand chevron (optional)
+- Show group selector only when `areRol(userStatus, 'director') || areRol(userStatus, 'administrator') || availableGroups.length > 1`
+- On mobile: Replace the burger menu button with a simple back arrow (visible only on non-home pages)
+- On desktop: Strip the sidebar to only show admin-level links (Rapoarte, Utilizatori, Configurari, Infodisplay), hiding items that have hub cards
 
-**Week label**:
-- "Saptamana curenta: DD-DD luna YYYY" text centered below header
+### Step 6: Add Back Navigation for Inner Pages
+**Edit: `src/components/layout/AppLayout.tsx`**
 
-**Table**:
-- Columns: Avatar | Nume | L | Ma | Mi | J | V
-- Avatar: pastel circle with initials (same pattern as ChildrenScroller)
-- Nume: child's full name, bold, truncated
-- L/Ma/Mi/J/V: Checkbox components from shadcn
-- Today's column gets a highlighted background (e.g., `bg-yellow-50`)
-- Table uses `overflow-x-auto` for small screens
-- Sticky first two columns (Avatar + Nume) on mobile so names remain visible while scrolling horizontally
+- On mobile, when not on `/`, show a back arrow that goes to `/` instead of the hamburger
+- This replaces the need for a full sidebar on mobile
 
-**Action buttons** (below table):
-- "Salveaza" - solid green/teal button with save icon
-- "Printeaza" - solid purple button with printer icon, triggers `window.print()`
-- "Adauga copil" - outlined gray button with user-plus icon (shows toast "In curand")
+### Step 7: Desktop Layout Polish
+**Edit: `src/pages/Dashboard.tsx`**
 
-**Week navigation**:
-- Small left/right arrows to move between weeks
-- Auto-detects current week on load
-
-### Print styles (`src/index.css`)
-
-Add `@media print` rules:
-- Hide header, sidebar, FAB, action buttons
-- Show only the table at full width
-- Ensure borders render cleanly in black and white
-- Add a print header with group name, week range, and school name
-
----
-
-## Technical Details
-
-### Week calculation logic
-
-```typescript
-// Get Monday of current week
-function getMonday(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  return d;
-}
-
-// Generate 5 weekday dates from Monday
-function getWeekDates(monday: Date): string[] {
-  return Array.from({ length: 5 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    return format(d, 'yyyy-MM-dd');
-  });
-}
-```
-
-### Today column highlighting
-
-```typescript
-const today = format(new Date(), 'yyyy-MM-dd');
-// In table header and cells, add conditional bg:
-className={date === today ? 'bg-yellow-50' : ''}
-```
-
-### Prezenti counter
-
-Counts only today's column:
-```typescript
-const todayPresent = records.filter(r => r.zile[today]).length;
-// Display: `Prezenti: ${todayPresent}/${records.length}`
-```
+- Wrap the dashboard content in `max-w-4xl mx-auto` on large screens
+- Module cards: use a 2-column grid on `lg:` breakpoint
 
 ---
 
@@ -158,8 +91,60 @@ const todayPresent = records.filter(r => r.zile[today]).length;
 
 | File | Action | Purpose |
 |---|---|---|
-| `src/types/index.ts` | Edit | Add WeeklyAttendanceRecord and WeeklyAttendanceData types |
-| `src/api/attendance.ts` | Edit | Add getWeeklyAttendance and saveWeeklyAttendance mock functions |
-| `src/pages/Attendance.tsx` | Rewrite | Weekly tabular view with yellow header, checkboxes, action buttons |
-| `src/index.css` | Edit | Add @media print styles for clean paper output |
+| `src/components/dashboard/ModulePanel.tsx` | Create | Full-screen sliding panel overlay for module content |
+| `src/components/dashboard/ModuleCard.tsx` | Edit | Accept `onOpen` prop instead of navigating |
+| `src/components/dashboard/ModuleHub.tsx` | Edit | Manage open panel state, render panels with page content |
+| `src/components/layout/AppLayout.tsx` | Edit | Conditional group selector, mobile back button, simplified sidebar |
+| `src/pages/Dashboard.tsx` | Edit | Desktop max-width constraint, 2-col grid |
+| `src/pages/Attendance.tsx` | Edit | Add `embedded` prop to hide redundant header |
+| `src/pages/Documents.tsx` | Edit | Add `embedded` prop |
+| `src/pages/Messages.tsx` | Edit | Add `embedded` prop |
+| `src/pages/Stories.tsx` | Edit | Add `embedded` prop |
+| `src/pages/WeeklyMenu.tsx` | Edit | Add `embedded` prop |
 
+---
+
+## UX Flow After Changes
+
+```text
+MOBILE (390px):
++------------------+
+| [<-]  Grupa Mare  [bell] [home] |   <- back arrow only on inner pages; group selector only for directors
++------------------+
+| Bun venit, Maria!|
+| [stat pills]     |
++------------------+
+| [children scroll] |
++------------------+
+| [PREZENTA card]  |  <- tap opens full-screen panel
+| [IMAGINI card]   |
+| [DOCUMENTE card] |
+| ...              |
++------------------+
+| [ticker bar]     |
++------------------+
+
+When card is tapped:
++------------------+
+| [header stays]   |
++------------------+
+| [yellow bar] PREZENTA  [X close] |
+| +------------------------------+ |
+| | (Attendance page content)    | |
+| | Weekly table, checkboxes...  | |
+| +------------------------------+ |
++------------------+
+| [ticker stays]   |
++------------------+
+
+DESKTOP (1920px):
++----------+---------------------------+
+| Sidebar  | [header with group sel.]  |
+| (admin   |--------------------------|
+|  links   | Dashboard (max-w-4xl)    |
+|  only)   | [welcome] [stats]        |
+|          | [children scroller]      |
+|          | [2-col module grid]      |
+|          |                          |
++----------+---------------------------+
+```
