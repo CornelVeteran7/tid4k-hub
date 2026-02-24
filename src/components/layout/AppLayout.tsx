@@ -11,7 +11,7 @@ import {
   BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
@@ -48,7 +48,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { unreadMessages, newAnnouncements } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [avizierOpen, setAvizierOpen] = useState(false);
+  const { openLink } = useExternalLink();
   const location = useLocation();
   const navigate = useNavigate();
   const headerRef = useRef<HTMLElement>(null);
@@ -424,7 +424,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
               </PopoverContent>
             </Popover>
-            <button onClick={() => setAvizierOpen(true)} className="focus:outline-none shrink-0">
+            <button onClick={() => openLink('https://tid4kdemo.ro/avizier/tid4k.html')} className="focus:outline-none shrink-0">
               <img src="/favicon.png" alt="InfoDisplay — Avizier" className="h-7 w-7" />
             </button>
           </div>
@@ -453,16 +453,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <TutorialOverlay />
       </div>
 
-      {/* Avizier modal */}
-      <Dialog open={avizierOpen} onOpenChange={(open) => { setAvizierOpen(open); if (!open) navigate('/'); }}>
-        <DialogContent className="max-w-[95vw] w-full max-h-[90vh] h-[90vh] p-0 overflow-hidden">
-          <iframe
-            src="https://tid4kdemo.ro/avizier/tid4k.html"
-            className="w-full h-full border-0"
-            title="Avizier"
-          />
-        </DialogContent>
-      </Dialog>
+
+
     </div>
   );
 }

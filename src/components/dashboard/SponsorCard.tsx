@@ -3,9 +3,11 @@ import { getActivePromos } from '@/api/sponsors';
 import type { SponsorPromo } from '@/types/sponsor';
 import { motion } from 'framer-motion';
 import { ExternalLink, Award } from 'lucide-react';
+import { useExternalLink } from '@/contexts/ExternalLinkContext';
 
 export default function SponsorCard() {
   const [promo, setPromo] = useState<SponsorPromo | null>(null);
+  const { openLink } = useExternalLink();
 
   useEffect(() => {
     getActivePromos('card_dashboard').then(promos => {
@@ -34,7 +36,7 @@ export default function SponsorCard() {
         borderRadius,
         boxShadow: shadow,
       }}
-      onClick={() => promo.link_url && window.open(promo.link_url, '_blank')}
+      onClick={() => promo.link_url && openLink(promo.link_url)}
     >
       {stil?.banner_url && (
         <div className="h-24 w-full overflow-hidden">

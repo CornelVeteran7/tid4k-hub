@@ -12,6 +12,7 @@ import {
   ExternalLink, Calendar, CheckCircle2, XCircle, Eye, BarChart3, Play, Pause, Archive, FileEdit, Clock
 } from 'lucide-react';
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
+import { useExternalLink } from '@/contexts/ExternalLinkContext';
 
 const PROMO_TYPE_LABELS: Record<SponsorPromo['tip'], { label: string; icon: React.ElementType; color: string }> = {
   card_dashboard: { label: 'Card Dashboard', icon: Layout, color: '#2ECC71' },
@@ -37,6 +38,7 @@ export default function SponsorAdmin() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Partial<SponsorCampaign> | undefined>();
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
+  const { openLink } = useExternalLink();
 
   useEffect(() => {
     Promise.all([getSponsors(), getActivePromos(), getSponsorPlans(), getAllCampaigns()]).then(
@@ -211,10 +213,10 @@ export default function SponsorAdmin() {
                           <h3 className="text-sm font-semibold">{promo.titlu}</h3>
                           {promo.descriere && <p className="text-xs text-muted-foreground">{promo.descriere}</p>}
                           {promo.link_url && (
-                            <a href={promo.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                            <button onClick={() => openLink(promo.link_url!)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
                               <ExternalLink className="h-3 w-3" />
                               {promo.link_url}
-                            </a>
+                            </button>
                           )}
                         </div>
                         <div className="flex items-center gap-3">
