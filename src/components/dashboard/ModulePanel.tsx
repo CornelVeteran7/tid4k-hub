@@ -16,23 +16,26 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col">
-      {/* Scrim */}
+    <>
+      {/* Scrim — only below header */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
-        className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+        className="fixed inset-x-0 bottom-0 z-20"
+        style={{ top: 'var(--header-height, 56px)' }}
         onClick={onClose}
-      />
+      >
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+      </motion.div>
 
-      {/* Panel — shares layoutId with the card so it morphs from card position */}
+      {/* Panel — flush against header, no gap */}
       <motion.div
         layoutId={layoutId}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-        className="relative flex flex-col flex-1 overflow-hidden shadow-2xl"
-        style={{ backgroundColor: color }}
+        className="fixed inset-x-0 bottom-0 z-30 flex flex-col overflow-hidden shadow-2xl"
+        style={{ top: 0, paddingTop: 'var(--header-height, 56px)', backgroundColor: color }}
       >
         {/* Colored header bar */}
         <div className="flex items-center justify-between px-4 py-3 shrink-0">
@@ -57,6 +60,6 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
           {children}
         </motion.div>
       </motion.div>
-    </div>
+    </>
   );
 }
