@@ -22,10 +22,10 @@ function loadVisibility(): ModuleVisibility {
 }
 
 const QUICK_STATS = [
-  { icon: Users, label: 'Prezența azi', value: '4/5', colorClass: 'bg-[#FFC107] text-[#1a1a1a]' },
-  { icon: Camera, label: 'Fotografii', value: '12', colorClass: 'bg-[#2ECC71] text-white' },
-  { icon: FileText, label: 'Documente noi', value: '3', colorClass: 'bg-[#3498DB] text-white' },
-  { icon: MessageSquare, label: 'Mesaje necitite', value: '2', colorClass: 'bg-[#E91E63] text-white' },
+  { icon: Users, label: 'Prezența azi', value: '4/5', colorClass: 'bg-[#FFC107] text-[#1a1a1a]', moduleKey: 'prezenta' },
+  { icon: Camera, label: 'Fotografii', value: '12', colorClass: 'bg-[#2ECC71] text-white', moduleKey: 'imagini' },
+  { icon: FileText, label: 'Documente noi', value: '3', colorClass: 'bg-[#3498DB] text-white', moduleKey: 'documente' },
+  { icon: MessageSquare, label: 'Mesaje necitite', value: '2', colorClass: 'bg-[#E91E63] text-white', moduleKey: 'mesaje' },
 ];
 
 export default function Dashboard() {
@@ -88,15 +88,16 @@ export default function Dashboard() {
           {/* Quick stats row */}
           <div className="flex flex-wrap gap-2 mt-3">
             {QUICK_STATS.map(stat => (
-              <div
+              <button
                 key={stat.label}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${stat.colorClass}`}
+                onClick={() => window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }))}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 ${stat.colorClass}`}
               >
                 <stat.icon className="h-3.5 w-3.5" />
                 <span>{stat.label}</span>
                 <span className="opacity-80">·</span>
                 <span>{stat.value}</span>
-              </div>
+              </button>
             ))}
           </div>
         </div>
