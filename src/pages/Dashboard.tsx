@@ -33,6 +33,15 @@ export default function Dashboard() {
   const { currentGroup } = useGroup();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [visibility, setVisibility] = useState<ModuleVisibility>(loadVisibility);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setSearchQuery((e as CustomEvent).detail || '');
+    };
+    window.addEventListener('dashboard-search', handler);
+    return () => window.removeEventListener('dashboard-search', handler);
+  }, []);
 
   const handleToggle = useCallback((key: keyof ModuleVisibility) => {
     setVisibility(prev => {
@@ -100,7 +109,7 @@ export default function Dashboard() {
       </div>
 
       {/* Module card stack */}
-      <ModuleHub visibility={visibility} />
+      <ModuleHub visibility={visibility} searchQuery={searchQuery} />
 
       {/* Config sidebar */}
       <ConfigSidebar
