@@ -1,6 +1,6 @@
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { ClipboardList, Image, FileText, BookOpen, UtensilsCrossed, MessageSquare, Paintbrush } from 'lucide-react';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import ModuleCard from './ModuleCard';
 import ModulePanel from './ModulePanel';
@@ -71,6 +71,14 @@ interface ModuleHubProps {
 export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setOpenModule((e as CustomEvent).detail || null);
+    };
+    window.addEventListener('open-module', handler);
+    return () => window.removeEventListener('open-module', handler);
+  }, []);
 
   let visibleModules = MODULES.filter(m => visibility[m.key as keyof ModuleVisibility]);
 
