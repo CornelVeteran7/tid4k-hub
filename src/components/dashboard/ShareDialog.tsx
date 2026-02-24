@@ -91,7 +91,7 @@ export default function ShareDialog({ open, onOpenChange, moduleTitle }: ShareDi
                       checked={channel.instant}
                       onCheckedChange={(checked) => updateChannel(channel.id, { instant: !!checked })}
                     />
-                    <Zap className="h-4 w-4 text-yellow-500" />
+                    <Zap className="h-4 w-4 text-warning" />
                     <span className="font-medium">Instant (trimite imediat)</span>
                   </label>
 
