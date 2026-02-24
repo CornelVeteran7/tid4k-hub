@@ -1,0 +1,162 @@
+import { useState, useEffect } from 'react';
+import { getSchools, createSchool } from '@/api/schools';
+import type { School } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Plus, School as SchoolIcon, Users, GraduationCap, MapPin, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+export default function SchoolsTab() {
+  const [schools, setSchools] = useState<School[]>([]);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
+  const [newSchool, setNewSchool] = useState<Partial<School>>({ tip: 'gradinita' });
+  const isMobile = useIsMobile();
+
+  useEffect(() => { getSchools().then(setSchools); }, []);
+
+  const handleCreate = async () => {
+    const s = await createSchool(newSchool);
+    setSchools(prev => [...prev, s]);
+    setCreateOpen(false);
+    setNewSchool({ tip: 'gradinita' });
+    toast.success('Școală creată cu succes!');
+  };
+
+  const CreateForm = (
+    <div className="space-y-4">
+      <div><Label>Nume instituție</Label><Input placeholder="ex: Grădinița Floarea Soarelui" value={newSchool.nume || ''} onChange={e => setNewSchool({ ...newSchool, nume: e.target.value })} /></div>
+      <div><Label>Adresă</Label><Input placeholder="Str. Exemplu nr. 1, București" value={newSchool.adresa || ''} onChange={e => setNewSchool({ ...newSchool, adresa: e.target.value })} /></div>
+      <div>
+        <Label>Tip instituție</Label>
+        <Select value={newSchool.tip || 'gradinita'} onValueChange={v => setNewSchool({ ...newSchool, tip: v as School['tip'] })}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="gradinita">Grădiniță</SelectItem>
+            <SelectItem value="scoala">Școală</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <Button className="w-full" onClick={handleCreate} disabled={!newSchool.nume}>Creează școală</Button>
+    </div>
+  );
+
+  const DetailPanel = selectedSchool && (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-lg">{selectedSchool.nume}</h3>
+        <Button variant="ghost" size="icon" onClick={() => setSelectedSchool(null)}><X className="h-4 w-4" /></Button>
+      </div>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <MapPin className="h-4 w-4" />{selectedSchool.adresa}
+      </div>
+      <Badge variant={selectedSchool.activ ? 'default' : 'secondary'}>{selectedSchool.activ ? 'Activ' : 'Inactiv'}</Badge>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{selectedSchool.nr_copii}</p><p className="text-xs text-muted-foreground">Copii</p></CardContent></Card>
+        <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{selectedSchool.nr_profesori}</p><p className="text-xs text-muted-foreground">Profesori</p></CardContent></Card>
+      </div>
+
+      <div>
+        <Label className="text-sm font-medium">Grupe / Clase</Label>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {selectedSchool.grupe.map(g => (
+            <Badge key={g} variant="outline">{g}</Badge>
+          ))}
+          <Button variant="ghost" size="sm" className="h-6 text-xs gap-1"><Plus className="h-3 w-3" />Adaugă</Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{schools.length} unități de învățământ</p>
+        <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
+          <Plus className="h-4 w-4" />Școală nouă
+        </Button>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {schools.map(school => (
+          <Card
+            key={school.id_scoala}
+            className={`cursor-pointer transition-all hover:shadow-md ${selectedSchool?.id_scoala === school.id_scoala ? 'ring-2 ring-primary' : ''}`}
+            onClick={() => setSelectedSchool(selectedSchool?.id_scoala === school.id_scoala ? null : school)}
+          >
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <SchoolIcon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-sm truncate">{school.nume}</CardTitle>
+                  <p className="text-xs text-muted-foreground truncate">{school.adresa}</p>
+                </div>
+                <Badge variant={school.activ ? 'default' : 'secondary'} className="text-[10px] shrink-0">
+                  {school.activ ? 'Activ' : 'Inactiv'}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><Users className="h-3 w-3" />{school.nr_copii} copii</span>
+                <span className="flex items-center gap-1"><GraduationCap className="h-3 w-3" />{school.nr_profesori} profesori</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {school.grupe.slice(0, 3).map(g => <Badge key={g} variant="outline" className="text-[10px]">{g}</Badge>)}
+                {school.grupe.length > 3 && <Badge variant="outline" className="text-[10px]">+{school.grupe.length - 3}</Badge>}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+
+        <Card className="border-dashed cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors flex items-center justify-center min-h-[140px]" onClick={() => setCreateOpen(true)}>
+          <div className="text-center text-muted-foreground">
+            <Plus className="h-8 w-8 mx-auto mb-1 opacity-40" />
+            <p className="text-sm font-medium">Adaugă instituție</p>
+          </div>
+        </Card>
+      </div>
+
+      {/* Detail panel */}
+      {isMobile ? (
+        <Sheet open={!!selectedSchool} onOpenChange={open => !open && setSelectedSchool(null)}>
+          <SheetContent side="bottom" className="max-h-[70vh] overflow-y-auto">
+            <SheetHeader><SheetTitle>Detalii școală</SheetTitle></SheetHeader>
+            {DetailPanel}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        selectedSchool && (
+          <Card className="p-6">{DetailPanel}</Card>
+        )
+      )}
+
+      {/* Create dialog */}
+      {isMobile ? (
+        <Sheet open={createOpen} onOpenChange={setCreateOpen}>
+          <SheetContent side="bottom" className="max-h-[70vh] overflow-y-auto">
+            <SheetHeader><SheetTitle>Școală nouă</SheetTitle></SheetHeader>
+            <div className="mt-4">{CreateForm}</div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Școală nouă</DialogTitle></DialogHeader>
+            {CreateForm}
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}

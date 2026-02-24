@@ -196,6 +196,19 @@ export interface User {
   ADMINISTRATIV?: boolean;
 }
 
+// ===== Schools =====
+export interface School {
+  id_scoala: number;
+  nume: string;
+  adresa: string;
+  tip: 'gradinita' | 'scoala';
+  logo_url: string;
+  grupe: string[];
+  nr_copii: number;
+  nr_profesori: number;
+  activ: boolean;
+}
+
 // ===== Settings =====
 export interface SchoolSettings {
   nume_scoala: string;
