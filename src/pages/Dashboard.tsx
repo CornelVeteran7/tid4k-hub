@@ -23,7 +23,7 @@ function loadVisibility(): ModuleVisibility {
 
 const QUICK_STATS = [
   { icon: Users, label: 'Prezența azi', value: '4/5', colorClass: 'bg-[#FFC107] text-[#1a1a1a]', moduleKey: 'prezenta' },
-  { icon: Camera, label: 'Fotografii', value: '12', colorClass: 'bg-[#2ECC71] text-white', moduleKey: 'imagini' },
+  { icon: Camera, label: 'Fotografii azi', value: '12', colorClass: 'bg-[#2ECC71] text-white', moduleKey: 'imagini' },
   { icon: FileText, label: 'Documente noi', value: '3', colorClass: 'bg-[#3498DB] text-white', moduleKey: 'documente' },
   { icon: MessageSquare, label: 'Mesaje necitite', value: '2', colorClass: 'bg-[#E91E63] text-white', moduleKey: 'mesaje' },
 ];
