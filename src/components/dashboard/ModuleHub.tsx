@@ -1,5 +1,7 @@
+import React from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { ClipboardList, Image, FileText, BookOpen, UtensilsCrossed, MessageSquare, Paintbrush } from 'lucide-react';
+import SponsorCard from './SponsorCard';
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import ModuleCard from './ModuleCard';
@@ -99,29 +101,41 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
       <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
         <AnimatePresence mode="popLayout">
           {visibleModules.map(mod => (
-            <motion.div
-              key={mod.key}
-              layout
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-            >
-              {openModule !== mod.key && (
-                <ModuleCard
-                  icon={mod.icon}
-                  title={mod.title}
-                  subtitle={mod.subtitle}
-                  color={mod.color}
-                  count={MOCK_COUNTS[mod.key]}
-                  countLabel={mod.countLabel}
-                  showShare={mod.showShare}
-                  onShare={() => setShareModule(mod.key)}
-                  onOpen={() => setOpenModule(mod.key)}
-                  layoutId={`module-${mod.key}`}
-                />
+            <React.Fragment key={mod.key}>
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+              >
+                {openModule !== mod.key && (
+                  <ModuleCard
+                    icon={mod.icon}
+                    title={mod.title}
+                    subtitle={mod.subtitle}
+                    color={mod.color}
+                    count={MOCK_COUNTS[mod.key]}
+                    countLabel={mod.countLabel}
+                    showShare={mod.showShare}
+                    onShare={() => setShareModule(mod.key)}
+                    onOpen={() => setOpenModule(mod.key)}
+                    layoutId={`module-${mod.key}`}
+                  />
+                )}
+              </motion.div>
+              {mod.key === 'documente' && (
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="lg:col-span-2"
+                >
+                  <SponsorCard />
+                </motion.div>
               )}
-            </motion.div>
+            </React.Fragment>
           ))}
         </AnimatePresence>
       </div>
