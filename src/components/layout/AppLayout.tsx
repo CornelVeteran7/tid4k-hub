@@ -193,7 +193,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Top header */}
         <header ref={(el) => {
           if (el) {
-            const update = () => document.documentElement.style.setProperty('--header-height', `${el.offsetHeight}px`);
+            const update = () => {
+              const rect = el.getBoundingClientRect();
+              document.documentElement.style.setProperty('--header-height', `${rect.bottom}px`);
+            };
             update();
             const ro = new ResizeObserver(update);
             ro.observe(el);
