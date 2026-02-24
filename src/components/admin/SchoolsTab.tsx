@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createSchool } from '@/api/schools';
+import { getSponsors } from '@/api/sponsors';
+import type { Sponsor } from '@/types/sponsor';
 import type { School } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Plus, School as SchoolIcon, Users, GraduationCap, MapPin, X } from 'lucide-react';
+import { Plus, School as SchoolIcon, Users, GraduationCap, MapPin, X, Award } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Separator } from '@/components/ui/separator';
 
 interface Props {
   selectedSchoolId: string;
@@ -23,7 +26,12 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
   const [createOpen, setCreateOpen] = useState(false);
   const [detailSchool, setDetailSchool] = useState<School | null>(null);
   const [newSchool, setNewSchool] = useState<Partial<School>>({ tip: 'gradinita' });
+  const [allSponsors, setAllSponsors] = useState<Sponsor[]>([]);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    getSponsors().then(setAllSponsors);
+  }, []);
 
   // Auto-expand when a specific school is selected globally
   useEffect(() => {
@@ -88,6 +96,54 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
             <Badge key={g} variant="outline">{g}</Badge>
           ))}
           <Button variant="ghost" size="sm" className="h-6 text-xs gap-1"><Plus className="h-3 w-3" />Adaugă</Button>
+        </div>
+      </div>
+
+      <Separator />
+
+      <div>
+        <Label className="text-sm font-medium flex items-center gap-1.5"><Award className="h-4 w-4" />Sponsori activi</Label>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {detailSchool.sponsori_activi.map(sid => {
+            const sponsor = allSponsors.find(s => s.id_sponsor === sid);
+            return sponsor ? (
+              <Badge
+                key={sid}
+                className="text-xs text-white gap-1"
+                style={{ backgroundColor: sponsor.culoare_brand }}
+              >
+                {sponsor.nume}
+                <button
+                  className="ml-1 opacity-70 hover:opacity-100"
+                  onClick={() => {
+                    const updated = { ...detailSchool, sponsori_activi: detailSchool.sponsori_activi.filter(id => id !== sid) };
+                    setDetailSchool(updated);
+                    onSchoolsChange(schools.map(s => s.id_scoala === updated.id_scoala ? updated : s));
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ) : null;
+          })}
+          {allSponsors.filter(s => !detailSchool.sponsori_activi.includes(s.id_sponsor)).length > 0 && (
+            <Select onValueChange={v => {
+              const updated = { ...detailSchool, sponsori_activi: [...detailSchool.sponsori_activi, Number(v)] };
+              setDetailSchool(updated);
+              onSchoolsChange(schools.map(s => s.id_scoala === updated.id_scoala ? updated : s));
+            }}>
+              <SelectTrigger className="h-6 w-auto text-xs gap-1 px-2">
+                <Plus className="h-3 w-3" />Adaugă
+              </SelectTrigger>
+              <SelectContent>
+                {allSponsors.filter(s => !detailSchool.sponsori_activi.includes(s.id_sponsor)).map(s => (
+                  <SelectItem key={s.id_sponsor} value={s.id_sponsor.toString()}>
+                    {s.nume}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
     </div>

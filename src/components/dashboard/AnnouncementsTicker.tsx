@@ -5,6 +5,7 @@ import { getAnnouncements } from '@/api/announcements';
 import { getActivePromos } from '@/api/sponsors';
 import type { Announcement } from '@/types';
 import type { SponsorPromo } from '@/types/sponsor';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TickerItem {
   id: string;
@@ -16,11 +17,13 @@ interface TickerItem {
 export default function AnnouncementsTicker() {
   const navigate = useNavigate();
   const [items, setItems] = useState<TickerItem[]>([]);
+  const { user } = useAuth();
 
   useEffect(() => {
+    const schoolId = user?.grupe_disponibile?.[user.index_grupa_clasa_curenta]?.id ? Number(user.grupe_disponibile[user.index_grupa_clasa_curenta].id.split('_')[0]) : undefined;
     Promise.all([
       getAnnouncements(),
-      getActivePromos('ticker'),
+      getActivePromos('ticker', schoolId),
     ]).then(([announcements, sponsorPromos]) => {
       const visible = announcements
         .filter(a => !a.ascuns_banda)
@@ -86,7 +89,7 @@ export default function AnnouncementsTicker() {
 
       setItems(merged);
     });
-  }, []);
+  }, [user]);
 
   if (items.length === 0) return null;
 

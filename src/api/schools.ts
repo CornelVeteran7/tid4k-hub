@@ -12,6 +12,7 @@ const mockSchools: School[] = [
     nr_copii: 45,
     nr_profesori: 8,
     activ: true,
+    sponsori_activi: [1],
   },
   {
     id_scoala: 2,
@@ -23,6 +24,7 @@ const mockSchools: School[] = [
     nr_copii: 120,
     nr_profesori: 15,
     activ: true,
+    sponsori_activi: [2],
   },
   {
     id_scoala: 3,
@@ -34,6 +36,7 @@ const mockSchools: School[] = [
     nr_copii: 28,
     nr_profesori: 5,
     activ: false,
+    sponsori_activi: [],
   },
 ];
 
@@ -54,6 +57,7 @@ export async function createSchool(data: Partial<School>): Promise<School> {
       nr_copii: 0,
       nr_profesori: 0,
       activ: true,
+      sponsori_activi: data.sponsori_activi || [],
     };
     return newSchool;
   }
