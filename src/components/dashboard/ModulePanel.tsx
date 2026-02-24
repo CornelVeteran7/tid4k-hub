@@ -31,7 +31,7 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
       <motion.div
         layoutId={layoutId}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-        className="relative flex flex-col flex-1 mt-14 rounded-t-2xl overflow-hidden shadow-2xl"
+        className="relative flex flex-col flex-1 rounded-t-2xl overflow-hidden shadow-2xl"
         style={{ backgroundColor: color }}
       >
         {/* Colored header bar */}
