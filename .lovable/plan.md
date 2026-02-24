@@ -1,82 +1,156 @@
 
-# Announcements Ticker Bar + Implementation Audit
 
-## Audit Summary: Current State vs Requirements
+# Redesign Attendance Page - Weekly Tabular View
 
-| Requirement | Status | Notes |
-|---|---|---|
-| 1. Horizontal Children Scroller | Done | ChildrenScroller.tsx with snap-x, avatars, parent info |
-| 2. Vibrant Card Stack (Hub) | Done | ModuleHub.tsx + ModuleCard.tsx with correct colors, AnimatePresence |
-| 3. Configuration Sidebar | Done | ConfigSidebar.tsx with Sheet, Switch toggles, localStorage persistence, nav links |
-| 4. Floating Inky Assistant | Done | InkyAssistant.tsx with FAB, context-aware actions, quick-action menu |
-| 5. PWA & Tappable Feedback | Done | card-tappable CSS, overscroll-behavior: none, iOS safe-area |
-| 6. Announcements Ticker Bar | MISSING | Not yet implemented |
+## Overview
 
-Everything from requirements 1-5 is properly implemented. The only missing feature is the **sticky announcements ticker bar**.
+Replace the current single-day attendance list (vertical scroll with individual cards per child) with a **weekly tabular grid** matching the screenshot: a compact table where each row is a child and each column is a weekday (L, Ma, Mi, J, V), with checkboxes at each intersection.
+
+This format is faster for teachers (tick checkboxes across a row instead of scrolling), and prints cleanly on paper.
 
 ---
 
-## New Feature: Announcements Ticker Bar ("Banda de Anunturi")
+## Reference Screenshot Analysis
 
-A fixed-position horizontal scrolling marquee bar at the bottom of the Dashboard screen, above the Inky FAB. It displays active announcements as a continuously scrolling text ribbon, similar to a news ticker.
-
-### Data Source
-
-The `Announcement` type already has `ascuns_banda: boolean` and `pozitie_banda?: number` fields. Announcements where `ascuns_banda === false` will appear in the ticker, sorted by `pozitie_banda`.
-
-### Visual Design
-
-- Fixed to the bottom of the viewport, just above the safe-area inset
-- Height: ~40px
-- Background: gradient from primary color with slight transparency + backdrop blur (glass effect)
-- Text: white, 13px, bold for urgent announcements
-- Urgent items get a small pulsing red dot indicator
-- Continuous CSS marquee animation (right-to-left scroll), pauses on touch/hover
-- Small "Megaphone" icon at the left edge as a static label
-
-### Component: `src/components/dashboard/AnnouncementsTicker.tsx` (new)
+The uploaded image shows:
 
 ```text
-+--------+------------------------------------------------------------+
-| [Icon] |  Excursie la Gradina Botanica  *  Modificare program  *  ... |  (scrolling -->)
-+--------+------------------------------------------------------------+
++----------------------------------------------------------+
+| PREZENTA                          Prezenti: 0/2    [^]   |
+| clasa V                                                   |
+| 24 February 2026                                          |
++----------------------------------------------------------+
+| Saptamana curenta: 23-27 februarie 2026                   |
++--------+----------+----+----+----+----+----+              |
+| Avatar | Nume     | L  | Ma | Mi | J  | V  |             |
++--------+----------+----+----+----+----+----+              |
+|  [img] | CI_V_1   | [] | [] | [] | [] | [] |             |
+|  [img] | CI_V_2   | [] | [] | [] | [] | [] |             |
++--------+----------+----+----+----+----+----+              |
+|       [ Salveaza  ]                                       |
+|       [ Printeaza ]                                       |
+|       [ Adauga copil ]                                    |
++----------------------------------------------------------+
 ```
 
-- Fetches announcements via `getAnnouncements()` from `src/api/announcements.ts`
-- Filters to only `ascuns_banda === false` items
-- Joins titles with a separator dot into a single scrolling string
-- Uses CSS `@keyframes marquee` animation for smooth infinite scroll
-- Tapping the bar navigates to `/anunturi`
-- If no visible ticker announcements exist, the bar hides entirely
+Key features:
+- **Yellow header card** with module title, group name, date, and live "Prezenti: X/Y" counter
+- **Week label** showing the date range
+- **Table** with Avatar, Nume, and 5 weekday columns (L, Ma, Mi, J, V)
+- **Today's column is highlighted** (light green/yellow tint)
+- **Three action buttons**: Salveaza (green), Printeaza (purple), Adauga copil (gray)
 
-### CSS Animation (added to `src/index.css`)
+---
 
-```css
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+## Data Model Changes
+
+### `src/types/index.ts`
+
+Add a new interface for weekly attendance:
+
+```typescript
+export interface WeeklyAttendanceRecord {
+  id_copil: number;
+  nume_prenume_copil: string;
+  zile: {
+    [date: string]: boolean; // e.g. "2026-02-24": true
+  };
+  observatii?: string;
 }
-.animate-marquee {
-  animation: marquee 20s linear infinite;
-}
-.animate-marquee:hover,
-.animate-marquee:active {
-  animation-play-state: paused;
+
+export interface WeeklyAttendanceData {
+  saptamana_start: string; // Monday date
+  saptamana_end: string;   // Friday date
+  records: WeeklyAttendanceRecord[];
 }
 ```
 
-The text content is duplicated inside the scrolling container so the loop appears seamless.
+### `src/api/attendance.ts`
 
-### Dashboard Integration (`src/pages/Dashboard.tsx`)
+Add a new mock function `getWeeklyAttendance(grupa, mondayDate)` that returns `WeeklyAttendanceData`. The mock generates 5 weekday dates from the given Monday and random presence booleans for each child. Also add `saveWeeklyAttendance(grupa, data)`.
 
-- Import and render `<AnnouncementsTicker />` at the bottom of the dashboard, as a fixed-position element
-- Adjust `pb-20` to `pb-32` to make room for both the ticker bar and the Inky FAB
+---
 
-### Z-Index Stacking
+## UI Rewrite
 
-- Ticker bar: `z-50` (below Inky)
-- Inky FAB: `z-[70]` (already set, stays above)
-- Ticker positioned at `bottom: env(safe-area-inset-bottom) + 56px` to sit above safe area but below Inky
+### `src/pages/Attendance.tsx` - Complete rewrite
+
+**Header section** (yellow card, matching screenshot):
+- Solid yellow (`#FFC107`) background with rounded corners
+- "PREZENTA" title (bold), group name, formatted current date
+- "Prezenti: X/Y" pill badge (counts today's column only)
+- Collapse/expand chevron (optional)
+
+**Week label**:
+- "Saptamana curenta: DD-DD luna YYYY" text centered below header
+
+**Table**:
+- Columns: Avatar | Nume | L | Ma | Mi | J | V
+- Avatar: pastel circle with initials (same pattern as ChildrenScroller)
+- Nume: child's full name, bold, truncated
+- L/Ma/Mi/J/V: Checkbox components from shadcn
+- Today's column gets a highlighted background (e.g., `bg-yellow-50`)
+- Table uses `overflow-x-auto` for small screens
+- Sticky first two columns (Avatar + Nume) on mobile so names remain visible while scrolling horizontally
+
+**Action buttons** (below table):
+- "Salveaza" - solid green/teal button with save icon
+- "Printeaza" - solid purple button with printer icon, triggers `window.print()`
+- "Adauga copil" - outlined gray button with user-plus icon (shows toast "In curand")
+
+**Week navigation**:
+- Small left/right arrows to move between weeks
+- Auto-detects current week on load
+
+### Print styles (`src/index.css`)
+
+Add `@media print` rules:
+- Hide header, sidebar, FAB, action buttons
+- Show only the table at full width
+- Ensure borders render cleanly in black and white
+- Add a print header with group name, week range, and school name
+
+---
+
+## Technical Details
+
+### Week calculation logic
+
+```typescript
+// Get Monday of current week
+function getMonday(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  return d;
+}
+
+// Generate 5 weekday dates from Monday
+function getWeekDates(monday: Date): string[] {
+  return Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return format(d, 'yyyy-MM-dd');
+  });
+}
+```
+
+### Today column highlighting
+
+```typescript
+const today = format(new Date(), 'yyyy-MM-dd');
+// In table header and cells, add conditional bg:
+className={date === today ? 'bg-yellow-50' : ''}
+```
+
+### Prezenti counter
+
+Counts only today's column:
+```typescript
+const todayPresent = records.filter(r => r.zile[today]).length;
+// Display: `Prezenti: ${todayPresent}/${records.length}`
+```
 
 ---
 
@@ -84,6 +158,8 @@ The text content is duplicated inside the scrolling container so the loop appear
 
 | File | Action | Purpose |
 |---|---|---|
-| `src/components/dashboard/AnnouncementsTicker.tsx` | Create | Sticky marquee bar component |
-| `src/index.css` | Edit | Add marquee keyframes animation |
-| `src/pages/Dashboard.tsx` | Edit | Add ticker + increase bottom padding |
+| `src/types/index.ts` | Edit | Add WeeklyAttendanceRecord and WeeklyAttendanceData types |
+| `src/api/attendance.ts` | Edit | Add getWeeklyAttendance and saveWeeklyAttendance mock functions |
+| `src/pages/Attendance.tsx` | Rewrite | Weekly tabular view with yellow header, checkboxes, action buttons |
+| `src/index.css` | Edit | Add @media print styles for clean paper output |
+
