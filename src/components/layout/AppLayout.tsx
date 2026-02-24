@@ -198,7 +198,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             const ro = new ResizeObserver(update);
             ro.observe(el);
           }
-        }} className="glass-header relative flex items-center px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 lg:px-6 z-10">
+        }} className="glass-header relative flex items-center px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 lg:px-6 z-40">
           {/* Left: back arrow on inner pages (mobile) or hamburger */}
           <div className="flex items-center shrink-0">
             {!isHome ? (
