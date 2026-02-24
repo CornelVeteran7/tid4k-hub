@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logoWhite from '@/assets/logo-white.png';
 import InkyAssistant from '@/components/InkyAssistant';
+import TutorialOverlay from '@/components/TutorialOverlay';
 
 // Secondary nav — items NOT on the dashboard
 const SECONDARY_NAV = [
