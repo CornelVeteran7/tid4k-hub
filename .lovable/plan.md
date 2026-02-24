@@ -1,87 +1,102 @@
 
+# Tutorial Overlay for Teachers
 
-# Simplify Navigation for Teachers
+## What We're Building
 
-## The Problem
+A step-by-step guided tutorial that highlights each part of the app with clear Romanian explanations. It appears automatically the first time a teacher logs in, walks them through every key feature, and can be re-triggered from the menu anytime.
 
-Right now, teachers see the same modules (Prezenta, Documente, Mesaje, Povesti, Meniu) in **three places**: the burger sidebar, the dashboard cards, and the config sidebar. This creates cognitive overload and makes the app feel complex rather than simple.
+## How It Works
 
-## The Philosophy
+### First-time experience
+- When a teacher logs in for the first time, the tutorial starts automatically
+- A semi-transparent dark overlay covers the screen, with one UI element "spotlighted" (cut out from the overlay)
+- A tooltip card next to the spotlight explains what that feature does, in simple Romanian
+- Navigation: "Inapoi" / "Urmatorul" buttons + a step counter (e.g. "2 din 8") + "Sari peste tutorial"
+- When the user finishes all steps, we save `tid4k_tutorial_done = true` in localStorage
+- The tutorial never auto-shows again after completion
 
-**The dashboard IS the app.** Teachers should tap a card and get their work done. The burger menu should only contain things that are NOT on the dashboard — account settings, admin tools, and the module configurator.
+### Re-triggering
+- A new "Tutorial" button in the burger menu (mobile) and desktop sidebar lets users replay it anytime
+- This dispatches a custom event that the tutorial component listens to
 
-## What Changes
-
-### Mobile (burger menu becomes a slim "More" menu)
-
-The full sidebar with 12+ nav items gets replaced by a **compact bottom-sheet-style menu** with only secondary items:
+### Tutorial Steps (all in Romanian)
 
 ```text
-+---------------------------+
-|  Maria Popescu            |
-|  Profesor · Director      |
-+---------------------------+
-|  Configurare module    >  |  (opens existing ConfigSidebar)
-|  Orar                  >  |  (not on dashboard)
-|  Anunturi              >  |  (not on dashboard)
-|  Profilul meu          >  |  (coming soon)
-+---------------------------+
-|  ADMIN                    |
-|  Rapoarte              >  |
-|  Utilizatori           >  |
-|  Configurari           >  |
-|  Infodisplay           >  |
-+---------------------------+
-|  Deconectare              |
-+---------------------------+
+Step 1: Welcome card (glass card)
+  "Aici vezi un sumar rapid al zilei: prezenta, fotografii, documente si mesaje. Apasa pe orice buton pentru a deschide modulul."
+
+Step 2: Children scroller
+  "Aici sunt copiii din grupa ta. Apasa pe un copil pentru a vedea prezenta, costul hranei si pentru a trimite un mesaj parintilor."
+
+Step 3: Module cards area
+  "Acestea sunt modulele tale de lucru. Apasa pe oricare card pentru a deschide functia respectiva."
+
+Step 4: Configurare button
+  "De aici poti alege ce module sa fie vizibile pe ecranul tau."
+
+Step 5: Group selector (header)
+  "Selecteaza grupa cu care lucrezi. Toate datele se schimba automat."
+
+Step 6: Notifications bell
+  "Aici primesti notificari pentru mesaje noi si anunturi importante."
+
+Step 7: Burger menu (mobile) / Sidebar (desktop)
+  "Din meniu accesezi Orar, Anunturi si setarile de administrare."
+
+Step 8: Announcements ticker (bottom)
+  "Aici apar anunturile importante care ruleaza automat."
 ```
-
-Items like Prezenta, Documente, Mesaje, Povesti, Meniu are **removed** from this menu — they live on the dashboard cards exclusively.
-
-### Desktop (sidebar becomes minimal)
-
-The persistent left sidebar keeps only:
-- **Acasa** (dashboard link)
-- **Orar** (schedule — not a dashboard module)
-- **Anunturi** (announcements — not a dashboard module)
-- A separator
-- **Admin section** (Rapoarte, Utilizatori, Configurari, Infodisplay) — role-gated
-- **User info + logout** at the bottom
-
-The dashboard module cards are the primary navigation for daily tasks.
-
-### The "Configurare" button
-
-Currently it lives as a standalone button above the module cards. It stays there — but also becomes accessible from the burger/more menu. This gives teachers two natural discovery paths.
 
 ## Technical Plan
 
-### 1. Refactor `AppLayout.tsx` — Slim down sidebar nav items
+### 1. Create `src/components/TutorialOverlay.tsx`
 
-- Create two arrays: `SECONDARY_NAV` (Orar, Anunturi) and `ADMIN_NAV` (Rapoarte, Utilizatori, Configurari, Infodisplay)
-- Remove all module-duplicating items (Prezenta, Documente, Mesaje, Povesti, Meniu) from the sidebar
-- Keep Acasa as the only primary link
-- On mobile, convert the sidebar from a full sliding drawer to a Sheet (bottom or side) with the compact layout described above
-- Add a "Configurare module" button that dispatches an event to open the ConfigSidebar from Dashboard
+This is the main component. It renders:
+- A full-screen fixed overlay (`z-50`, `position: fixed`, dark semi-transparent background)
+- A "spotlight" cutout using CSS `clip-path` or a transparent box-shadow trick to reveal the target element
+- A tooltip card positioned near the spotlight with the step description
+- Navigation buttons at the bottom of the tooltip
 
-### 2. Update `Dashboard.tsx` — Listen for config open event
+**How spotlighting works:**
+- Each step has a CSS selector or `data-tutorial` attribute target
+- On each step, we query the DOM for the target element, get its `getBoundingClientRect()`, and position the spotlight + tooltip accordingly
+- Uses `framer-motion` for smooth transitions between steps
 
-- Add a listener for a `open-config-sidebar` custom event so the burger menu can trigger it
-- No other changes needed — the dashboard cards already work as the primary nav
+**State management:**
+- `currentStep` (number) tracks which step we're on
+- `isActive` (boolean) controls visibility
+- Reads/writes `localStorage` key `tid4k_tutorial_done`
+- Listens for `restart-tutorial` custom event
 
-### 3. Keep `ConfigSidebar.tsx` unchanged
+### 2. Add `data-tutorial="step-name"` attributes to target elements
 
-- It already handles module visibility toggles and secondary nav links perfectly
+Minimal changes to existing components:
+- `Dashboard.tsx`: Add `data-tutorial="welcome-card"` to the glass card div, `data-tutorial="children-scroller"` to the ChildrenScroller wrapper, `data-tutorial="module-hub"` to the module cards area, `data-tutorial="config-button"` to the Configurare button
+- `AppLayout.tsx`: Add `data-tutorial="group-selector"` to the group selector, `data-tutorial="notifications"` to the bell button, `data-tutorial="menu-button"` to the burger/sidebar, `data-tutorial="announcements"` to the ticker area (via AnnouncementsTicker)
+- `AnnouncementsTicker.tsx`: Add `data-tutorial="announcements"` to the root element
 
-### 4. Desktop sidebar cleanup
+### 3. Mount TutorialOverlay in `AppLayout.tsx`
 
-- The persistent sidebar shows: Acasa, Orar, Anunturi, separator, admin items, user card
-- Much cleaner — teachers see 3-4 items instead of 12
+- Import and render `<TutorialOverlay />` at the end of the layout, so it sits above everything
+- It self-manages its visibility based on localStorage
 
-## What Teachers Get
+### 4. Add "Tutorial" button to navigation
 
-- **One place for daily work**: the dashboard cards
-- **A tiny "more" menu** for everything else (settings, schedule, admin)
-- **No duplicate navigation** — less confusion, faster muscle memory
-- **Fewer taps** to do the things they do 50 times a day
+- In `AppLayout.tsx`, add a "Tutorial" button (with a `GraduationCap` or `HelpCircle` icon) in both the desktop sidebar and mobile sheet menu
+- On click, dispatch `restart-tutorial` event and close the menu
 
+### 5. Responsive behavior
+
+- On mobile, the tooltip card appears below or above the spotlight (whichever has more space)
+- On desktop, it appears to the side when possible
+- The spotlight recalculates position on window resize
+
+## Files Changed
+
+| File | Change |
+|---|---|
+| `src/components/TutorialOverlay.tsx` | **New** - Main tutorial component with overlay, spotlight, tooltip, and step logic |
+| `src/pages/Dashboard.tsx` | Add 4 `data-tutorial` attributes to existing elements |
+| `src/components/layout/AppLayout.tsx` | Add 3 `data-tutorial` attributes + mount TutorialOverlay + add "Tutorial" menu item |
+| `src/components/dashboard/AnnouncementsTicker.tsx` | Add 1 `data-tutorial` attribute |
+| `src/components/dashboard/ChildrenScroller.tsx` | Add 1 `data-tutorial` attribute |
