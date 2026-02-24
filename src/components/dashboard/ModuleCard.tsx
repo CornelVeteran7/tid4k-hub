@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { ChevronRight, type LucideIcon } from 'lucide-react';
 
 interface ModuleCardProps {
@@ -8,16 +7,14 @@ interface ModuleCardProps {
   subtitle: string;
   color: string;
   count?: number;
-  route: string;
+  onOpen?: () => void;
 }
 
-export default function ModuleCard({ icon: Icon, title, subtitle, color, count, route }: ModuleCardProps) {
-  const navigate = useNavigate();
-
+export default function ModuleCard({ icon: Icon, title, subtitle, color, count, onOpen }: ModuleCardProps) {
   return (
     <motion.div
       whileTap={{ scale: 0.97 }}
-      onClick={() => navigate(route)}
+      onClick={onOpen}
       className="card-tappable rounded-3xl p-4 flex items-center gap-4 cursor-pointer shadow-md"
       style={{ backgroundColor: color }}
     >
