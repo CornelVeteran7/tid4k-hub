@@ -8,28 +8,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logoWhite from '@/assets/logo-white.png';
 import InkyAssistant from '@/components/InkyAssistant';
 
-// Full nav items for sidebar
-const NAV_ITEMS = [
-  { path: '/', label: 'Acasă', icon: Home, roles: ['all'], adminOnly: false },
-  { path: '/prezenta', label: 'Prezența', icon: ClipboardList, roles: ['profesor', 'director', 'administrator'], adminOnly: false },
-  { path: '/documente', label: 'Documente', icon: FileText, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
-  { path: '/mesaje', label: 'Mesaje', icon: MessageSquare, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false, badge: true },
-  { path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
-  { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
-  { path: '/meniu', label: 'Meniul', icon: UtensilsCrossed, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
-  { path: '/povesti', label: 'Povești', icon: BookOpen, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
-  { path: '/rapoarte', label: 'Rapoarte', icon: BarChart3, roles: ['director', 'administrator'], adminOnly: true },
-  { path: '/utilizatori', label: 'Utilizatori', icon: Users, roles: ['administrator'], adminOnly: true },
-  { path: '/configurari', label: 'Configurări', icon: Settings, roles: ['administrator'], adminOnly: true },
-  { path: '/infodisplay', label: 'Infodisplay', icon: Monitor, roles: ['profesor', 'director', 'administrator'], adminOnly: true },
+// Secondary nav — items NOT on the dashboard
+const SECONDARY_NAV = [
+  { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'] },
+  { path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'] },
+];
+
+// Admin nav — role-gated
+const ADMIN_NAV = [
+  { path: '/rapoarte', label: 'Rapoarte', icon: BarChart3, roles: ['director', 'administrator'] },
+  { path: '/utilizatori', label: 'Utilizatori', icon: Users, roles: ['administrator'] },
+  { path: '/configurari', label: 'Configurări', icon: Settings, roles: ['administrator'] },
+  { path: '/infodisplay', label: 'Infodisplay', icon: Monitor, roles: ['profesor', 'director', 'administrator'] },
 ];
 
 const INKY_ITEMS = [
@@ -42,7 +42,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { currentGroup, availableGroups, switchGroup } = useGroup();
   const { unreadMessages, newAnnouncements } = useNotifications();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -59,6 +59,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
   if (!user) return null;
 
   const userStatus = user.status;
@@ -72,104 +73,133 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     userIsInky ||
     availableGroups.length > 1;
 
-  // All items the user has access to
-  const sidebarItems = NAV_ITEMS.filter((item) => {
-    if (item.roles.includes('all')) return true;
-    return item.roles.some((role) => areRol(userStatus, role) || userIsInky);
-  });
+  const canSee = (roles: string[]) =>
+    roles.some((role) => areRol(userStatus, role) || userIsInky);
+
+  const visibleSecondary = SECONDARY_NAV.filter(i => canSee(i.roles));
+  const visibleAdmin = ADMIN_NAV.filter(i => canSee(i.roles));
+
+  const navLinkClass = "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors";
+  const activeClass = "bg-sidebar-accent text-sidebar-accent-foreground";
+
+  const handleOpenConfigSidebar = () => {
+    setMobileMenuOpen(false);
+    // Navigate home first if not there, then dispatch event
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => window.dispatchEvent(new CustomEvent('open-config-sidebar')), 300);
+    } else {
+      window.dispatchEvent(new CustomEvent('open-config-sidebar'));
+    }
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      {/* ===== DESKTOP SIDEBAR — persistent, minimal ===== */}
+      <aside className="hidden lg:flex lg:relative w-64 bg-sidebar text-sidebar-foreground flex-col shrink-0">
+        {/* Logo */}
+        <div className="flex items-center px-4 py-5 border-b border-sidebar-border">
+          <img src={logoWhite} alt="InfoDisplay" className="h-7" />
+        </div>
 
-      {/* Sidebar — hidden on mobile (drawer), always visible on desktop */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground 
-        transform transition-transform duration-200 ease-in-out
-        lg:relative lg:translate-x-0
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div className="flex h-full flex-col">
-          {/* Logo */}
-          <div className="flex items-center justify-between px-4 py-5 border-b border-sidebar-border">
-            <div className="flex items-center gap-2">
-              <img src={logoWhite} alt="InfoDisplay" className="h-7" />
-            </div>
-            <Button variant="ghost" size="icon" className="lg:hidden text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => setSidebarOpen(false)}>
-              <X className="h-5 w-5" />
-            </Button>
+        {/* Group selector */}
+        {showGroupSelector && (
+          <div className="px-3 py-3 border-b border-sidebar-border">
+            <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
+              <SelectTrigger className="w-full bg-sidebar-accent border-sidebar-border text-sidebar-foreground">
+                <SelectValue placeholder="Selectează grupa" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableGroups.map((g) => (
+                  <SelectItem key={g.id} value={g.id}>{g.nume}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+        )}
 
-          {/* Group selector in sidebar on desktop */}
-          {showGroupSelector && (
-            <div className="hidden lg:block px-3 py-3 border-b border-sidebar-border">
-              <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
-                <SelectTrigger className="w-full bg-sidebar-accent border-sidebar-border text-sidebar-foreground">
-                  <SelectValue placeholder="Selectează grupa" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableGroups.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>{g.nume}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+          {/* Primary: Home */}
+          <NavLink to="/" end className={navLinkClass} activeClassName={activeClass}>
+            <Home className="h-5 w-5 shrink-0" />
+            <span>Acasă</span>
+          </NavLink>
+
+          {/* Secondary: Orar, Anunturi */}
+          {visibleSecondary.map((item) => (
+            <NavLink key={item.path} to={item.path} className={navLinkClass} activeClassName={activeClass}>
+              <item.icon className="h-5 w-5 shrink-0" />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+
+          {/* Admin section */}
+          {visibleAdmin.length > 0 && (
+            <>
+              <div className="pt-4 pb-2 px-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Admin</span>
+              </div>
+              {visibleAdmin.map((item) => (
+                <NavLink key={item.path} to={item.path} className={navLinkClass} activeClassName={activeClass}>
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </>
           )}
 
-          {/* Navigation — show ALL items on desktop sidebar */}
-          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-            {sidebarItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === '/'}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                <span>{item.label}</span>
-                {'badge' in item && item.badge && unreadMessages > 0 && (
-                  <Badge variant="destructive" className="ml-auto text-xs h-5 min-w-[20px] flex items-center justify-center">
-                    {unreadMessages}
-                  </Badge>
-                )}
-              </NavLink>
-            ))}
+          {/* Inky exclusive */}
+          {userIsInky && (
+            <>
+              <div className="pt-4 pb-2 px-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Superuser</span>
+              </div>
+              {INKY_ITEMS.map((item) => (
+                <NavLink key={item.path} to={item.path} className={navLinkClass} activeClassName={activeClass}>
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </>
+          )}
+        </nav>
 
-            {/* Inky exclusive items */}
-            {userIsInky && (
-              <>
-                <div className="pt-4 pb-2 px-3">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Superuser</span>
-                </div>
-                {INKY_ITEMS.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    <span>{item.label}</span>
-                  </NavLink>
+        {/* User info at bottom */}
+        <div className="border-t border-sidebar-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-bold shrink-0">
+              {user.nume_prenume.split(' ').map((n) => n[0]).join('')}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user.nume_prenume}</p>
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                {userRoles.slice(0, 2).map((r) => (
+                  <span key={r} className="text-[10px] px-1.5 py-0.5 rounded bg-sidebar-accent text-sidebar-accent-foreground">
+                    {getRoleLabel(r)}
+                  </span>
                 ))}
-              </>
-            )}
-          </nav>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0" onClick={logout}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </aside>
 
-          {/* User info at bottom */}
-          <div className="border-t border-sidebar-border p-4">
+      {/* ===== MOBILE BOTTOM SHEET MENU ===== */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="w-72 bg-sidebar text-sidebar-foreground p-0">
+          <SheetHeader className="px-4 pt-5 pb-4 border-b border-sidebar-border">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-bold shrink-0">
+              <div className="h-10 w-10 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-bold shrink-0">
                 {user.nume_prenume.split(' ').map((n) => n[0]).join('')}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user.nume_prenume}</p>
+              <div className="min-w-0">
+                <SheetTitle className="text-sm font-semibold text-sidebar-foreground truncate text-left">
+                  {user.nume_prenume}
+                </SheetTitle>
                 <div className="flex flex-wrap gap-1 mt-0.5">
                   {userRoles.slice(0, 2).map((r) => (
                     <span key={r} className="text-[10px] px-1.5 py-0.5 rounded bg-sidebar-accent text-sidebar-accent-foreground">
@@ -178,13 +208,102 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   ))}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent shrink-0" onClick={logout}>
-                <LogOut className="h-4 w-4" />
-              </Button>
             </div>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto py-2">
+            {/* Configurare module */}
+            <button
+              onClick={handleOpenConfigSidebar}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+            >
+              <SlidersHorizontal className="h-5 w-5 shrink-0" />
+              <span>Configurare module</span>
+            </button>
+
+            {/* Secondary nav */}
+            {visibleSecondary.map((item) => (
+              <button
+                key={item.path}
+                onClick={() => { navigate(item.path); setMobileMenuOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                  location.pathname === item.path
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'text-sidebar-foreground/80 hover:bg-sidebar-accent'
+                }`}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span>{item.label}</span>
+              </button>
+            ))}
+
+            {/* Profilul meu (coming soon) */}
+            <button
+              disabled
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-sidebar-foreground/40 cursor-not-allowed"
+            >
+              <User className="h-5 w-5 shrink-0" />
+              <span>Profilul meu</span>
+              <span className="ml-auto text-[10px] uppercase tracking-wider opacity-60">În curând</span>
+            </button>
+
+            {/* Admin section */}
+            {visibleAdmin.length > 0 && (
+              <>
+                <Separator className="my-2 bg-sidebar-border" />
+                <div className="px-4 py-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Admin</span>
+                </div>
+                {visibleAdmin.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => { navigate(item.path); setMobileMenuOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                      location.pathname === item.path
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                        : 'text-sidebar-foreground/80 hover:bg-sidebar-accent'
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5 shrink-0" />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </>
+            )}
+
+            {/* Inky exclusive */}
+            {userIsInky && (
+              <>
+                <Separator className="my-2 bg-sidebar-border" />
+                <div className="px-4 py-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Superuser</span>
+                </div>
+                {INKY_ITEMS.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => { navigate(item.path); setMobileMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+                  >
+                    <item.icon className="h-5 w-5 shrink-0" />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </>
+            )}
           </div>
-        </div>
-      </aside>
+
+          {/* Logout */}
+          <div className="border-t border-sidebar-border p-3">
+            <button
+              onClick={() => { logout(); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <LogOut className="h-5 w-5 shrink-0" />
+              <span>Deconectare</span>
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
@@ -197,13 +316,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             ) : (
-              <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
+              <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(true)}>
                 <Menu className="h-5 w-5" />
               </Button>
             )}
           </div>
 
-          {/* Center: group selector — mobile only, on desktop it's in the sidebar */}
+          {/* Center: group selector — mobile only */}
           {showGroupSelector && (
             <div className="flex-1 flex justify-center min-w-0 px-2 lg:hidden">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
@@ -219,16 +338,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           )}
 
-          {/* Desktop: page title or welcome */}
+          {/* Desktop: page title */}
           <div className="hidden lg:flex flex-1 items-center min-w-0">
             <h2 className="text-lg font-display font-bold text-foreground truncate">
               {isHome ? `Bun venit, ${user.nume_prenume.split(' ')[0]}!` : ''}
             </h2>
           </div>
 
-          {/* Right: notifications + home favicon */}
+          {/* Right: notifications + favicon */}
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
-            {/* Desktop search — inline in header */}
             <div className="hidden lg:block relative mr-3">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
               <input
@@ -287,7 +405,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Search bar — mobile only, sticky below header */}
+        {/* Search bar — mobile only */}
         <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md px-3 py-2 border-b border-border/30 lg:hidden">
           <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>

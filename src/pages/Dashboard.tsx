@@ -39,8 +39,13 @@ export default function Dashboard() {
     const handler = (e: Event) => {
       setSearchQuery((e as CustomEvent).detail || '');
     };
+    const configHandler = () => setSidebarOpen(true);
     window.addEventListener('dashboard-search', handler);
-    return () => window.removeEventListener('dashboard-search', handler);
+    window.addEventListener('open-config-sidebar', configHandler);
+    return () => {
+      window.removeEventListener('dashboard-search', handler);
+      window.removeEventListener('open-config-sidebar', configHandler);
+    };
   }, []);
 
   const handleToggle = useCallback((key: keyof ModuleVisibility) => {
