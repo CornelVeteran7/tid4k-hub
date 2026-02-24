@@ -8,30 +8,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft
 } from 'lucide-react';
 import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useLocation, useNavigate } from 'react-router-dom';
-import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
-import infodisplayLogoHeader from '@/assets/infodisplay-logo-header.png';
 import InkyAssistant from '@/components/InkyAssistant';
 
+// Full nav items for sidebar (desktop)
 const NAV_ITEMS = [
-  { path: '/', label: 'Acasă', icon: Home, roles: ['all'] },
-  { path: '/prezenta', label: 'Prezența', icon: ClipboardList, roles: ['profesor', 'director', 'administrator'] },
-  { path: '/documente', label: 'Documente', icon: FileText, roles: ['profesor', 'parinte', 'director', 'administrator'] },
-  { path: '/mesaje', label: 'Mesaje', icon: MessageSquare, roles: ['profesor', 'parinte', 'director', 'administrator'], badge: true },
-  { path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'] },
-  { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'] },
-  { path: '/meniu', label: 'Meniul', icon: UtensilsCrossed, roles: ['profesor', 'parinte', 'director', 'administrator'] },
-  { path: '/povesti', label: 'Povești', icon: BookOpen, roles: ['profesor', 'parinte', 'director', 'administrator'] },
-  { path: '/rapoarte', label: 'Rapoarte', icon: BarChart3, roles: ['director', 'administrator'] },
-  { path: '/utilizatori', label: 'Utilizatori', icon: Users, roles: ['administrator'] },
-  { path: '/configurari', label: 'Configurări', icon: Settings, roles: ['administrator'] },
-  { path: '/infodisplay', label: 'Infodisplay', icon: Monitor, roles: ['profesor', 'director', 'administrator'] },
+  { path: '/', label: 'Acasă', icon: Home, roles: ['all'], adminOnly: false },
+  { path: '/prezenta', label: 'Prezența', icon: ClipboardList, roles: ['profesor', 'director', 'administrator'], adminOnly: false },
+  { path: '/documente', label: 'Documente', icon: FileText, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
+  { path: '/mesaje', label: 'Mesaje', icon: MessageSquare, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false, badge: true },
+  { path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
+  { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
+  { path: '/meniu', label: 'Meniul', icon: UtensilsCrossed, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
+  { path: '/povesti', label: 'Povești', icon: BookOpen, roles: ['profesor', 'parinte', 'director', 'administrator'], adminOnly: false },
+  { path: '/rapoarte', label: 'Rapoarte', icon: BarChart3, roles: ['director', 'administrator'], adminOnly: true },
+  { path: '/utilizatori', label: 'Utilizatori', icon: Users, roles: ['administrator'], adminOnly: true },
+  { path: '/configurari', label: 'Configurări', icon: Settings, roles: ['administrator'], adminOnly: true },
+  { path: '/infodisplay', label: 'Infodisplay', icon: Monitor, roles: ['profesor', 'director', 'administrator'], adminOnly: true },
 ];
+
+// Hub module paths — these are handled by ModuleHub on dashboard, so hide from sidebar on desktop
+const HUB_PATHS = ['/prezenta', '/documente', '/mesaje', '/povesti', '/meniu'];
 
 const INKY_ITEMS = [
   { path: '/orar-cancelarie', label: 'Orar CANCELARIE', icon: Calendar },
@@ -53,11 +55,24 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const userStatus = user.status;
   const userIsInky = isInky(userStatus, user.nume_prenume);
   const userRoles = getRoles(userStatus);
+  const isHome = location.pathname === '/';
 
-  const visibleItems = NAV_ITEMS.filter((item) => {
+  // Show group selector only for directors/admins or users with multiple groups
+  const showGroupSelector =
+    areRol(userStatus, 'director') ||
+    areRol(userStatus, 'administrator') ||
+    userIsInky ||
+    availableGroups.length > 1;
+
+  // Desktop sidebar: filter out hub module paths (they're on the dashboard)
+  const sidebarItems = NAV_ITEMS.filter((item) => {
     if (item.roles.includes('all')) return true;
     return item.roles.some((role) => areRol(userStatus, role) || userIsInky);
   });
+
+  const desktopSidebarItems = sidebarItems.filter(
+    (item) => !HUB_PATHS.includes(item.path)
+  );
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -66,7 +81,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
+      {/* Desktop Sidebar - admin-only links */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground 
         transform transition-transform duration-200 ease-in-out
@@ -84,26 +99,48 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation — on mobile show all, on desktop show only non-hub items */}
           <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-            {visibleItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === '/'}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                <span>{item.label}</span>
-                {item.badge && unreadMessages > 0 && (
-                  <Badge variant="destructive" className="ml-auto text-xs h-5 min-w-[20px] flex items-center justify-center">
-                    {unreadMessages}
-                  </Badge>
-                )}
-              </NavLink>
-            ))}
+            {/* Mobile: full list, Desktop: admin-only */}
+            <div className="lg:hidden">
+              {sidebarItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === '/'}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                  activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span>{item.label}</span>
+                  {'badge' in item && item.badge && unreadMessages > 0 && (
+                    <Badge variant="destructive" className="ml-auto text-xs h-5 min-w-[20px] flex items-center justify-center">
+                      {unreadMessages}
+                    </Badge>
+                  )}
+                </NavLink>
+              ))}
+            </div>
+            <div className="hidden lg:block">
+              {desktopSidebarItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === '/'}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                  activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                >
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span>{item.label}</span>
+                  {'badge' in item && item.badge && unreadMessages > 0 && (
+                    <Badge variant="destructive" className="ml-auto text-xs h-5 min-w-[20px] flex items-center justify-center">
+                      {unreadMessages}
+                    </Badge>
+                  )}
+                </NavLink>
+              ))}
+            </div>
 
             {/* Inky exclusive items */}
             {userIsInky && (
@@ -153,17 +190,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
-        {/* Top header - glass style */}
+        {/* Top header */}
         <header className="glass-header relative flex items-center px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 lg:px-6 z-10">
-          {/* Left: hamburger */}
+          {/* Left: back arrow on inner pages (mobile) or hamburger */}
           <div className="flex items-center shrink-0">
-            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
-              <Menu className="h-5 w-5" />
-            </Button>
+            {!isHome ? (
+              <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => navigate('/')}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
+                <Menu className="h-5 w-5" />
+              </Button>
+            )}
           </div>
 
-          {/* Center: group selector */}
-          {availableGroups.length > 1 && (
+          {/* Center: group selector (only for directors/admins/multi-group users) */}
+          {showGroupSelector && (
             <div className="flex-1 flex justify-center min-w-0 px-2">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
                 <SelectTrigger className="w-full max-w-[180px]">
@@ -178,7 +221,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           )}
 
-          {/* Right: notifications + logo */}
+          {/* Right: notifications + home favicon */}
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
             <Popover open={notifOpen} onOpenChange={setNotifOpen}>
               <PopoverTrigger asChild>
