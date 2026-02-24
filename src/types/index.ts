@@ -56,6 +56,19 @@ export interface AttendanceStats {
   per_copil: { id_copil: number; nume: string; zile_prezent: number; zile_absent: number; procent: number }[];
 }
 
+export interface WeeklyAttendanceRecord {
+  id_copil: number;
+  nume_prenume_copil: string;
+  zile: { [date: string]: boolean };
+  observatii?: string;
+}
+
+export interface WeeklyAttendanceData {
+  saptamana_start: string;
+  saptamana_end: string;
+  records: WeeklyAttendanceRecord[];
+}
+
 // ===== Messages =====
 export interface Conversation {
   id: number;
