@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { useNotifications } from '@/contexts/NotificationContext';
+import type { NotificationItem } from '@/contexts/NotificationContext';
 import { areRol, isInky, getRoleLabel, getRoles } from '@/utils/roles';
 import { NavLink } from '@/components/NavLink';
 import { Badge } from '@/components/ui/badge';
@@ -39,10 +40,25 @@ const INKY_ITEMS = [
   { path: '/social-whatsapp', label: 'WhatsApp', icon: MessageCircle },
 ];
 
+function getTimeAgo(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return 'Acum';
+  if (diffMins < 60) return `Acum ${diffMins} min`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `Acum ${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return 'Ieri';
+  if (diffDays < 7) return `Acum ${diffDays} zile`;
+  return date.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+}
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { currentGroup, availableGroups, switchGroup } = useGroup();
-  const { unreadMessages, newAnnouncements } = useNotifications();
+  const { unreadMessages, newAnnouncements, notifications, markAsRead, markAllAsRead } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { openLink } = useExternalLink();
@@ -401,31 +417,68 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-64 p-0 glass-card">
-                <div className="px-4 py-3 border-b border-border/50">
+              <PopoverContent align="end" className="w-80 p-0 glass-card">
+                <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
                   <p className="text-sm font-semibold">Notificări</p>
+                  {notifications.some(n => !n.read) && (
+                    <button
+                      onClick={markAllAsRead}
+                      className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                    >
+                      Marchează toate ca citite
+                    </button>
+                  )}
                 </div>
-                <div className="p-2 space-y-1">
-                  {unreadMessages > 0 && (
-                    <button
-                      onClick={() => { navigate('/mesaje'); setNotifOpen(false); }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted transition-colors text-left"
-                    >
-                      <MessageSquare className="h-4 w-4 text-accent shrink-0" />
-                      <span className="flex-1">{unreadMessages} mesaje necitite</span>
-                    </button>
-                  )}
-                  {newAnnouncements > 0 && (
-                    <button
-                      onClick={() => { navigate('/anunturi'); setNotifOpen(false); }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted transition-colors text-left"
-                    >
-                      <Megaphone className="h-4 w-4 text-warning shrink-0" />
-                      <span className="flex-1">{newAnnouncements} anunțuri noi</span>
-                    </button>
-                  )}
-                  {unreadMessages === 0 && newAnnouncements === 0 && (
-                    <p className="px-3 py-4 text-sm text-muted-foreground text-center">Nicio notificare nouă</p>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center">
+                      <Bell className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
+                      <p className="text-sm text-muted-foreground">Nicio notificare nouă</p>
+                    </div>
+                  ) : (
+                    <div className="p-1.5 space-y-0.5">
+                      {notifications.map(notif => {
+                        const timeAgo = getTimeAgo(notif.timestamp);
+                        return (
+                          <button
+                            key={notif.id}
+                            onClick={() => {
+                              markAsRead(notif.id);
+                              navigate(notif.navigateTo);
+                              setNotifOpen(false);
+                            }}
+                            className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted/60 transition-colors text-left ${
+                              !notif.read ? 'bg-primary/5' : ''
+                            }`}
+                          >
+                            <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
+                              notif.icon === 'alert'
+                                ? 'bg-destructive/10 text-destructive'
+                                : notif.icon === 'message'
+                                ? 'bg-sky-500/10 text-sky-600'
+                                : 'bg-amber-500/10 text-amber-600'
+                            }`}>
+                              {notif.icon === 'message'
+                                ? <MessageSquare className="h-4 w-4" />
+                                : <Megaphone className="h-4 w-4" />
+                              }
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-sm truncate ${!notif.read ? 'font-semibold' : 'font-medium'}`}>
+                                  {notif.title}
+                                </span>
+                                {!notif.read && (
+                                  <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground truncate mt-0.5">{notif.description}</p>
+                              <p className="text-[10px] text-muted-foreground/70 mt-0.5">{timeAgo}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
               </PopoverContent>
