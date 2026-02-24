@@ -10,7 +10,7 @@ import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
   BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logoWhite from '@/assets/logo-white.png';
@@ -191,17 +191,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Top header */}
-        <header ref={(el) => {
-          if (el) {
-            const update = () => {
-              const rect = el.getBoundingClientRect();
-              document.documentElement.style.setProperty('--header-height', `${rect.bottom}px`);
-            };
-            update();
-            const ro = new ResizeObserver(update);
-            ro.observe(el);
-          }
-        }} className="glass-header relative flex items-center px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 lg:px-6 z-40">
+        <header ref={headerRef} className="glass-header relative flex items-center px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 lg:px-6 z-40">
           {/* Left: back arrow on inner pages (mobile) or hamburger */}
           <div className="flex items-center shrink-0">
             {!isHome ? (
