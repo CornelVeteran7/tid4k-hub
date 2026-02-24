@@ -9,8 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Save, Printer, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Save, Printer, ChevronLeft, ChevronRight, CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const DAYS = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri'];
 const MEALS: { key: MenuItem['masa']; label: string }[] = [
@@ -40,6 +43,25 @@ function formatWeekLabel(weekStr: string): string {
     return `Săptămâna ${dMon}-${dFri} ${MONTHS_RO[monday.getMonth()]}`;
   }
   return `Săptămâna ${dMon} ${MONTHS_RO[monday.getMonth()]} - ${dFri} ${MONTHS_RO[friday.getMonth()]}`;
+}
+
+function dateToISOWeek(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+function isoWeekToMonday(weekStr: string): Date {
+  const [yearStr, wStr] = weekStr.split('-W');
+  const year = Number(yearStr);
+  const week = Number(wStr);
+  const jan4 = new Date(year, 0, 4);
+  const dayOfWeek = jan4.getDay() || 7;
+  const monday = new Date(jan4);
+  monday.setDate(jan4.getDate() - dayOfWeek + 1 + (week - 1) * 7);
+  return monday;
 }
 
 export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
@@ -108,6 +130,23 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
             const [y, w] = week.split('-W').map(Number);
             setWeek(`${y}-W${String(w + 1).padStart(2, '0')}`);
           }}><ChevronRight className="h-4 w-4" /></Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon" className="h-9 w-9">
+                <CalendarIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={isoWeekToMonday(week)}
+                onSelect={(date) => {
+                  if (date) setWeek(dateToISOWeek(date));
+                }}
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
           <Button variant="outline" size="sm" className="gap-2 ml-auto"><Printer className="h-4 w-4" /> Print</Button>
         </div>
       </div>
