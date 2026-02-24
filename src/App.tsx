@@ -20,14 +20,11 @@ import ScheduleCancelarie from "./pages/ScheduleCancelarie";
 import WeeklyMenu from "./pages/WeeklyMenu";
 import Stories from "./pages/Stories";
 import Reports from "./pages/Reports";
-import UserManagement from "./pages/UserManagement";
-import Settings from "./pages/Settings";
+import AdminPanel from "./pages/AdminPanel";
 import Infodisplay from "./pages/Infodisplay";
 import SocialMediaFacebook from "./pages/SocialMediaFacebook";
 import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
 import NotFound from "./pages/NotFound";
-import SponsorAdmin from "./pages/SponsorAdmin";
-import SponsorDashboard from "./pages/SponsorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -59,13 +56,14 @@ function ProtectedRoutes() {
             <Route path="/meniu" element={<WeeklyMenu />} />
             <Route path="/povesti" element={<Stories />} />
             <Route path="/rapoarte" element={<Reports />} />
-            <Route path="/utilizatori" element={<UserManagement />} />
-            <Route path="/configurari" element={<Settings />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/utilizatori" element={<Navigate to="/admin" replace />} />
+            <Route path="/configurari" element={<Navigate to="/admin" replace />} />
+            <Route path="/sponsori" element={<Navigate to="/admin" replace />} />
+            <Route path="/sponsor-dashboard" element={<Navigate to="/admin" replace />} />
             <Route path="/infodisplay" element={<Infodisplay />} />
             <Route path="/social-facebook" element={<SocialMediaFacebook />} />
             <Route path="/social-whatsapp" element={<SocialMediaWhatsapp />} />
-            <Route path="/sponsori" element={<SponsorAdmin />} />
-            <Route path="/sponsor-dashboard" element={<SponsorDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
