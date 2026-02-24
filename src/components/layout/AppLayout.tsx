@@ -11,6 +11,7 @@ import {
   BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
