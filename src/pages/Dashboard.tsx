@@ -87,6 +87,9 @@ export default function Dashboard() {
         visibility={visibility}
         onToggle={handleToggle}
       />
+
+      {/* Sticky announcements ticker */}
+      <AnnouncementsTicker />
     </div>
   );
 }
