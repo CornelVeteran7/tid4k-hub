@@ -12,6 +12,7 @@ import {
   ExternalLink, Calendar, CheckCircle2, XCircle, Eye, BarChart3, Play, Pause, Archive, FileEdit, Clock
 } from 'lucide-react';
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
+import { useExternalLink } from '@/contexts/ExternalLinkContext';
 
 const PROMO_TYPE_LABELS: Record<SponsorPromo['tip'], { label: string; icon: React.ElementType; color: string }> = {
   card_dashboard: { label: 'Card Dashboard', icon: Layout, color: '#2ECC71' },
