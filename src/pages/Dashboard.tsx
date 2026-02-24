@@ -68,6 +68,7 @@ export default function Dashboard() {
         <div className="space-y-5">
           {/* Compact welcome banner with stats */}
           <motion.div
+            data-tutorial="welcome-card"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -118,21 +119,25 @@ export default function Dashboard() {
           </motion.div>
 
           {/* Children horizontal scroller */}
-          <ChildrenScroller />
+          <div data-tutorial="children-scroller">
+            <ChildrenScroller />
+          </div>
         </div>
 
         {/* Right column: Module cards */}
         <div className="space-y-3">
           {/* Settings button */}
           <div className="flex justify-end">
-            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="gap-1.5 text-muted-foreground">
+            <Button data-tutorial="config-button" variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="gap-1.5 text-muted-foreground">
               <Settings className="h-4 w-4" />
               Configurare
             </Button>
           </div>
 
           {/* Module card stack */}
-          <ModuleHub visibility={visibility} searchQuery={searchQuery} />
+          <div data-tutorial="module-hub">
+            <ModuleHub visibility={visibility} searchQuery={searchQuery} />
+          </div>
         </div>
       </div>
 

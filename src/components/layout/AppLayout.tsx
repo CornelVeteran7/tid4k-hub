@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logoWhite from '@/assets/logo-white.png';
 import InkyAssistant from '@/components/InkyAssistant';
+import TutorialOverlay from '@/components/TutorialOverlay';
 
 // Secondary nav — items NOT on the dashboard
 const SECONDARY_NAV = [
@@ -104,7 +105,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Group selector */}
         {showGroupSelector && (
-          <div className="px-3 py-3 border-b border-sidebar-border">
+          <div data-tutorial="group-selector" className="px-3 py-3 border-b border-sidebar-border">
             <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
               <SelectTrigger className="w-full bg-sidebar-accent border-sidebar-border text-sidebar-foreground">
                 <SelectValue placeholder="Selectează grupa" />
@@ -163,6 +164,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               ))}
             </>
           )}
+
+          {/* Tutorial replay */}
+          <div className="pt-2">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('restart-tutorial'))}
+              className={navLinkClass}
+            >
+              <GraduationCap className="h-5 w-5 shrink-0" />
+              <span>Tutorial</span>
+            </button>
+          </div>
         </nav>
 
         {/* User info at bottom */}
@@ -247,6 +259,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="ml-auto text-[10px] uppercase tracking-wider opacity-60">În curând</span>
             </button>
 
+            {/* Tutorial */}
+            <button
+              onClick={() => { window.dispatchEvent(new CustomEvent('restart-tutorial')); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+            >
+              <GraduationCap className="h-5 w-5 shrink-0" />
+              <span>Tutorial</span>
+            </button>
+
             {/* Admin section */}
             {visibleAdmin.length > 0 && (
               <>
@@ -316,7 +337,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             ) : (
-              <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(true)}>
+              <Button data-tutorial="menu-button" variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(true)}>
                 <Menu className="h-5 w-5" />
               </Button>
             )}
@@ -324,7 +345,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           {/* Center: group selector — mobile only */}
           {showGroupSelector && (
-            <div className="flex-1 flex justify-center min-w-0 px-2 lg:hidden">
+            <div data-tutorial="group-selector" className="flex-1 flex justify-center min-w-0 px-2 lg:hidden">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
                 <SelectTrigger className="w-full max-w-[180px]">
                   <SelectValue placeholder="Selectează grupa" />
@@ -361,7 +382,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
             <Popover open={notifOpen} onOpenChange={setNotifOpen}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                <Button data-tutorial="notifications" variant="ghost" size="icon" className="relative h-9 w-9">
                   <Bell className="h-4.5 w-4.5" />
                   {(unreadMessages + newAnnouncements > 0) && (
                     <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
@@ -425,6 +446,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
         <InkyAssistant />
+        <TutorialOverlay />
       </div>
     </div>
   );
