@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { School, Users, Calendar, UtensilsCrossed, Award, Settings } from 'lucide-react';
+import { School, Users, Calendar, UtensilsCrossed, Settings } from 'lucide-react';
 import { getSchools } from '@/api/schools';
 import type { School as SchoolType } from '@/types';
 import SchoolsTab from '@/components/admin/SchoolsTab';
 import UsersTab from '@/components/admin/UsersTab';
 import ScheduleTab from '@/components/admin/ScheduleTab';
 import MenuTab from '@/components/admin/MenuTab';
-import SponsorsTab from '@/components/admin/SponsorsTab';
 import SettingsTab from '@/components/admin/SettingsTab';
 
 const TABS = [
@@ -16,7 +15,6 @@ const TABS = [
   { value: 'utilizatori', label: 'Utilizatori', icon: Users },
   { value: 'orar', label: 'Orar', icon: Calendar },
   { value: 'meniu', label: 'Meniu', icon: UtensilsCrossed },
-  { value: 'sponsori', label: 'Sponsori', icon: Award },
   { value: 'setari', label: 'Setări', icon: Settings },
 ];
 
@@ -76,7 +74,6 @@ export default function AdminPanel() {
           <TabsContent value="utilizatori"><UsersTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
           <TabsContent value="orar"><ScheduleTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
           <TabsContent value="meniu"><MenuTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
-          <TabsContent value="sponsori"><SponsorsTab /></TabsContent>
           <TabsContent value="setari"><SettingsTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
         </div>
       </Tabs>

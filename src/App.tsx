@@ -21,6 +21,7 @@ import WeeklyMenu from "./pages/WeeklyMenu";
 import Stories from "./pages/Stories";
 import Reports from "./pages/Reports";
 import AdminPanel from "./pages/AdminPanel";
+import SponsorAdmin from "./pages/SponsorAdmin";
 import Infodisplay from "./pages/Infodisplay";
 import SocialMediaFacebook from "./pages/SocialMediaFacebook";
 import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
@@ -60,8 +61,8 @@ function ProtectedRoutes() {
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/utilizatori" element={<Navigate to="/admin" replace />} />
             <Route path="/configurari" element={<Navigate to="/admin" replace />} />
-            <Route path="/sponsori" element={<Navigate to="/admin" replace />} />
-            <Route path="/sponsor-dashboard" element={<Navigate to="/admin" replace />} />
+            <Route path="/sponsori" element={<SponsorAdmin />} />
+            <Route path="/sponsor-dashboard" element={<Navigate to="/sponsori" replace />} />
             <Route path="/infodisplay" element={<Infodisplay />} />
             <Route path="/social-facebook" element={<SocialMediaFacebook />} />
             <Route path="/social-whatsapp" element={<SocialMediaWhatsapp />} />
