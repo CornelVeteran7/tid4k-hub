@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ReactNode } from 'react';
@@ -8,49 +8,55 @@ interface ModulePanelProps {
   onClose: () => void;
   title: string;
   color: string;
+  layoutId?: string;
   children: ReactNode;
 }
 
-export default function ModulePanel({ isOpen, onClose, title, color, children }: ModulePanelProps) {
+export default function ModulePanel({ isOpen, onClose, title, color, layoutId, children }: ModulePanelProps) {
+  if (!isOpen) return null;
+
   return (
-    <AnimatePresence>
-      {isOpen && (
+    <div className="fixed inset-0 z-40 flex flex-col" style={{ top: 0 }}>
+      {/* Scrim */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Panel — shares layoutId with the card so it morphs from card position */}
+      <motion.div
+        layoutId={layoutId}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        className="relative flex flex-col flex-1 mt-14 rounded-t-2xl overflow-hidden shadow-2xl"
+        style={{ backgroundColor: color }}
+      >
+        {/* Colored header bar */}
+        <div className="flex items-center justify-between px-4 py-3 shrink-0">
+          <h2 className="text-white font-display font-bold text-base uppercase tracking-wide">{title}</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20 h-8 w-8"
+            onClick={onClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Scrollable content with white background */}
         <motion.div
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          className="fixed inset-0 z-40 flex flex-col"
-          style={{ top: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.2 }}
+          className="flex-1 overflow-y-auto bg-background rounded-t-2xl p-4 pb-24"
         >
-          {/* Scrim behind panel that lets header show through */}
-          <div className="bg-background/80 backdrop-blur-sm absolute inset-0" onClick={onClose} />
-
-          {/* Panel content */}
-          <div className="relative flex flex-col flex-1 mt-14 rounded-t-2xl overflow-hidden bg-background shadow-2xl">
-            {/* Colored header bar */}
-            <div
-              className="flex items-center justify-between px-4 py-3 shrink-0"
-              style={{ backgroundColor: color }}
-            >
-              <h2 className="text-white font-display font-bold text-base uppercase tracking-wide">{title}</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20 h-8 w-8"
-                onClick={onClose}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-
-            {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto p-4 pb-24">
-              {children}
-            </div>
-          </div>
+          {children}
         </motion.div>
-      )}
-    </AnimatePresence>
+      </motion.div>
+    </div>
   );
 }

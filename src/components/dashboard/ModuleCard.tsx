@@ -8,11 +8,13 @@ interface ModuleCardProps {
   color: string;
   count?: number;
   onOpen?: () => void;
+  layoutId?: string;
 }
 
-export default function ModuleCard({ icon: Icon, title, subtitle, color, count, onOpen }: ModuleCardProps) {
+export default function ModuleCard({ icon: Icon, title, subtitle, color, count, onOpen, layoutId }: ModuleCardProps) {
   return (
     <motion.div
+      layoutId={layoutId}
       whileTap={{ scale: 0.97 }}
       onClick={onOpen}
       className="card-tappable rounded-3xl p-4 flex items-center gap-4 cursor-pointer shadow-md"
