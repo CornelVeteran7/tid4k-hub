@@ -114,3 +114,17 @@ export interface SponsorStats {
   campanii_totale: number;
   scoli_active: number;
 }
+
+// ===== Rotation System =====
+export interface RotationConfig {
+  ciclu_total_secunde: number;
+  sloturi: RotationSlot[];
+}
+
+export interface RotationSlot {
+  id_sponsor: number;
+  id_promo: number;
+  durata_secunde: number;
+  pondere: number;
+  promo: SponsorPromo;
+}

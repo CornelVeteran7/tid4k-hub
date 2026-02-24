@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
-import { getActivePromos } from '@/api/sponsors';
+import { useSponsorRotation } from '@/hooks/useSponsorRotation';
+import { logClick } from '@/api/sponsors';
 import type { SponsorPromo } from '@/types/sponsor';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -92,28 +93,23 @@ function getActions(pathname: string, isTeacher: boolean, isParent: boolean): Qu
 
 export default function InkyAssistant() {
   const [open, setOpen] = useState(false);
-  const [sponsorAction, setSponsorAction] = useState<QuickAction | null>(null);
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { openLink } = useExternalLink();
 
-  useEffect(() => {
-    getActivePromos('inky_popup').then(promos => {
-      if (promos.length > 0) {
-        const p = promos[0];
-        setSponsorAction({
-          label: p.titlu,
-          icon: Award,
-          isSponsor: true,
-          sponsorColor: p.sponsor_culoare,
-          sponsorLogo: p.sponsor_logo,
-          linkUrl: p.link_url,
-          stilInky: p.stil_inky,
-        });
-      }
-    });
-  }, []);
+  const { currentPromo } = useSponsorRotation('inky_popup');
+
+  // Build sponsor action from current rotation promo
+  const sponsorAction: QuickAction | null = currentPromo ? {
+    label: currentPromo.titlu,
+    icon: Award,
+    isSponsor: true,
+    sponsorColor: currentPromo.sponsor_culoare,
+    sponsorLogo: currentPromo.sponsor_logo,
+    linkUrl: currentPromo.link_url,
+    stilInky: currentPromo.stil_inky,
+  } : null;
 
   if (!user) return null;
 
@@ -124,6 +120,9 @@ export default function InkyAssistant() {
 
   const handleAction = (action: QuickAction) => {
     if (action.isSponsor && action.linkUrl) {
+      if (currentPromo) {
+        logClick({ id_promo: currentPromo.id_promo, tip: 'inky_popup' });
+      }
       openLink(action.linkUrl);
       setOpen(false);
       return;
