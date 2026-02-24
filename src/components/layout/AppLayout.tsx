@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -30,6 +30,7 @@ const ADMIN_NAV = [
   { path: '/rapoarte', label: 'Rapoarte', icon: BarChart3, roles: ['director', 'administrator'] },
   { path: '/utilizatori', label: 'Utilizatori', icon: Users, roles: ['administrator'] },
   { path: '/configurari', label: 'Configurări', icon: Settings, roles: ['administrator'] },
+  { path: '/sponsori', label: 'Sponsori', icon: Award, roles: ['administrator', 'sponsor'] },
   { path: '/infodisplay', label: 'Infodisplay', icon: Monitor, roles: ['profesor', 'director', 'administrator'] },
 ];
 

@@ -16,7 +16,7 @@ export interface UserSession {
   grupe_disponibile: GroupInfo[];
 }
 
-export type UserRole = 'parinte' | 'profesor' | 'director' | 'administrator' | 'secretara' | 'inky';
+export type UserRole = 'parinte' | 'profesor' | 'director' | 'administrator' | 'secretara' | 'sponsor' | 'inky';
 
 // ===== Groups & Children =====
 export interface GroupInfo {
