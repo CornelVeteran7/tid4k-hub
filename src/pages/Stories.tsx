@@ -29,7 +29,7 @@ const AGE_COLORS: Record<string, string> = {
   '7-10': 'bg-warning/10 text-warning',
 };
 
-export default function Stories() {
+export default function Stories({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
   const [category, setCategory] = useState('all');
@@ -148,10 +148,12 @@ export default function Stories() {
   return (
     <div className="space-y-5 min-w-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold">Biblioteca de Povești</h1>
-          <p className="text-muted-foreground text-sm">{stories.length} povești disponibile</p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-xl sm:text-2xl font-display font-bold">Biblioteca de Povești</h1>
+            <p className="text-muted-foreground text-sm">{stories.length} povești disponibile</p>
+          </div>
+        )}
         {canCreate && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>

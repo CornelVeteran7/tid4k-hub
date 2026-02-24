@@ -22,7 +22,7 @@ const MEALS: { key: MenuItem['masa']; label: string }[] = [
 
 const ALLERGENS = ['Gluten', 'Lapte', 'Ouă', 'Pește', 'Soia', 'Arahide', 'Fructe cu coajă', 'Țelină', 'Muștar', 'Susan', 'Sulfați', 'Lupin', 'Moluște', 'Crustacee'];
 
-export default function WeeklyMenu() {
+export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
   const [menu, setMenu] = useState<WeeklyMenuType | null>(null);
   const [week, setWeek] = useState('2026-W09');
@@ -72,10 +72,12 @@ export default function WeeklyMenu() {
   return (
     <div className="space-y-5 min-w-0">
       <div className="flex flex-col gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold">Meniul Săptămânal</h1>
-          <p className="text-muted-foreground text-sm">Săptămâna {week}</p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-xl sm:text-2xl font-display font-bold">Meniul Săptămânal</h1>
+            <p className="text-muted-foreground text-sm">Săptămâna {week}</p>
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => {
             const [y, w] = week.split('-W').map(Number);

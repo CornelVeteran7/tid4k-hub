@@ -22,7 +22,7 @@ const CATEGORIES = [
   { value: 'fotografii', label: 'Fotografii' },
 ];
 
-export default function Documents() {
+export default function Documents({ embedded }: { embedded?: boolean }) {
   const { currentGroup } = useGroup();
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,10 +54,12 @@ export default function Documents() {
   return (
     <div className="space-y-5 min-w-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold">Documente</h1>
-          <p className="text-muted-foreground text-sm">{currentGroup?.nume}</p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-xl sm:text-2xl font-display font-bold">Documente</h1>
+            <p className="text-muted-foreground text-sm">{currentGroup?.nume}</p>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}>
             {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid className="h-4 w-4" />}

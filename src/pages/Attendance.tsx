@@ -36,7 +36,7 @@ function getInitials(name: string): string {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-export default function Attendance() {
+export default function Attendance({ embedded }: { embedded?: boolean }) {
   const { currentGroup } = useGroup();
   const [monday, setMonday] = useState(() => getMonday(new Date()));
   const [data, setData] = useState<WeeklyAttendanceData | null>(null);
@@ -86,19 +86,30 @@ export default function Attendance() {
 
   return (
     <div className="space-y-4 pb-8">
-      {/* Yellow Header Card */}
-      <div className="rounded-2xl p-5 text-black" style={{ backgroundColor: '#FFC107' }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-display font-bold uppercase tracking-wide">Prezența</h1>
-            <p className="text-sm font-medium opacity-80">{currentGroup?.nume || 'Selectează o grupă'}</p>
-            <p className="text-xs opacity-70 mt-0.5">{format(new Date(), 'd MMMM yyyy', { locale: ro })}</p>
+      {/* Yellow Header Card - hidden when embedded in panel */}
+      {!embedded && (
+        <div className="rounded-2xl p-5 text-black" style={{ backgroundColor: '#FFC107' }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-display font-bold uppercase tracking-wide">Prezența</h1>
+              <p className="text-sm font-medium opacity-80">{currentGroup?.nume || 'Selectează o grupă'}</p>
+              <p className="text-xs opacity-70 mt-0.5">{format(new Date(), 'd MMMM yyyy', { locale: ro })}</p>
+            </div>
+            <Badge className="bg-white/90 text-black font-bold text-sm px-3 py-1.5 hover:bg-white/90">
+              Prezenți: {todayPresent}/{totalChildren}
+            </Badge>
           </div>
-          <Badge className="bg-white/90 text-black font-bold text-sm px-3 py-1.5 hover:bg-white/90">
+        </div>
+      )}
+      {/* Inline counter when embedded */}
+      {embedded && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-muted-foreground">{currentGroup?.nume}</p>
+          <Badge variant="secondary" className="font-bold">
             Prezenți: {todayPresent}/{totalChildren}
           </Badge>
         </div>
-      </div>
+      )}
 
       {/* Week Navigation */}
       <div className="flex items-center justify-between">
