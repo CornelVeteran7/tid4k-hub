@@ -1,111 +1,71 @@
 
 
-# Panou Admin Unificat - TID4K
+# Per-School Filtering for Admin Panel
 
-## Obiectiv
-Crearea unei pagini unice `/admin` care inlocuieste paginile separate (Utilizatori, Configurari, Sponsori, Dashboard Sponsor) si ofera management complet al unitatilor de invatamant, cu responsive design impecabil pe mobil si desktop.
+## What changes
+A **global school selector** will be added to the Admin Panel header, so every tab automatically filters its data to the selected school. No more scrolling through menus or users from all schools -- you pick one and everything updates.
 
-## Structura paginii
+## How it will look
 
 ```text
 +--------------------------------------------------+
-|  [Icon] Panou Administrare         [+ Scoala noua]|
-|  Gestioneaza unitatile, utilizatorii si sponsorii  |
+|  Panou Administrare                               |
+|  [  Gradinita Floarea Soarelui  v ]  <-- global  |
 +--------------------------------------------------+
-|  [Scoli] [Utilizatori] [Orar] [Meniu] [Sponsori] [Setari] |
+|  [Scoli] [Utilizatori] [Orar] [Meniu] [Sponsori] |
 +--------------------------------------------------+
-|                                                    |
-|  (continut tab activ)                              |
-|                                                    |
+|  (content filtered to selected school)            |
 +--------------------------------------------------+
 ```
 
-Pe mobil, tab-urile vor fi un scroll orizontal (snap-x) pentru a evita overlapping.
+- The selector also includes an "Toate" (All) option for a global view when needed
+- On mobile, the selector is full-width below the title
+- On desktop, it sits inline next to the subtitle
 
-## Tab-uri si continut
+## Tab-by-tab impact
 
-### 1. Scoli (nou)
-- Lista carduri scoli existente (grid 1-3 coloane responsive)
-- Card "+" pentru adaugare scoala noua
-- Dialog/Sheet creare scoala: nume, adresa, tip (gradinita/scoala), logo upload
-- Clic pe scoala -> se deschide un sub-panel cu:
-  - Grupe/Clase alocate (lista editabila)
-  - Copii per grupa (tabel compact)
-  - Profesori asignati
-  - Statistici rapide (nr copii, nr profesori)
+| Tab | Current | After |
+|-----|---------|-------|
+| Scoli | Shows all schools | When a specific school is selected, auto-expands its detail panel. "Toate" shows the grid |
+| Utilizatori | Shows all users | Filters users to selected school. Adds a "scoala" field to user data |
+| Orar | Has its own school selector | Removes its own selector, uses the global one. Only shows group picker |
+| Meniu | No school filter at all | Filters menus by selected school. Adds group selector within the tab |
+| Sponsori | No filtering | No change (sponsors are global, not per-school) |
+| Setari | No filtering | Shows settings for the selected school when one is chosen |
 
-### 2. Utilizatori (existent, integrat)
-- Se muta continutul din `UserManagement.tsx` direct in tab
-- Se adauga coloana "Scoala" in tabel
-- Se adauga camp "Grupa/Clasa" editabil in dialogul de creare/editare
-- Se adauga asociere copii (pentru parinti) - selector multi-copil
+## Technical details
 
-### 3. Orar (nou - quick editor)
-- Selector scoala + grupa in header tab
-- Tabel drag-and-drop simplificat (zilele pe coloane, orele pe randuri)
-- Salvare rapida per scoala/grupa
+### AdminPanel.tsx
+- Add state: `selectedSchoolId` (string, default `'all'`)
+- Fetch schools list at the top level via `getSchools()`
+- Render a `Select` component in the header with all schools + "Toate" option
+- Pass `selectedSchoolId` and `schools` as props to each tab component
 
-### 4. Meniu (nou - quick editor)
-- Selector saptamana
-- Grid editabil: zile x mese
-- Salvare cu preview
+### MenuTab.tsx
+- Accept `schoolId` and `schools` props
+- Find the current school's groups from the schools array
+- Add a group selector (like ScheduleTab already has)
+- Pass `schoolId` + `grupa` to `getMenu()` calls
 
-### 5. Sponsori (existent, integrat)
-- Se combina `SponsorAdmin.tsx` si `SponsorDashboard.tsx`
-- Sub-tab-uri interne: Sponsori | Campanii | Statistici | Planuri
-- CampaignEditor ramane ca dialog
+### UsersTab.tsx
+- Accept `schoolId` prop
+- Filter the users list by school when `schoolId !== 'all'`
+- Add "Scoala" column to the desktop table view
 
-### 6. Setari (existent, integrat)
-- Se muta continutul din `Settings.tsx`
-- Sectiuni colapsabile: Info scoala, API Keys, WhatsApp, Facebook, Notificari, Mentenanta
+### ScheduleTab.tsx
+- Accept `schoolId` and `schools` props
+- Remove the internal school selector -- use the global one
+- Only show the group picker within the tab
 
-## Responsive Design - Reguli stricte
+### SchoolsTab.tsx
+- Accept `selectedSchoolId` prop
+- When a specific school is selected globally, auto-open its detail panel
+- When "Toate", show the normal grid
 
-| Element | Mobile (<768px) | Desktop (>=768px) |
-|---------|-----------------|-------------------|
-| Tab-uri | Scroll orizontal snap-x, text + icon mic | TabsList normal inline | 
-| Grid scoli | 1 coloana | 2-3 coloane |
-| Tabel utilizatori | Card-uri stivuite vertical | Tabel clasic |
-| Orar editor | Scroll horizontal pe tabel | Tabel full vizibil |
-| Dialog creare | Sheet full-screen bottom | Dialog centered |
-| Sponsori sub-tabs | Accordion colapsabil | Tab-uri orizontale |
+### SettingsTab.tsx
+- Accept `schoolId` prop
+- Show school-specific settings when a school is selected
 
-## Detalii tehnice
-
-### Fisiere noi
-- `src/pages/AdminPanel.tsx` - Pagina principala cu tab-uri
-- `src/components/admin/SchoolsTab.tsx` - Tab-ul Scoli cu CRUD
-- `src/components/admin/UsersTab.tsx` - Tab-ul Utilizatori (extras din UserManagement)
-- `src/components/admin/ScheduleTab.tsx` - Editor rapid orar
-- `src/components/admin/MenuTab.tsx` - Editor rapid meniu
-- `src/components/admin/SponsorsTab.tsx` - Combina SponsorAdmin + SponsorDashboard
-- `src/components/admin/SettingsTab.tsx` - Extras din Settings
-
-### Fisiere modificate
-- `src/App.tsx` - Inlocuieste rutele `/utilizatori`, `/configurari`, `/sponsori`, `/sponsor-dashboard` cu o singura ruta `/admin`
-- `src/components/layout/AppLayout.tsx` - Actualizeaza navigarea: sterge link-urile vechi, adauga un singur link "Panou Admin" in sectiunea Admin
-- `src/types/index.ts` - Adauga interfata `School` (id, nume, adresa, tip, logo_url, grupe)
-- `src/api/schools.ts` (nou) - API mock pentru CRUD scoli
-
-### Fisiere sterse (continutul mutat in tab-uri)
-- `src/pages/UserManagement.tsx` - mutat in UsersTab
-- `src/pages/Settings.tsx` - mutat in SettingsTab
-- `src/pages/SponsorAdmin.tsx` - mutat in SponsorsTab
-- `src/pages/SponsorDashboard.tsx` - mutat in SponsorsTab
-
-### Prevenire overlapping
-- Toate tab content-urile vor folosi `overflow-hidden` pe container si `overflow-y-auto` pe continut
-- TabsList pe mobil: `flex overflow-x-auto scrollbar-hide gap-1` cu `flex-shrink-0` pe fiecare trigger
-- Dialoguri pe mobil folosesc `Sheet` cu `side="bottom"` in loc de `Dialog` centrat
-- Tabelele au `overflow-x-auto` wrapper
-- Padding bottom `pb-20` pe container principal (evita overlap cu ticker-ul de anunturi)
-
-## Flux de lucru
-
-1. Creez tipurile si API-ul mock pentru scoli
-2. Creez componentele tab (6 fisiere)
-3. Creez pagina AdminPanel cu tab-uri responsive
-4. Actualizez rutele in App.tsx
-5. Actualizez navigarea in AppLayout.tsx
-6. Sterg paginile vechi
+### Types
+- No type changes needed -- existing `School` type has `id_scoala` which works as the filter key
 
