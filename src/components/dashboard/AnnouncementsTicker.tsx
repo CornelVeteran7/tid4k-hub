@@ -33,7 +33,7 @@ export default function AnnouncementsTicker() {
   return (
     <div
       onClick={() => navigate('/anunturi')}
-      className="fixed bottom-0 left-0 right-0 z-50 h-10 flex items-center cursor-pointer card-tappable safe-bottom"
+      className="fixed bottom-0 right-0 left-0 lg:left-64 z-50 h-10 flex items-center cursor-pointer card-tappable safe-bottom"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Glass background */}

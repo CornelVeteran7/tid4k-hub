@@ -30,11 +30,12 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
         <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
       </motion.div>
 
-      {/* Panel — flush against header, no gap */}
+      {/* Panel — mobile: fullscreen below header, desktop: right-side panel */}
       <motion.div
         layoutId={layoutId}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-        className="fixed inset-x-0 bottom-0 z-30 flex flex-col overflow-hidden shadow-2xl"
+        className="fixed bottom-0 z-30 flex flex-col overflow-hidden shadow-2xl
+          inset-x-0 lg:left-auto lg:right-0 lg:w-[min(640px,50vw)]"
         style={{ top: 0, paddingTop: 'var(--header-height, 56px)', backgroundColor: color }}
       >
         {/* Colored header bar */}
@@ -55,7 +56,7 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.2 }}
-          className="flex-1 overflow-y-auto bg-background p-4 pb-24"
+          className="flex-1 overflow-y-auto bg-background p-4 lg:p-6 pb-24"
         >
           {children}
         </motion.div>
