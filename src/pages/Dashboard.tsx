@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import AnnouncementTicker from '@/components/dashboard/AnnouncementTicker';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel, areRol } from '@/utils/roles';
 import { getAttendance, saveAttendance } from '@/api/attendance';
