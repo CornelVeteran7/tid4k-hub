@@ -1,32 +1,91 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Megaphone } from 'lucide-react';
+import { Megaphone, Award } from 'lucide-react';
 import { getAnnouncements } from '@/api/announcements';
+import { getActivePromos } from '@/api/sponsors';
 import type { Announcement } from '@/types';
+import type { SponsorPromo } from '@/types/sponsor';
+
+interface TickerItem {
+  id: string;
+  text: React.ReactNode;
+  isSponsor: boolean;
+  link_url?: string;
+}
 
 export default function AnnouncementsTicker() {
   const navigate = useNavigate();
-  const [items, setItems] = useState<Announcement[]>([]);
+  const [items, setItems] = useState<TickerItem[]>([]);
 
   useEffect(() => {
-    getAnnouncements().then(all => {
-      const visible = all
+    Promise.all([
+      getAnnouncements(),
+      getActivePromos('ticker'),
+    ]).then(([announcements, sponsorPromos]) => {
+      const visible = announcements
         .filter(a => !a.ascuns_banda)
         .sort((a, b) => (a.pozitie_banda ?? 99) - (b.pozitie_banda ?? 99));
-      setItems(visible);
+
+      // Build ticker items: regular announcements
+      const announcementItems: TickerItem[] = visible.map(a => ({
+        id: `ann-${a.id_info}`,
+        text: (
+          <span className="inline-flex items-center gap-2">
+            {a.prioritate === 'urgent' && (
+              <span className="h-2 w-2 rounded-full bg-destructive animate-pulse inline-block" />
+            )}
+            <span className={a.prioritate === 'urgent' ? 'font-bold' : 'font-medium'}>
+              {a.titlu}
+            </span>
+          </span>
+        ),
+        isSponsor: false,
+      }));
+
+      // Build sponsor ticker items
+      const sponsorItems: TickerItem[] = sponsorPromos.map(p => ({
+        id: `sponsor-${p.id_promo}`,
+        text: (
+          <span className="inline-flex items-center gap-2">
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full"
+              style={{ backgroundColor: 'rgba(255,215,0,0.3)', color: '#fff' }}
+            >
+              <Award className="h-2.5 w-2.5" />
+              Sponsor
+            </span>
+            <span className="font-bold">{p.titlu}</span>
+          </span>
+        ),
+        isSponsor: true,
+        link_url: p.link_url,
+      }));
+
+      // Interleave: insert sponsor every 3 announcements
+      const merged: TickerItem[] = [];
+      let sponsorIdx = 0;
+      announcementItems.forEach((item, i) => {
+        merged.push(item);
+        if ((i + 1) % 3 === 0 && sponsorIdx < sponsorItems.length) {
+          merged.push(sponsorItems[sponsorIdx]);
+          sponsorIdx++;
+        }
+      });
+      // Append remaining sponsors
+      while (sponsorIdx < sponsorItems.length) {
+        merged.push(sponsorItems[sponsorIdx]);
+        sponsorIdx++;
+      }
+
+      setItems(merged);
     });
   }, []);
 
   if (items.length === 0) return null;
 
-  const tickerText = items.map(a => (
-    <span key={a.id_info} className="inline-flex items-center gap-2 mx-6">
-      {a.prioritate === 'urgent' && (
-        <span className="h-2 w-2 rounded-full bg-destructive animate-pulse inline-block" />
-      )}
-      <span className={a.prioritate === 'urgent' ? 'font-bold' : 'font-medium'}>
-        {a.titlu}
-      </span>
+  const tickerContent = items.map(item => (
+    <span key={item.id} className="inline-flex items-center gap-2 mx-6">
+      {item.text}
     </span>
   ));
 
@@ -48,9 +107,9 @@ export default function AnnouncementsTicker() {
       {/* Scrolling content */}
       <div className="relative z-10 flex-1 overflow-hidden">
         <div className="animate-marquee whitespace-nowrap text-primary-foreground text-[13px]">
-          {tickerText}
+          {tickerContent}
           {/* Duplicate for seamless loop */}
-          {tickerText}
+          {tickerContent}
         </div>
       </div>
     </div>

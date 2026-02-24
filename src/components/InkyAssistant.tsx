@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
+import { getActivePromos } from '@/api/sponsors';
+import type { SponsorPromo } from '@/types/sponsor';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ClipboardList, Send, Upload, MessageSquare, Megaphone, Search,
-  BookOpen, UtensilsCrossed, FileText, CheckSquare, BarChart3, Shuffle, X
+  BookOpen, UtensilsCrossed, FileText, CheckSquare, BarChart3, Shuffle, X,
+  Award, ExternalLink
 } from 'lucide-react';
 import inkyImg from '@/assets/inky-button.png';
 
@@ -14,6 +17,9 @@ interface QuickAction {
   icon: React.ElementType;
   path?: string;
   onClick?: () => void;
+  isSponsor?: boolean;
+  sponsorColor?: string;
+  linkUrl?: string;
 }
 
 function getActions(pathname: string, isTeacher: boolean, isParent: boolean): QuickAction[] {
@@ -84,9 +90,25 @@ function getActions(pathname: string, isTeacher: boolean, isParent: boolean): Qu
 
 export default function InkyAssistant() {
   const [open, setOpen] = useState(false);
+  const [sponsorAction, setSponsorAction] = useState<QuickAction | null>(null);
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    getActivePromos('inky_popup').then(promos => {
+      if (promos.length > 0) {
+        const p = promos[0];
+        setSponsorAction({
+          label: p.titlu,
+          icon: Award,
+          isSponsor: true,
+          sponsorColor: p.sponsor_culoare,
+          linkUrl: p.link_url,
+        });
+      }
+    });
+  }, []);
 
   if (!user) return null;
 
@@ -94,7 +116,15 @@ export default function InkyAssistant() {
   const isParent = areRol(user.status, 'parinte');
   const actions = getActions(location.pathname, isTeacher, isParent);
 
+  // Append sponsor action at the end
+  const allActions = sponsorAction ? [...actions, sponsorAction] : actions;
+
   const handleAction = (action: QuickAction) => {
+    if (action.isSponsor && action.linkUrl) {
+      window.open(action.linkUrl, '_blank');
+      setOpen(false);
+      return;
+    }
     if (action.path) navigate(action.path);
     action.onClick?.();
     setOpen(false);
@@ -133,14 +163,27 @@ export default function InkyAssistant() {
                 </button>
               </div>
               <div className="p-2 space-y-0.5">
-                {actions.map((action) => (
+                {allActions.map((action) => (
                   <button
                     key={action.label}
                     onClick={() => handleAction(action)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-primary/10 transition-colors text-left"
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-left ${
+                      action.isSponsor
+                        ? 'bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-950/20 dark:to-amber-900/10 hover:from-amber-100 hover:to-amber-200/50 dark:hover:from-amber-900/30 border border-amber-200/50 dark:border-amber-700/30 mt-1'
+                        : 'text-foreground hover:bg-primary/10'
+                    }`}
                   >
-                    <action.icon className="h-4 w-4 text-primary shrink-0" />
-                    <span>{action.label}</span>
+                    {action.isSponsor ? (
+                      <Award className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    ) : (
+                      <action.icon className="h-4 w-4 text-primary shrink-0" />
+                    )}
+                    <span className={action.isSponsor ? 'font-semibold text-amber-900 dark:text-amber-200 flex-1' : 'flex-1'}>
+                      {action.label}
+                    </span>
+                    {action.isSponsor && (
+                      <ExternalLink className="h-3 w-3 text-amber-500 shrink-0" />
+                    )}
                   </button>
                 ))}
               </div>

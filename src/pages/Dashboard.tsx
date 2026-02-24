@@ -10,6 +10,7 @@ import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/components/dashboard/ModuleHub';
 import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
+import SponsorCard from '@/components/dashboard/SponsorCard';
 
 const STORAGE_KEY = 'tid4k_visible_modules';
 
@@ -122,6 +123,9 @@ export default function Dashboard() {
           <div data-tutorial="children-scroller">
             <ChildrenScroller />
           </div>
+
+          {/* Sponsor card */}
+          <SponsorCard />
         </div>
 
         {/* Right column: Module cards */}
