@@ -3,8 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel } from '@/utils/roles';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Settings, Users, Camera, FileText, MessageSquare } from 'lucide-react';
+import { Users, Camera, FileText, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/components/dashboard/ModuleHub';
@@ -119,29 +118,17 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* Children horizontal scroller */}
-          <div data-tutorial="children-scroller">
-            <ChildrenScroller />
-          </div>
-
-          {/* Sponsor card */}
-          <SponsorCard />
         </div>
 
         {/* Right column: Module cards */}
         <div className="space-y-3">
-          {/* Settings button */}
-          <div className="flex justify-end">
-            <Button data-tutorial="config-button" variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="gap-1.5 text-muted-foreground">
-              <Settings className="h-4 w-4" />
-              Configurare
-            </Button>
-          </div>
-
           {/* Module card stack */}
           <div data-tutorial="module-hub">
             <ModuleHub visibility={visibility} searchQuery={searchQuery} />
           </div>
+
+          {/* Sponsor card — below modules */}
+          <SponsorCard />
         </div>
       </div>
 
