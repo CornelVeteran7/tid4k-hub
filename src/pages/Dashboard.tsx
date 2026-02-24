@@ -1,212 +1,91 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
-import { getRoles, getRoleLabel, areRol } from '@/utils/roles';
-import { getAttendance, saveAttendance } from '@/api/attendance';
-import type { AttendanceRecord } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getRoles, getRoleLabel } from '@/utils/roles';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Users, ClipboardList, MessageSquare, Megaphone, FileText, Upload, ChevronDown, ChevronUp, Save, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
-import { ro } from 'date-fns/locale';
-import { toast } from 'sonner';
+import { Settings } from 'lucide-react';
+import { motion } from 'framer-motion';
+import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
+import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/components/dashboard/ModuleHub';
+import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
 
-const fadeIn = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.3 },
-};
+const STORAGE_KEY = 'tid4k_visible_modules';
+
+function loadVisibility(): ModuleVisibility {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return { ...DEFAULT_VISIBILITY, ...JSON.parse(stored) };
+  } catch {}
+  return { ...DEFAULT_VISIBILITY };
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { currentGroup } = useGroup();
-  
-  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [visibility, setVisibility] = useState<ModuleVisibility>(loadVisibility);
 
-  const [attendanceOpen, setAttendanceOpen] = useState(false);
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [loadingAttendance, setLoadingAttendance] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const isTeacher = user && areRol(user.status, 'profesor');
-
-  useEffect(() => {
-    if (attendanceOpen && currentGroup) {
-      setLoadingAttendance(true);
-      getAttendance(currentGroup.id, today).then((day) => {
-        setRecords(day.records);
-        setLoadingAttendance(false);
-      });
-    }
-  }, [attendanceOpen, currentGroup, today]);
-
-  const togglePresent = (id: number) => {
-    setRecords((prev) => prev.map((r) => (r.id_copil === id ? { ...r, prezent: !r.prezent } : r)));
-  };
-
-  const handleSaveAttendance = async () => {
-    if (!currentGroup) return;
-    setSaving(true);
-    try {
-      await saveAttendance(currentGroup.id, today, records);
-      toast.success('Prezența a fost salvată!');
-    } catch {
-      toast.error('Eroare la salvarea prezenței.');
-    }
-    setSaving(false);
-  };
+  const handleToggle = useCallback((key: keyof ModuleVisibility) => {
+    setVisibility(prev => {
+      const next = { ...prev, [key]: !prev[key] };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   if (!user) return null;
 
   const roles = getRoles(user.status);
-  const presentCount = records.filter((r) => r.prezent).length;
-
-  const recentActivity = [
-    { text: 'Maria Popescu a încărcat „activitate_pictura.jpg"', time: 'acum 2 ore', icon: Upload },
-    { text: 'Ion Ionescu a trimis un mesaj', time: 'acum 3 ore', icon: MessageSquare },
-    { text: 'Anunț nou: Excursie la Grădina Botanică', time: 'ieri', icon: Megaphone },
-    { text: 'Prezența a fost înregistrată pentru 22 feb', time: 'ieri', icon: ClipboardList },
-    { text: 'Document nou: regulament_intern.pdf', time: 'acum 3 zile', icon: FileText },
-  ];
 
   return (
-    <div className="space-y-6 min-w-0">
-      {/* Welcome card with gradient accent */}
-      <motion.div {...fadeIn}>
-        <Card className="overflow-hidden border-0 shadow-lg">
-          <div className="h-1 gradient-accent" />
-          <CardContent className="p-5 sm:p-6 bg-primary text-primary-foreground">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl font-display font-bold truncate">Bun venit, {user.nume_prenume.split(' ')[0]}! 👋</h1>
-                <p className="text-primary-foreground/80 mt-1 text-sm">
-                  {currentGroup ? `${currentGroup.nume} — ${currentGroup.tip === 'gradinita' ? 'Grădiniță' : 'Școală'}` : 'Selectează o grupă'}
-                </p>
-                <div className="flex flex-wrap gap-1.5 mt-3">
-                  {roles.map((r) => (
-                    <Badge key={r} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs">
-                      {getRoleLabel(r)}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              {isTeacher && (
-                <div className="flex items-center gap-3 bg-primary-foreground/15 rounded-xl px-4 py-2.5 cursor-pointer hover:bg-primary-foreground/20 transition-colors shrink-0"
-                  onClick={(e) => { e.stopPropagation(); setAttendanceOpen(!attendanceOpen); }}
-                >
-                  <ClipboardList className="h-5 w-5 text-primary-foreground/80" />
-                  <div className="text-left">
-                    <p className="text-lg font-bold font-mono leading-none">{attendanceOpen ? `${presentCount}/${records.length}` : '4/5'}</p>
-                    <p className="text-[11px] text-primary-foreground/70">Prezența azi</p>
-                  </div>
-                  {attendanceOpen ? <ChevronUp className="h-4 w-4 text-primary-foreground/60" /> : <ChevronDown className="h-4 w-4 text-primary-foreground/60" />}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+    <div className="space-y-5 min-w-0 pb-20">
+      {/* Compact welcome banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="rounded-2xl overflow-hidden shadow-md"
+      >
+        <div className="h-1 gradient-accent" />
+        <div className="p-4 bg-primary text-primary-foreground">
+          <h1 className="text-xl font-display font-bold truncate">
+            Bun venit, {user.nume_prenume.split(' ')[0]}! 👋
+          </h1>
+          <p className="text-primary-foreground/80 text-sm mt-0.5">
+            {currentGroup ? `${currentGroup.nume} — ${currentGroup.tip === 'gradinita' ? 'Grădiniță' : 'Școală'}` : 'Selectează o grupă'}
+          </p>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {roles.map(r => (
+              <Badge key={r} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs">
+                {getRoleLabel(r)}
+              </Badge>
+            ))}
+          </div>
+        </div>
       </motion.div>
 
-      {/* Inline Attendance Panel */}
-      <AnimatePresence>
-        {attendanceOpen && isTeacher && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden"
-          >
-            <Card className="glass-card">
-              <CardHeader className="pb-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-primary" />
-                    Prezența — {format(new Date(), 'EEEE, d MMMM', { locale: ro })}
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-success text-success-foreground">{presentCount} prezenți</Badge>
-                    <Badge variant="destructive">{records.length - presentCount} absenți</Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loadingAttendance ? (
-                  <div className="flex justify-center py-6">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {records.map((record) => (
-                      <motion.div
-                        key={record.id_copil}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.15 }}
-                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                          record.prezent ? 'bg-success/10 border-success/30' : 'bg-card hover:bg-muted/50'
-                        }`}
-                        onClick={() => togglePresent(record.id_copil)}
-                      >
-                        <Checkbox
-                          checked={record.prezent}
-                          onCheckedChange={() => togglePresent(record.id_copil)}
-                          className="pointer-events-none"
-                        />
-                        <span className="text-sm font-medium flex-1 truncate">{record.nume_prenume_copil}</span>
-                        <Badge
-                          variant={record.prezent ? 'default' : 'destructive'}
-                          className={record.prezent ? 'bg-success text-success-foreground' : ''}
-                        >
-                          {record.prezent ? 'P' : 'A'}
-                        </Badge>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-                <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                  <Button onClick={handleSaveAttendance} disabled={saving} size="sm" className="gap-2 w-full sm:w-auto">
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    Salvează Prezența
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/prezenta')} className="w-full sm:w-auto">
-                    Deschide pagina completă
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Children horizontal scroller */}
+      <ChildrenScroller />
 
-      {/* Recent Activity */}
-      <div>
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-lg">Activitate recentă</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentActivity.map((item, i) => (
-                <div key={i} className="flex items-start gap-3 text-sm">
-                  <div className="p-1.5 rounded-lg bg-primary/10 mt-0.5 shrink-0">
-                    <item.icon className="h-3.5 w-3.5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-foreground">{item.text}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{item.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Settings button */}
+      <div className="flex justify-end">
+        <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="gap-1.5 text-muted-foreground">
+          <Settings className="h-4 w-4" />
+          Configurare
+        </Button>
       </div>
+
+      {/* Module card stack */}
+      <ModuleHub visibility={visibility} />
+
+      {/* Config sidebar */}
+      <ConfigSidebar
+        open={sidebarOpen}
+        onOpenChange={setSidebarOpen}
+        visibility={visibility}
+        onToggle={handleToggle}
+      />
     </div>
   );
 }

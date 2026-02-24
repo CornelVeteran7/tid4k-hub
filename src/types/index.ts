@@ -31,6 +31,9 @@ export interface Child {
   grupa_clasa_copil: string;
   data_nasterii?: string;
   parinte_id?: number;
+  parinte_nume?: string;
+  parinte_telefon?: string;
+  parinte_email?: string;
 }
 
 // ===== Attendance =====
