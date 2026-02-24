@@ -16,7 +16,7 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col" style={{ top: 0 }}>
+    <div className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col">
       {/* Scrim */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -31,7 +31,7 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
       <motion.div
         layoutId={layoutId}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-        className="relative flex flex-col flex-1 mt-14 rounded-t-2xl overflow-hidden shadow-2xl"
+        className="relative flex flex-col flex-1 rounded-t-2xl overflow-hidden shadow-2xl"
         style={{ backgroundColor: color }}
       >
         {/* Colored header bar */}
