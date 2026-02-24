@@ -62,19 +62,24 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="rounded-xl overflow-hidden shadow-md"
+        className="rounded-2xl overflow-hidden border border-white/30 shadow-lg"
+        style={{
+          background: 'rgba(255,255,255,0.45)',
+          backdropFilter: 'blur(24px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+        }}
       >
-        <div className="h-1 gradient-accent" />
-        <div className="p-4 bg-primary text-primary-foreground">
-          <h1 className="text-xl font-display font-bold truncate">
+        <div className="p-5">
+          <h1 className="text-xl font-display font-bold text-foreground truncate">
             Bun venit, {user.nume_prenume.split(' ')[0]}! 👋
           </h1>
-          <p className="text-primary-foreground/80 text-sm mt-0.5">
-            {currentGroup ? `${currentGroup.nume} — ${currentGroup.tip === 'gradinita' ? 'Grădiniță' : 'Școală'}` : 'Selectează o grupă'}
+          <p className="text-muted-foreground text-sm mt-0.5">
+            {currentGroup ? `${currentGroup.tip === 'gradinita' ? 'Grădiniță' : 'Școală'}` : 'Selectează o grupă'}
           </p>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {roles.map(r => (
-              <Badge key={r} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs">
+              <Badge key={r} variant="secondary" className="bg-foreground/10 text-foreground/80 border-0 text-xs backdrop-blur-sm">
                 {getRoleLabel(r)}
               </Badge>
             ))}
