@@ -76,7 +76,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6 min-w-0">
+    <div className="space-y-6 min-w-0 pb-12">
       {/* Welcome card with gradient accent */}
       <motion.div {...fadeIn}>
         <Card className="overflow-hidden border-0 shadow-lg">
