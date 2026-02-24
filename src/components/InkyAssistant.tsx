@@ -122,7 +122,7 @@ export default function InkyAssistant() {
 
   const handleAction = (action: QuickAction) => {
     if (action.isSponsor && action.linkUrl) {
-      window.open(action.linkUrl, '_blank');
+      openLink(action.linkUrl);
       setOpen(false);
       return;
     }
