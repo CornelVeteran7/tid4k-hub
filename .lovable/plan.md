@@ -1,144 +1,150 @@
 
 
-# Documentatie Completa: Sistemul de Rotatie Sponsori TID4K
+# Plan: Workshop Management System + Admin Push & Documentation
 
-Aceasta documentatie va fi creata ca un fisier Markdown in proiect (`docs/SPONSORS.md`) si va contine trei sectiuni principale, fiecare adresata unui public diferit.
+## Overview
+
+This plan adds a complete **Workshop (Ateliere) management system** to the Admin Panel, enabling admins to create, edit, and push workshops to one or all school units. The dashboard "ATELIERE" module card will show this month's workshop preview directly (without opening), and push notifications will alert teachers about new workshops.
 
 ---
 
-## Structura Documentului
+## What Gets Built
 
-### SECTIUNEA 1: Pentru Sponsori (Ghid Comercial)
-Explica ce primesc sponsorii in functie de pachetul ales:
+### 1. Workshop Data Model & API
 
-**Pachete disponibile:**
-- **Basic (500 RON/luna)** -- Card pe dashboard + ticker. Max 5 scoli.
-- **Premium (1.500 RON/luna)** -- Dashboard + ticker + infodisplay + Inky popup. Scoli nelimitate.
-- **Enterprise (3.000 RON/luna)** -- Toate de mai sus + branding custom Inky (costum personalizat) + rapoarte detaliate.
+**New file: `src/api/workshops.ts`**
 
-**Cum functioneaza rotatia:**
-- Pe fiecare scoala pot fi mai multi sponsori activi simultan
-- Doar UN sponsor este afisat la un moment dat pe fiecare canal (card, ticker, Inky, infodisplay)
-- Sponsorii se rotesc automat la intervale prestabilite
-- Intervalul de afisare depinde de plan: Enterprise = mai mult timp, Basic = mai putin
-- Formula: `timp_afisare = (pret_plan / suma_preturi_planuri_active) * ciclu_total`
-- Statistici in timp real: afisari, click-uri, CTR
-
-**Canale de afisare:**
-| Canal | Ce vede utilizatorul | Interactiune |
-|-------|---------------------|-------------|
-| Card Dashboard | Card vizual cu logo, titlu, descriere, buton CTA | Click deschide link sponsor |
-| Ticker (banda anunturi) | Text scrollabil cu badge sponsor | Click navigheaza la anunturi |
-| Inky Popup | Buton in meniul Inky cu logo si link | Click deschide link extern |
-| Infodisplay (TV) | Panou dedicat pe ecranul TV din scoala | Vizualizare pasiva + QR code |
-
-### SECTIUNEA 2: Pentru Admini (Ghid Operational)
-Cum se gestioneaza sponsorii din panoul de administrare:
-
-- Crearea/editarea sponsorilor si campaniilor
-- Asignarea sponsorilor la scoli (tab Scoli -> Sponsori activi)
-- Configurarea targetului per campanie (scoli specifice sau "Toate")
-- Monitorizarea statisticilor (afisari, click-uri, CTR)
-- Cum functioneaza rotatia: ce parametri se configureaza, ce inseamna prioritatea
-- Activare/dezactivare rapida cu Switch
-
-### SECTIUNEA 3: Pentru Dezvoltatori / AI (Ghid Tehnic de Integrare)
-
-**Arhitectura curenta:**
+Types and mock data for workshops:
 
 ```text
-src/types/sponsor.ts        -- Toate interfetele (Sponsor, SponsorPromo, SponsorCampaign, SponsorPlan, etc.)
-src/api/sponsors.ts         -- Functii API: getSponsors(), getActivePromos(tip?, schoolId?), etc.
-src/api/schools.ts          -- Campul sponsori_activi pe fiecare School
-
-COMPONENTE CONSUMER:
-src/components/dashboard/SponsorCard.tsx       -- Card pe dashboard (1 promo la un moment dat)
-src/components/dashboard/AnnouncementsTicker.tsx -- Ticker cu rotatia promourilor
-src/components/InkyAssistant.tsx               -- Popup Inky (1 promo la un moment dat)
-src/pages/Infodisplay.tsx                      -- Ecran TV (inca nu integrat cu sponsori)
-
-COMPONENTE ADMIN:
-src/components/admin/SponsorsTab.tsx            -- Tab admin cu toate sub-sectiunile
-src/components/sponsor/CampaignEditor.tsx       -- Dialog editare campanie
-src/pages/SponsorDashboard.tsx                  -- Dashboard self-service sponsor
-```
-
-**Sistemul de Rotatie -- Logica de Implementat:**
-
-Fiecare componenta consumer (SponsorCard, AnnouncementsTicker, InkyAssistant) trebuie sa:
-1. Fetch-uiasca TOATE promourile active pentru scoala curenta si tipul sau
-2. Calculeze `durata_afisare` per promo pe baza planului sponsorului
-3. Foloseasca un timer (`setInterval`) pentru a trece la urmatorul sponsor
-4. Trimiterea evenimentului de "afisare" la backend la fiecare schimbare
-
-**Endpoint-uri API necesare (backend PHP):**
-
-| Metoda | Endpoint | Descriere |
-|--------|----------|-----------|
-| GET | `/sponsors.php?action=active_promos&tip=card_dashboard&school_id=1` | Promourile active filtrate |
-| GET | `/sponsors.php?action=rotation_config&school_id=1` | Configuratia de rotatie per scoala |
-| POST | `/sponsors.php?action=log_impression` | Logheaza o afisare (sponsor_id, tip, school_id, timestamp) |
-| POST | `/sponsors.php?action=log_click` | Logheaza un click |
-| GET | `/sponsors.php?action=stats&sponsor_id=1` | Statistici sponsor |
-
-**Noi tipuri TypeScript necesare:**
-
-```typescript
-interface RotationConfig {
-  ciclu_total_secunde: number;        // ex: 60 secunde per ciclu complet
-  sponsori: RotationSlot[];
-}
-
-interface RotationSlot {
-  id_sponsor: number;
-  id_promo: number;
-  durata_secunde: number;             // cat timp e afisat in cadrul ciclului
-  pondere: number;                    // calculat din pret plan
+Workshop {
+  id_atelier: number
+  titlu: string
+  descriere: string
+  luna: string (YYYY-MM)
+  imagine_url: string
+  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
+  materiale: string[]
+  instructor: string
+  durata_minute: number
+  scoli_target: string[] (['all'] or specific school IDs)
+  publicat: boolean
+  data_creare: string
+  data_publicare?: string
 }
 ```
 
-**Formula de rotatie:**
+API functions:
+- `getWorkshops(schoolId?, luna?)` -- fetch workshops, optionally filtered
+- `getWorkshopOfMonth(schoolId?)` -- returns this month's active published workshop
+- `createWorkshop(data)` -- create new
+- `updateWorkshop(id, data)` -- edit
+- `deleteWorkshop(id)` -- remove
+- `publishWorkshop(id, scoli_target)` -- mark as published + push to units
+- Mock data: 2-3 workshops for the current month
 
+### 2. Admin Panel: New "Ateliere" Tab
+
+**New file: `src/components/admin/WorkshopsTab.tsx`**
+
+A new tab in the Admin Panel (`/admin`) with:
+
+- **School selector awareness**: respects the global "Toate unitatile" / specific school filter at top of admin page
+- **Workshop list**: cards showing title, month, category badge, publish status, target schools
+- **Create/Edit dialog**: form with title, description, category, image URL, materials list, instructor, duration, school target (one / all)
+- **Publish button**: marks workshop as published; when target is "all", pushes to every school. Shows confirmation with school count.
+- **Status indicators**: Draft (gray), Published (green), showing which schools received it
+
+Changes to `src/pages/AdminPanel.tsx`:
+- Add `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` to TABS
+- Import and render `<WorkshopsTab>` in the new TabsContent
+- The tab respects `selectedSchoolId` (all vs specific)
+
+### 3. Dashboard: Workshop Preview on Module Card
+
+**Modified: `src/components/dashboard/ModuleHub.tsx`**
+
+The "ATELIERE" card currently shows just a title and count. Change it to:
+- Fetch `getWorkshopOfMonth()` on mount
+- Display workshop title + short description directly on the card (below the subtitle), so teachers see it without tapping
+- Add a small "Luna: Martie 2026" label and category badge on the card face
+- Keep the card tappable to open full workshop detail
+
+**Modified: `src/components/dashboard/ModuleCard.tsx`**
+
+Add optional `preview` prop (ReactNode) that renders below the subtitle when provided. Only the "ateliere" card will use this prop.
+
+### 4. Notification System: Workshop Push Notifications
+
+**Modified: `src/contexts/NotificationContext.tsx`**
+
+- Import `getWorkshopOfMonth` from workshops API
+- Add `'workshop'` as a new notification type in `NotificationItem`
+- In `refreshNotifications`, check if there's a published workshop for this month that hasn't been seen (track via localStorage key `tid4k_seen_workshop_[id]`)
+- Generate notification: "Atelier nou: [titlu]" with link to open the ateliere module
+
+**Modified: `src/components/layout/AppLayout.tsx`**
+
+- Add `Paintbrush` icon handling for `workshop` notification type in the popover renderer (distinct purple color)
+
+### 5. Documentation
+
+**New file: `docs/WORKSHOPS.md`**
+
+Three sections:
+1. **For Admins**: How to create workshops, target specific schools or all, publish flow, editing after publish
+2. **For Developers/AI**: API endpoints table, TypeScript interfaces, component architecture, notification integration
+3. **API Reference**: Full endpoint spec for backend implementation
+
+```text
+POST /ateliere.php?action=create        -- Create workshop
+POST /ateliere.php?action=update        -- Edit workshop
+POST /ateliere.php?action=publish       -- Publish + push to schools
+GET  /ateliere.php?action=list          -- List workshops (filters: school_id, luna)
+GET  /ateliere.php?action=current       -- This month's active workshop
+POST /ateliere.php?action=delete        -- Delete workshop
+POST /ateliere.php?action=notify        -- Trigger push notifications
 ```
-pondere_sponsor = pret_plan_sponsor / SUM(pret_plan) pentru toti sponsorii activi pe acea scoala
-durata_afisare = pondere_sponsor * ciclu_total_secunde
-```
-
-Exemplu cu ciclu de 60 secunde:
-- Kaufland (Enterprise, 3000 RON): pondere = 3000/3500 = 85.7% -> 51 secunde
-- Lidl (Basic, 500 RON): pondere = 500/3500 = 14.3% -> 9 secunde
-
-**Modificari necesare in componente:**
-
-1. **`SponsorCard.tsx`**: Adauga state `currentIndex` + `setInterval` care cicleaza prin array-ul de promouri, cu `durata_secunde` din `RotationConfig`. Adauga tranzitie `AnimatePresence` intre sponsori.
-
-2. **`AnnouncementsTicker.tsx`**: In loc sa afiseze toate promourile simultan, afiseaza doar promo-ul activ din rotatie in fiecare moment. Celelalte sunt anunturi normale.
-
-3. **`InkyAssistant.tsx`**: `sponsorAction` devine dinamic -- se schimba la interval. Costumul Inky se schimba cu sponsorul.
-
-4. **`Infodisplay.tsx`**: Adauga un nou tip de panou `tip: 'sponsor'` care se integreaza in rotatia existenta de panouri. Afiseaza logo-ul, mesajul si QR code-ul sponsorului.
-
-**Hook reutilizabil propus: `useSponsorRotation`**
-
-```typescript
-function useSponsorRotation(tip: SponsorPromo['tip'], schoolId?: number) {
-  // Returns: { currentPromo, allPromos, nextPromo, timeRemaining }
-  // Internally manages the timer and rotation logic
-}
-```
-
-Acest hook va fi folosit de TOATE cele 4 componente consumer, eliminand duplicarea logicii.
 
 ---
 
-## Ce se implementeaza concret
+## Technical Details
 
-1. **Fisier nou**: `docs/SPONSORS.md` -- documentatia completa in cele 3 sectiuni
-2. **Fisier nou**: `src/hooks/useSponsorRotation.ts` -- hook-ul de rotatie reutilizabil
-3. **Tip nou in `src/types/sponsor.ts`**: `RotationConfig` si `RotationSlot`
-4. **Functie noua in `src/api/sponsors.ts`**: `getRotationConfig(schoolId)` -- returneaza configuratia de rotatie
-5. **Update `SponsorCard.tsx`**: foloseste `useSponsorRotation` + tranzitii animate
-6. **Update `AnnouncementsTicker.tsx`**: afiseaza doar sponsorul curent din rotatie
-7. **Update `InkyAssistant.tsx`**: roteste sponsorul afisat + schimba costumul
-8. **Update `Infodisplay.tsx`**: adauga panouri sponsor in rotatia existenta
+### File Changes Summary
+
+| File | Action | What |
+|------|--------|------|
+| `src/api/workshops.ts` | NEW | Workshop types, mock data, API functions |
+| `src/components/admin/WorkshopsTab.tsx` | NEW | Full admin UI for workshop CRUD + publish |
+| `docs/WORKSHOPS.md` | NEW | Documentation for admins and devs |
+| `src/pages/AdminPanel.tsx` | EDIT | Add "Ateliere" tab (icon + TabsContent) |
+| `src/components/dashboard/ModuleCard.tsx` | EDIT | Add optional `preview` prop |
+| `src/components/dashboard/ModuleHub.tsx` | EDIT | Fetch workshop of month, pass preview to ateliere card |
+| `src/contexts/NotificationContext.tsx` | EDIT | Add workshop notification type |
+| `src/components/layout/AppLayout.tsx` | EDIT | Render workshop notification icon in popover |
+
+### Patterns Followed
+
+- Same `USE_MOCK` toggle pattern as all other API files
+- Same collapsible card admin UI pattern as SettingsTab/SchoolsTab
+- Same notification item pattern with `type`, `icon`, `navigateTo`
+- School selector `selectedSchoolId` passed through just like other admin tabs
+- `framer-motion` animations consistent with existing module cards
+
+### Workshop Card Preview Rendering
+
+On the dashboard, the ATELIERE module card will show:
+
+```text
++------------------------------------------+
+| [Paintbrush icon]  ATELIERE              |
+|                    Activitati creative     |
+|   ┌─────────────────────────────┐         |
+|   │ Pictură pe sticlă           │  [10]   |
+|   │ Artă · Martie 2026          │         |
+|   └─────────────────────────────┘         |
++------------------------------------------+
+```
+
+This preview text appears only when a workshop-of-the-month exists.
 
