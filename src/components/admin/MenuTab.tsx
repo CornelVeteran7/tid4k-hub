@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { getMenu, saveMenu } from '@/api/menu';
-import type { WeeklyMenu, MenuItem } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { WeeklyMenu, MenuItem, School } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -23,12 +24,27 @@ function getWeekString(offset: number) {
   return `${year}-W${String(week).padStart(2, '0')}`;
 }
 
-export default function MenuTab() {
+interface Props {
+  schoolId: string;
+  schools: School[];
+}
+
+export default function MenuTab({ schoolId, schools }: Props) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [menu, setMenu] = useState<WeeklyMenu | null>(null);
+  const [selectedGrupa, setSelectedGrupa] = useState('');
   const week = getWeekString(weekOffset);
 
-  useEffect(() => { getMenu(week).then(setMenu); }, [week]);
+  const currentSchool = schools.find(s => s.id_scoala.toString() === schoolId);
+  const grupe = currentSchool?.grupe || [];
+
+  // Reset group when school changes
+  useEffect(() => {
+    if (grupe.length) setSelectedGrupa(grupe[0]);
+    else setSelectedGrupa('');
+  }, [schoolId]);
+
+  useEffect(() => { getMenu(week).then(setMenu); }, [week, selectedGrupa]);
 
   const getItem = (zi: string, masa: MenuItem['masa']) => menu?.items.find(i => i.zi === zi && i.masa === masa);
 
@@ -47,15 +63,31 @@ export default function MenuTab() {
     toast.success('Meniu salvat!');
   };
 
+  if (schoolId === 'all') {
+    return (
+      <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+        Selectează o școală din filtrul global pentru a edita meniul.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o - 1)}><ChevronLeft className="h-4 w-4" /></Button>
           <span className="text-sm font-medium min-w-[100px] text-center">{week}</span>
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o + 1)}><ChevronRight className="h-4 w-4" /></Button>
         </div>
-        <Button size="sm" className="gap-1.5" onClick={handleSave}><Save className="h-4 w-4" />Salvează</Button>
+        <div className="flex items-center gap-3">
+          {grupe.length > 0 && (
+            <Select value={selectedGrupa} onValueChange={setSelectedGrupa}>
+              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Grupă" /></SelectTrigger>
+              <SelectContent>{grupe.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+            </Select>
+          )}
+          <Button size="sm" className="gap-1.5" onClick={handleSave}><Save className="h-4 w-4" />Salvează</Button>
+        </div>
       </div>
 
       <Card>
