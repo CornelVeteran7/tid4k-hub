@@ -1,71 +1,56 @@
 
 
-# Per-School Filtering for Admin Panel
+# Sponsor Switching per School
 
-## What changes
-A **global school selector** will be added to the Admin Panel header, so every tab automatically filters its data to the selected school. No more scrolling through menus or users from all schools -- you pick one and everything updates.
+## The Problem
+Right now, every school dashboard shows the same sponsor (Kaufland, because it's `promos[0]`). There's no way to assign different sponsors to different schools or switch which sponsor is displayed.
 
-## How it will look
+## Solution
+Add a **sponsor assignment system** where each school can have one or more active sponsors, and the dashboard dynamically shows the correct sponsor content based on the logged-in user's school.
 
-```text
-+--------------------------------------------------+
-|  Panou Administrare                               |
-|  [  Gradinita Floarea Soarelui  v ]  <-- global  |
-+--------------------------------------------------+
-|  [Scoli] [Utilizatori] [Orar] [Meniu] [Sponsori] |
-+--------------------------------------------------+
-|  (content filtered to selected school)            |
-+--------------------------------------------------+
-```
+## How It Works
 
-- The selector also includes an "Toate" (All) option for a global view when needed
-- On mobile, the selector is full-width below the title
-- On desktop, it sits inline next to the subtitle
+### 1. Admin Panel -- Assign sponsors to schools
+In the **Sponsors tab**, add a "Scoli target" section when viewing a sponsor. Admins can pick which schools see that sponsor's content.
 
-## Tab-by-tab impact
+In the **Schools tab**, when viewing a school's details, show a "Sponsori activi" section listing which sponsors are assigned, with the ability to add/remove.
 
-| Tab | Current | After |
-|-----|---------|-------|
-| Scoli | Shows all schools | When a specific school is selected, auto-expands its detail panel. "Toate" shows the grid |
-| Utilizatori | Shows all users | Filters users to selected school. Adds a "scoala" field to user data |
-| Orar | Has its own school selector | Removes its own selector, uses the global one. Only shows group picker |
-| Meniu | No school filter at all | Filters menus by selected school. Adds group selector within the tab |
-| Sponsori | No filtering | No change (sponsors are global, not per-school) |
-| Setari | No filtering | Shows settings for the selected school when one is chosen |
+### 2. Data model update
+Add a `sponsori_activi` field to the `School` type -- an array of sponsor IDs. The `scoli_target` field already exists on `SponsorPromo` and `SponsorCampaign` (currently set to `['all']`).
 
-## Technical details
+### 3. Dashboard shows the right sponsor
+`SponsorCard` and `AnnouncementsTicker` will filter promos by the current user's school ID, matching against `scoli_target`.
 
-### AdminPanel.tsx
-- Add state: `selectedSchoolId` (string, default `'all'`)
-- Fetch schools list at the top level via `getSchools()`
-- Render a `Select` component in the header with all schools + "Toate" option
-- Pass `selectedSchoolId` and `schools` as props to each tab component
+## Technical Changes
 
-### MenuTab.tsx
-- Accept `schoolId` and `schools` props
-- Find the current school's groups from the schools array
-- Add a group selector (like ScheduleTab already has)
-- Pass `schoolId` + `grupa` to `getMenu()` calls
+### Types (`src/types/index.ts`)
+- Add `sponsori_activi: number[]` to the `School` interface
 
-### UsersTab.tsx
-- Accept `schoolId` prop
-- Filter the users list by school when `schoolId !== 'all'`
-- Add "Scoala" column to the desktop table view
+### API (`src/api/sponsors.ts`)
+- Update `getActivePromos()` to accept an optional `schoolId` parameter
+- Filter promos where `scoli_target` includes `'all'` OR the specific school ID
 
-### ScheduleTab.tsx
-- Accept `schoolId` and `schools` props
-- Remove the internal school selector -- use the global one
-- Only show the group picker within the tab
+### Schools mock data (`src/api/schools.ts`)
+- Add `sponsori_activi` to mock schools (e.g., School 1 gets `[1]` for Kaufland, School 2 gets `[2]` for Lidl)
 
-### SchoolsTab.tsx
-- Accept `selectedSchoolId` prop
-- When a specific school is selected globally, auto-open its detail panel
-- When "Toate", show the normal grid
+### Dashboard components
+- **`SponsorCard.tsx`**: Read the user's school from `AuthContext`, pass school ID to `getActivePromos('card_dashboard', schoolId)` so it returns only that school's sponsor
+- **`AnnouncementsTicker.tsx`**: Same filter -- only show ticker promos matching the user's school
 
-### SettingsTab.tsx
-- Accept `schoolId` prop
-- Show school-specific settings when a school is selected
+### Admin Panel -- SchoolsTab detail panel
+- Add a "Sponsori activi" section showing assigned sponsors with brand colors/logos
+- Add a dropdown to assign additional sponsors
 
-### Types
-- No type changes needed -- existing `School` type has `id_scoala` which works as the filter key
+### Admin Panel -- SponsorsTab
+- When editing a sponsor or campaign, show a multi-select for target schools (replace the hardcoded `['all']`)
+- Add visual indicators showing which schools each sponsor is assigned to
+
+## User Flow
+
+1. Admin opens `/admin` and selects "Sponsori" tab
+2. Clicks on Kaufland, then edits a campaign
+3. In the campaign editor, selects target schools (e.g., only "Gradinita Floarea Soarelui")
+4. Saves -- now only that school's dashboard shows Kaufland content
+5. Creates a Lidl campaign targeting "Scoala Nr. 5"
+6. Parents at School 5 see Lidl on their dashboard, parents at Gradinita see Kaufland
 
