@@ -154,7 +154,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Top header - glass style */}
-        <header className="glass-header relative flex items-center px-3 py-3 lg:px-6 safe-top z-10">
+        <header className="glass-header relative flex items-center px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 lg:px-6 z-10">
           {/* Left: hamburger */}
           <div className="flex items-center shrink-0">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
