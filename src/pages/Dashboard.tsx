@@ -72,11 +72,11 @@ export default function Dashboard() {
           </div>
 
           {/* Quick stats row */}
-          <div className="flex gap-2 mt-3 overflow-x-auto scrollbar-hide pb-1">
+          <div className="flex flex-wrap gap-2 mt-3">
             {QUICK_STATS.map(stat => (
               <div
                 key={stat.label}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shrink-0 ${stat.colorClass}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${stat.colorClass}`}
               >
                 <stat.icon className="h-3.5 w-3.5" />
                 <span>{stat.label}</span>
