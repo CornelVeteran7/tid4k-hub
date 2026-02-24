@@ -26,6 +26,7 @@ import SocialMediaFacebook from "./pages/SocialMediaFacebook";
 import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
 import NotFound from "./pages/NotFound";
 import SponsorAdmin from "./pages/SponsorAdmin";
+import SponsorDashboard from "./pages/SponsorDashboard";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ function ProtectedRoutes() {
             <Route path="/social-facebook" element={<SocialMediaFacebook />} />
             <Route path="/social-whatsapp" element={<SocialMediaWhatsapp />} />
             <Route path="/sponsori" element={<SponsorAdmin />} />
+            <Route path="/sponsor-dashboard" element={<SponsorDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>

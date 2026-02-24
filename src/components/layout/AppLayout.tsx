@@ -30,7 +30,8 @@ const ADMIN_NAV = [
   { path: '/rapoarte', label: 'Rapoarte', icon: BarChart3, roles: ['director', 'administrator'] },
   { path: '/utilizatori', label: 'Utilizatori', icon: Users, roles: ['administrator'] },
   { path: '/configurari', label: 'Configurări', icon: Settings, roles: ['administrator'] },
-  { path: '/sponsori', label: 'Sponsori', icon: Award, roles: ['administrator', 'sponsor'] },
+  { path: '/sponsori', label: 'Sponsori', icon: Award, roles: ['administrator'] },
+  { path: '/sponsor-dashboard', label: 'Dashboard Sponsor', icon: Award, roles: ['sponsor'] },
   { path: '/infodisplay', label: 'Infodisplay', icon: Monitor, roles: ['profesor', 'director', 'administrator'] },
 ];
 
