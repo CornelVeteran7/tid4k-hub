@@ -38,6 +38,7 @@ export function getRoleLabel(rol: string): string {
     director: 'Director',
     administrator: 'Administrator',
     secretara: 'Secretară',
+    sponsor: 'Sponsor',
     inky: 'Superuser',
   };
   return labels[rol.toLowerCase()] || rol;
