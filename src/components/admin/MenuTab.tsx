@@ -16,12 +16,33 @@ const MESE: { key: MenuItem['masa']; label: string }[] = [
   { key: 'gustare_2', label: '🍪 Gustare 2' },
 ];
 
+const MONTHS_RO = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
+
 function getWeekString(offset: number) {
   const d = new Date();
   d.setDate(d.getDate() + offset * 7);
   const year = d.getFullYear();
   const week = Math.ceil(((d.getTime() - new Date(year, 0, 1).getTime()) / 86400000 + 1) / 7);
   return `${year}-W${String(week).padStart(2, '0')}`;
+}
+
+function formatWeekLabel(weekStr: string): string {
+  const [yearStr, wStr] = weekStr.split('-W');
+  const year = Number(yearStr);
+  const week = Number(wStr);
+  // ISO week to Monday date
+  const jan4 = new Date(year, 0, 4);
+  const dayOfWeek = jan4.getDay() || 7;
+  const monday = new Date(jan4);
+  monday.setDate(jan4.getDate() - dayOfWeek + 1 + (week - 1) * 7);
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+  const dMon = monday.getDate();
+  const dFri = friday.getDate();
+  if (monday.getMonth() === friday.getMonth()) {
+    return `Săptămâna ${dMon}-${dFri} ${MONTHS_RO[monday.getMonth()]}`;
+  }
+  return `Săptămâna ${dMon} ${MONTHS_RO[monday.getMonth()]} - ${dFri} ${MONTHS_RO[friday.getMonth()]}`;
 }
 
 interface Props {
@@ -76,7 +97,7 @@ export default function MenuTab({ schoolId, schools }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o - 1)}><ChevronLeft className="h-4 w-4" /></Button>
-          <span className="text-sm font-medium min-w-[100px] text-center">{week}</span>
+          <span className="text-sm font-medium min-w-[200px] text-center">{formatWeekLabel(week)}</span>
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(o => o + 1)}><ChevronRight className="h-4 w-4" /></Button>
         </div>
         <div className="flex items-center gap-3">

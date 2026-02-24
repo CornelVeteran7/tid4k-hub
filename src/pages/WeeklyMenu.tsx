@@ -22,6 +22,26 @@ const MEALS: { key: MenuItem['masa']; label: string }[] = [
 
 const ALLERGENS = ['Gluten', 'Lapte', 'Ouă', 'Pește', 'Soia', 'Arahide', 'Fructe cu coajă', 'Țelină', 'Muștar', 'Susan', 'Sulfați', 'Lupin', 'Moluște', 'Crustacee'];
 
+const MONTHS_RO = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
+
+function formatWeekLabel(weekStr: string): string {
+  const [yearStr, wStr] = weekStr.split('-W');
+  const year = Number(yearStr);
+  const week = Number(wStr);
+  const jan4 = new Date(year, 0, 4);
+  const dayOfWeek = jan4.getDay() || 7;
+  const monday = new Date(jan4);
+  monday.setDate(jan4.getDate() - dayOfWeek + 1 + (week - 1) * 7);
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+  const dMon = monday.getDate();
+  const dFri = friday.getDate();
+  if (monday.getMonth() === friday.getMonth()) {
+    return `Săptămâna ${dMon}-${dFri} ${MONTHS_RO[monday.getMonth()]}`;
+  }
+  return `Săptămâna ${dMon} ${MONTHS_RO[monday.getMonth()]} - ${dFri} ${MONTHS_RO[friday.getMonth()]}`;
+}
+
 export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
   const [menu, setMenu] = useState<WeeklyMenuType | null>(null);
@@ -75,7 +95,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
         {!embedded && (
           <div>
             <h1 className="text-xl sm:text-2xl font-display font-bold">Meniul Săptămânal</h1>
-            <p className="text-muted-foreground text-sm">Săptămâna {week}</p>
+            <p className="text-muted-foreground text-sm">{formatWeekLabel(week)}</p>
           </div>
         )}
         <div className="flex flex-wrap items-center gap-2">
@@ -83,7 +103,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
             const [y, w] = week.split('-W').map(Number);
             setWeek(`${y}-W${String(w - 1).padStart(2, '0')}`);
           }}><ChevronLeft className="h-4 w-4" /></Button>
-          <Input value={week} onChange={(e) => setWeek(e.target.value)} className="w-28 text-center font-mono h-9" />
+          <span className="text-sm font-medium min-w-[200px] text-center">{formatWeekLabel(week)}</span>
           <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => {
             const [y, w] = week.split('-W').map(Number);
             setWeek(`${y}-W${String(w + 1).padStart(2, '0')}`);
