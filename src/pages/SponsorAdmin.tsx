@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getSponsors, getActivePromos, getSponsorPlans } from '@/api/sponsors';
-import type { Sponsor, SponsorPromo, SponsorPlan } from '@/types/sponsor';
+import { getSponsors, getActivePromos, getSponsorPlans, getAllCampaigns, updateCampaignStatus } from '@/api/sponsors';
+import type { Sponsor, SponsorPromo, SponsorPlan, SponsorCampaign } from '@/types/sponsor';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import {
   Award, Plus, Building2, Megaphone, Monitor, MessageSquare, Layout,
-  ExternalLink, Calendar, CheckCircle2, XCircle, Eye
+  ExternalLink, Calendar, CheckCircle2, XCircle, Eye, BarChart3, Play, Pause, Archive, FileEdit, Clock
 } from 'lucide-react';
+import CampaignEditor from '@/components/sponsor/CampaignEditor';
 
 const PROMO_TYPE_LABELS: Record<SponsorPromo['tip'], { label: string; icon: React.ElementType; color: string }> = {
   card_dashboard: { label: 'Card Dashboard', icon: Layout, color: '#2ECC71' },
@@ -19,21 +20,48 @@ const PROMO_TYPE_LABELS: Record<SponsorPromo['tip'], { label: string; icon: Reac
   inky_popup: { label: 'Inky Popup', icon: MessageSquare, color: '#9B59B6' },
 };
 
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  activ: { label: 'Activ', color: 'bg-emerald-500', icon: Play },
+  pauza: { label: 'Pauză', color: 'bg-amber-500', icon: Pause },
+  draft: { label: 'Draft', color: 'bg-muted-foreground', icon: FileEdit },
+  expirat: { label: 'Expirat', color: 'bg-destructive', icon: Clock },
+  arhivat: { label: 'Arhivat', color: 'bg-muted-foreground/50', icon: Archive },
+};
+
 export default function SponsorAdmin() {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [promos, setPromos] = useState<SponsorPromo[]>([]);
   const [plans, setPlans] = useState<SponsorPlan[]>([]);
+  const [campaigns, setCampaigns] = useState<SponsorCampaign[]>([]);
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<Partial<SponsorCampaign> | undefined>();
+  const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
 
   useEffect(() => {
-    Promise.all([getSponsors(), getActivePromos(), getSponsorPlans()]).then(
-      ([s, p, pl]) => { setSponsors(s); setPromos(p); setPlans(pl); }
+    Promise.all([getSponsors(), getActivePromos(), getSponsorPlans(), getAllCampaigns()]).then(
+      ([s, p, pl, c]) => { setSponsors(s); setPromos(p); setPlans(pl); setCampaigns(c); }
     );
   }, []);
 
   const sponsorPromos = selectedSponsor
     ? promos.filter(p => p.id_sponsor === selectedSponsor.id_sponsor)
     : promos;
+
+  const filteredCampaigns = selectedSponsor
+    ? campaigns.filter(c => c.id_sponsor === selectedSponsor.id_sponsor)
+    : campaigns;
+
+  const openEditorForSponsor = (sponsor: Sponsor, campaign?: Partial<SponsorCampaign>) => {
+    setEditingSponsor(sponsor);
+    setEditingCampaign(campaign);
+    setEditorOpen(true);
+  };
+
+  // Aggregate stats
+  const totalAfisari = campaigns.reduce((sum, c) => sum + c.statistici.afisari, 0);
+  const totalClickuri = campaigns.reduce((sum, c) => sum + c.statistici.clickuri, 0);
+  const avgCtr = totalAfisari > 0 ? ((totalClickuri / totalAfisari) * 100).toFixed(1) : '0';
 
   return (
     <div className="space-y-6">
@@ -45,7 +73,7 @@ export default function SponsorAdmin() {
             Administrare Sponsori
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Gestionează sponsorii, promoțiile și planurile de parteneriat
+            Gestionează sponsorii, promoțiile, campaniile și planurile
           </p>
         </div>
         <Button className="gap-2">
@@ -63,6 +91,14 @@ export default function SponsorAdmin() {
           <TabsTrigger value="promos" className="gap-1.5">
             <Megaphone className="h-4 w-4" />
             Promoții
+          </TabsTrigger>
+          <TabsTrigger value="campaigns" className="gap-1.5">
+            <BarChart3 className="h-4 w-4" />
+            Campanii
+          </TabsTrigger>
+          <TabsTrigger value="stats" className="gap-1.5">
+            <Eye className="h-4 w-4" />
+            Statistici
           </TabsTrigger>
           <TabsTrigger value="plans" className="gap-1.5">
             <Award className="h-4 w-4" />
@@ -94,10 +130,7 @@ export default function SponsorAdmin() {
                       </div>
                       <div>
                         <CardTitle className="text-base">{sponsor.nume}</CardTitle>
-                        <Badge
-                          variant={sponsor.activ ? 'default' : 'secondary'}
-                          className="mt-1"
-                        >
+                        <Badge variant={sponsor.activ ? 'default' : 'secondary'} className="mt-1">
                           {sponsor.activ ? 'Activ' : 'Inactiv'}
                         </Badge>
                       </div>
@@ -132,8 +165,6 @@ export default function SponsorAdmin() {
                 </CardContent>
               </Card>
             ))}
-
-            {/* Add new sponsor card */}
             <Card className="border-dashed cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors flex items-center justify-center min-h-[200px]">
               <div className="text-center text-muted-foreground">
                 <Plus className="h-8 w-8 mx-auto mb-2 opacity-40" />
@@ -154,65 +185,45 @@ export default function SponsorAdmin() {
               </button>
             </div>
           )}
-
           <div className="flex justify-end">
             <Button size="sm" className="gap-1.5">
               <Plus className="h-4 w-4" />
               Promoție nouă
             </Button>
           </div>
-
           <div className="space-y-3">
             {sponsorPromos.map(promo => {
               const meta = PROMO_TYPE_LABELS[promo.tip];
               return (
                 <Card key={promo.id_promo} className="overflow-hidden">
                   <div className="flex items-stretch">
-                    {/* Color bar */}
                     <div className="w-1.5 shrink-0" style={{ backgroundColor: meta.color }} />
-
                     <div className="flex-1 p-4">
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <Badge
-                              className="text-[10px] text-white"
-                              style={{ backgroundColor: meta.color }}
-                            >
+                            <Badge className="text-[10px] text-white" style={{ backgroundColor: meta.color }}>
                               <meta.icon className="h-3 w-3 mr-1" />
                               {meta.label}
                             </Badge>
                             <span className="text-xs text-muted-foreground">{promo.sponsor_nume}</span>
                           </div>
                           <h3 className="text-sm font-semibold">{promo.titlu}</h3>
-                          {promo.descriere && (
-                            <p className="text-xs text-muted-foreground">{promo.descriere}</p>
-                          )}
+                          {promo.descriere && <p className="text-xs text-muted-foreground">{promo.descriere}</p>}
                           {promo.link_url && (
-                            <a
-                              href={promo.link_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                            >
+                            <a href={promo.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
                               <ExternalLink className="h-3 w-3" />
                               {promo.link_url}
                             </a>
                           )}
                         </div>
-
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2 text-xs">
-                            {promo.activ ? (
-                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-muted-foreground" />
-                            )}
+                            {promo.activ ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground" />}
                           </div>
                           <Switch checked={promo.activ} />
                         </div>
                       </div>
-
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-[10px] text-muted-foreground">
                           Școli: {promo.scoli_target.includes('all') ? 'Toate' : promo.scoli_target.join(', ')}
@@ -228,6 +239,158 @@ export default function SponsorAdmin() {
           </div>
         </TabsContent>
 
+        {/* === CAMPAIGNS TAB === */}
+        <TabsContent value="campaigns" className="space-y-4">
+          {selectedSponsor && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 text-sm">
+              <Eye className="h-4 w-4 text-muted-foreground" />
+              <span>Filtrare: <strong>{selectedSponsor.nume}</strong></span>
+              <button onClick={() => setSelectedSponsor(null)} className="ml-auto text-xs text-primary hover:underline">
+                Afișează toate
+              </button>
+            </div>
+          )}
+          <div className="flex justify-end">
+            <Button size="sm" className="gap-1.5" onClick={() => {
+              const sp = selectedSponsor || sponsors[0];
+              if (sp) openEditorForSponsor(sp);
+            }}>
+              <Plus className="h-4 w-4" />
+              Campanie nouă
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {filteredCampaigns.map(campaign => {
+              const statusCfg = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.draft;
+              const meta = PROMO_TYPE_LABELS[campaign.tip];
+              const sp = sponsors.find(s => s.id_sponsor === campaign.id_sponsor);
+              return (
+                <Card key={campaign.id_campanie} className="overflow-hidden">
+                  <div className="flex items-stretch">
+                    <div className="w-1.5 shrink-0" style={{ backgroundColor: campaign.sponsor_culoare || meta.color }} />
+                    <div className="flex-1 p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge className="text-[10px] text-white" style={{ backgroundColor: meta.color }}>
+                              <meta.icon className="h-3 w-3 mr-1" />
+                              {meta.label}
+                            </Badge>
+                            <Badge className={`gap-1 text-[10px] text-white ${statusCfg.color}`}>
+                              <statusCfg.icon className="h-2.5 w-2.5" />
+                              {statusCfg.label}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">{campaign.sponsor_nume}</span>
+                          </div>
+                          <h3 className="text-sm font-semibold">{campaign.titlu}</h3>
+                          <p className="text-xs text-muted-foreground">
+                            {campaign.data_start_campanie} → {campaign.data_end_campanie}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right text-xs text-muted-foreground space-y-0.5">
+                            <div>{campaign.statistici.afisari.toLocaleString()} afișări</div>
+                            <div>{campaign.statistici.clickuri} click-uri</div>
+                            <div>CTR: {campaign.statistici.ctr}%</div>
+                          </div>
+                          <Switch checked={campaign.status === 'activ'} />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => {
+                          if (sp) openEditorForSponsor(sp, campaign);
+                        }}>
+                          <FileEdit className="h-3 w-3 mr-1" />
+                          Editează
+                        </Button>
+                        {campaign.status === 'activ' && (
+                          <Button variant="outline" size="sm" className="text-xs h-7 text-amber-600">
+                            <Pause className="h-3 w-3 mr-1" />
+                            Pauză
+                          </Button>
+                        )}
+                        {campaign.status === 'pauza' && (
+                          <Button variant="outline" size="sm" className="text-xs h-7 text-emerald-600">
+                            <Play className="h-3 w-3 mr-1" />
+                            Activează
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        {/* === STATS TAB === */}
+        <TabsContent value="stats" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-3xl font-bold text-foreground">{totalAfisari.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground mt-1">Afișări totale</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-3xl font-bold text-foreground">{totalClickuri.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground mt-1">Click-uri totale</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-3xl font-bold text-foreground">{avgCtr}%</p>
+                <p className="text-sm text-muted-foreground mt-1">CTR mediu</p>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Performanță per sponsor</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {sponsors.map(sponsor => {
+                  const spCampaigns = campaigns.filter(c => c.id_sponsor === sponsor.id_sponsor);
+                  const spAfisari = spCampaigns.reduce((s, c) => s + c.statistici.afisari, 0);
+                  const spClickuri = spCampaigns.reduce((s, c) => s + c.statistici.clickuri, 0);
+                  const spCtr = spAfisari > 0 ? ((spClickuri / spAfisari) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={sponsor.id_sponsor} className="flex items-center gap-4">
+                      <div
+                        className="h-10 w-10 rounded-lg bg-white shadow-sm flex items-center justify-center p-1.5 border shrink-0"
+                        style={{ borderColor: `${sponsor.culoare_brand}30` }}
+                      >
+                        <img src={sponsor.logo_url} alt={sponsor.nume} className="h-full w-full object-contain" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium">{sponsor.nume}</p>
+                        <div className="flex gap-4 text-xs text-muted-foreground mt-0.5">
+                          <span>{spAfisari.toLocaleString()} afișări</span>
+                          <span>{spClickuri} click-uri</span>
+                          <span>CTR: {spCtr}%</span>
+                          <span>{spCampaigns.length} campanii</span>
+                        </div>
+                      </div>
+                      <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            backgroundColor: sponsor.culoare_brand,
+                            width: `${Math.min((spAfisari / Math.max(totalAfisari, 1)) * 100, 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* === PLANS TAB === */}
         <TabsContent value="plans" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
@@ -236,9 +399,7 @@ export default function SponsorAdmin() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{plan.nume_plan}</CardTitle>
-                    {plan.nume_plan === 'Premium' && (
-                      <Badge>Popular</Badge>
-                    )}
+                    {plan.nume_plan === 'Premium' && <Badge>Popular</Badge>}
                   </div>
                   <p className="text-2xl font-bold text-foreground">
                     {plan.pret} <span className="text-sm font-normal text-muted-foreground">RON/lună</span>
@@ -265,6 +426,10 @@ export default function SponsorAdmin() {
                       Popup Inky
                     </li>
                     <li className="flex items-center gap-2">
+                      {plan.include_custom_inky ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground/40" />}
+                      Branding custom Inky
+                    </li>
+                    <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                       {plan.numar_scoli === -1 ? 'Școli nelimitate' : `${plan.numar_scoli} școli`}
                     </li>
@@ -275,6 +440,19 @@ export default function SponsorAdmin() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Campaign Editor */}
+      {editingSponsor && (
+        <CampaignEditor
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          campaign={editingCampaign}
+          sponsorNume={editingSponsor.nume}
+          sponsorLogo={editingSponsor.logo_url}
+          sponsorCuloare={editingSponsor.culoare_brand}
+          onSave={(data) => console.log('Admin save campaign:', data)}
+        />
+      )}
     </div>
   );
 }

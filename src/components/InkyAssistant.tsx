@@ -19,7 +19,9 @@ interface QuickAction {
   onClick?: () => void;
   isSponsor?: boolean;
   sponsorColor?: string;
+  sponsorLogo?: string;
   linkUrl?: string;
+  stilInky?: SponsorPromo['stil_inky'];
 }
 
 function getActions(pathname: string, isTeacher: boolean, isParent: boolean): QuickAction[] {
@@ -77,7 +79,6 @@ function getActions(pathname: string, isTeacher: boolean, isParent: boolean): Qu
     return [{ label: 'Marchează toate ca citite', icon: CheckSquare }];
   }
 
-  // Fallback
   if (isTeacher) return [
     { label: 'Înregistrează prezența', icon: ClipboardList, path: '/prezenta' },
     { label: 'Trimite mesaj', icon: Send, path: '/mesaje' },
@@ -104,7 +105,9 @@ export default function InkyAssistant() {
           icon: Award,
           isSponsor: true,
           sponsorColor: p.sponsor_culoare,
+          sponsorLogo: p.sponsor_logo,
           linkUrl: p.link_url,
+          stilInky: p.stil_inky,
         });
       }
     });
@@ -115,8 +118,6 @@ export default function InkyAssistant() {
   const isTeacher = areRol(user.status, 'profesor');
   const isParent = areRol(user.status, 'parinte');
   const actions = getActions(location.pathname, isTeacher, isParent);
-
-  // Append sponsor action at the end
   const allActions = sponsorAction ? [...actions, sponsorAction] : actions;
 
   const handleAction = (action: QuickAction) => {
@@ -130,9 +131,13 @@ export default function InkyAssistant() {
     setOpen(false);
   };
 
+  // Get sponsor style colors
+  const stilInky = sponsorAction?.stilInky;
+  const sponsorBg = stilInky?.bg_color || sponsorAction?.sponsorColor || '#e1001a';
+  const costumeUrl = stilInky?.costume_url;
+
   return (
     <>
-      {/* Backdrop */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -146,7 +151,6 @@ export default function InkyAssistant() {
       </AnimatePresence>
 
       <div className="fixed bottom-14 right-4 sm:bottom-16 sm:right-6 z-[70]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-        {/* Action sheet */}
         <AnimatePresence>
           {open && (
             <motion.div
@@ -168,21 +172,30 @@ export default function InkyAssistant() {
                     key={action.label}
                     onClick={() => handleAction(action)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-left ${
-                      action.isSponsor
-                        ? 'bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-950/20 dark:to-amber-900/10 hover:from-amber-100 hover:to-amber-200/50 dark:hover:from-amber-900/30 border border-amber-200/50 dark:border-amber-700/30 mt-1'
-                        : 'text-foreground hover:bg-primary/10'
+                      action.isSponsor ? 'mt-1 border' : 'text-foreground hover:bg-primary/10'
                     }`}
+                    style={action.isSponsor ? {
+                      background: `linear-gradient(135deg, ${sponsorBg}12 0%, ${sponsorBg}22 100%)`,
+                      borderColor: `${sponsorBg}35`,
+                    } : undefined}
                   >
                     {action.isSponsor ? (
-                      <Award className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                      action.sponsorLogo ? (
+                        <img src={action.sponsorLogo} alt="" className="h-4 w-4 object-contain shrink-0" />
+                      ) : (
+                        <Award className="h-4 w-4 shrink-0" style={{ color: sponsorBg }} />
+                      )
                     ) : (
                       <action.icon className="h-4 w-4 text-primary shrink-0" />
                     )}
-                    <span className={action.isSponsor ? 'font-semibold text-amber-900 dark:text-amber-200 flex-1' : 'flex-1'}>
+                    <span
+                      className={action.isSponsor ? 'font-semibold flex-1' : 'flex-1'}
+                      style={action.isSponsor ? { color: sponsorBg } : undefined}
+                    >
                       {action.label}
                     </span>
                     {action.isSponsor && (
-                      <ExternalLink className="h-3 w-3 text-amber-500 shrink-0" />
+                      <ExternalLink className="h-3 w-3 shrink-0" style={{ color: sponsorBg }} />
                     )}
                   </button>
                 ))}
@@ -200,7 +213,7 @@ export default function InkyAssistant() {
           transition={open ? {} : { repeat: Infinity, repeatDelay: 4, duration: 0.5 }}
           className="h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-lg border border-primary/20 flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 glass-card"
         >
-          <img src={inkyImg} alt="Inky Assistant" className="h-12 w-12 sm:h-14 sm:w-14 object-contain" />
+          <img src={costumeUrl || inkyImg} alt="Inky Assistant" className="h-12 w-12 sm:h-14 sm:w-14 object-contain" />
         </motion.button>
       </div>
     </>
