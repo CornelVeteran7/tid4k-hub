@@ -164,6 +164,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               ))}
             </>
           )}
+
+          {/* Tutorial replay */}
+          <div className="pt-2">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('restart-tutorial'))}
+              className={navLinkClass}
+            >
+              <GraduationCap className="h-5 w-5 shrink-0" />
+              <span>Tutorial</span>
+            </button>
+          </div>
         </nav>
 
         {/* User info at bottom */}
@@ -426,6 +437,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
         <InkyAssistant />
+        <TutorialOverlay />
       </div>
     </div>
   );
