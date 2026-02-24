@@ -16,7 +16,7 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 top-14 z-30 flex flex-col">
+    <div className="fixed inset-x-0 bottom-0 top-0 z-30 flex flex-col pt-[var(--header-height)]">
       {/* Scrim */}
       <motion.div
         initial={{ opacity: 0 }}

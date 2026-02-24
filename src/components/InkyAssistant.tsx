@@ -115,7 +115,7 @@ export default function InkyAssistant() {
         )}
       </AnimatePresence>
 
-      <div className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-[70]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="fixed bottom-14 right-4 sm:bottom-16 sm:right-6 z-[70]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {/* Action sheet */}
         <AnimatePresence>
           {open && (
