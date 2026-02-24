@@ -211,10 +211,10 @@ export default function SponsorAdmin() {
                           <h3 className="text-sm font-semibold">{promo.titlu}</h3>
                           {promo.descriere && <p className="text-xs text-muted-foreground">{promo.descriere}</p>}
                           {promo.link_url && (
-                            <a href={promo.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                            <button onClick={() => openLink(promo.link_url!)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
                               <ExternalLink className="h-3 w-3" />
                               {promo.link_url}
-                            </a>
+                            </button>
                           )}
                         </div>
                         <div className="flex items-center gap-3">
