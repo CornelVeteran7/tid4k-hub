@@ -259,6 +259,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="ml-auto text-[10px] uppercase tracking-wider opacity-60">În curând</span>
             </button>
 
+            {/* Tutorial */}
+            <button
+              onClick={() => { window.dispatchEvent(new CustomEvent('restart-tutorial')); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+            >
+              <GraduationCap className="h-5 w-5 shrink-0" />
+              <span>Tutorial</span>
+            </button>
+
             {/* Admin section */}
             {visibleAdmin.length > 0 && (
               <>
