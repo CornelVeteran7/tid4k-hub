@@ -2,18 +2,33 @@ import { createContext, useContext, useState, useCallback } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface ExternalLinkContextType {
-  openLink: (url: string) => void;
+  openLink: (url: string, forceModal?: boolean) => void;
 }
 
 const ExternalLinkContext = createContext<ExternalLinkContextType>({ openLink: () => {} });
 
 export const useExternalLink = () => useContext(ExternalLinkContext);
 
+// URLs matching these patterns will open in iframe modal; everything else opens in a new tab
+const IFRAME_ALLOWED_PATTERNS = [
+  /tid4kdemo\.ro/,
+  /localhost/,
+  /lovable\.app/,
+];
+
+function canIframe(url: string): boolean {
+  return IFRAME_ALLOWED_PATTERNS.some(pattern => pattern.test(url));
+}
+
 export function ExternalLinkProvider({ children }: { children: React.ReactNode }) {
   const [url, setUrl] = useState<string | null>(null);
 
-  const openLink = useCallback((linkUrl: string) => {
-    setUrl(linkUrl);
+  const openLink = useCallback((linkUrl: string, forceModal?: boolean) => {
+    if (forceModal || canIframe(linkUrl)) {
+      setUrl(linkUrl);
+    } else {
+      window.open(linkUrl, '_blank', 'noopener,noreferrer');
+    }
   }, []);
 
   return (
