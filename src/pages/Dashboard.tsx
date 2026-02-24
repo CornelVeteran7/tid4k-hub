@@ -101,7 +101,7 @@ export default function Dashboard() {
               </div>
 
               {/* Quick stats row */}
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="grid grid-cols-2 gap-2 mt-3">
                 {QUICK_STATS.map(stat => (
                   <button
                     key={stat.label}
