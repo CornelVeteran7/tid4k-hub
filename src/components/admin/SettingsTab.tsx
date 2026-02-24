@@ -9,6 +9,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Settings as SettingsIcon, Upload, Key, MessageCircle, Facebook, Bell, Database, Trash2, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import type { School } from '@/types';
+
+interface Props {
+  schoolId: string;
+  schools: School[];
+}
 
 const sections = [
   { id: 'info', label: 'Informații școală', icon: SettingsIcon },
@@ -19,12 +25,21 @@ const sections = [
   { id: 'maint', label: 'Mentenanță', icon: Database },
 ];
 
-export default function SettingsTab() {
+export default function SettingsTab({ schoolId, schools }: Props) {
   const [openSections, setOpenSections] = useState<string[]>(['info']);
+  const currentSchool = schools.find(s => s.id_scoala.toString() === schoolId);
 
   const toggle = (id: string) => {
     setOpenSections(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
   };
+
+  if (schoolId === 'all') {
+    return (
+      <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+        Selectează o școală din filtrul global pentru a vedea setările.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 max-w-3xl">
@@ -41,8 +56,8 @@ export default function SettingsTab() {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent className="space-y-4 pt-0">
-              <div><Label>Nume</Label><Input defaultValue="Grădinița Floarea Soarelui" /></div>
-              <div><Label>Adresă</Label><Input defaultValue="Str. Exemplu nr. 1, București" /></div>
+              <div><Label>Nume</Label><Input defaultValue={currentSchool?.nume || ''} /></div>
+              <div><Label>Adresă</Label><Input defaultValue={currentSchool?.adresa || ''} /></div>
               <div>
                 <Label>Logo</Label>
                 <div className="mt-2 flex items-center gap-4">

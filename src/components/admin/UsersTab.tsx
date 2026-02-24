@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getUsers, createUser, updateUser, deleteUser } from '@/api/users';
-import type { User } from '@/types';
+import type { User, School } from '@/types';
 import { getRoleLabel } from '@/utils/roles';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,12 @@ import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-export default function UsersTab() {
+interface Props {
+  schoolId: string;
+  schools: School[];
+}
+
+export default function UsersTab({ schoolId, schools }: Props) {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -31,7 +36,12 @@ export default function UsersTab() {
     const matchSearch = u.nume_prenume.toLowerCase().includes(search.toLowerCase()) ||
       u.telefon.includes(search) || u.email.toLowerCase().includes(search.toLowerCase());
     const matchRole = roleFilter === 'all' || u.status.includes(roleFilter);
-    return matchSearch && matchRole;
+    // Filter by school if a specific school is selected
+    const matchSchool = schoolId === 'all' || u.grupe.some(g => {
+      const school = schools.find(s => s.id_scoala.toString() === schoolId);
+      return school?.grupe.includes(g);
+    });
+    return matchSearch && matchRole && matchSchool;
   });
 
   const handleSave = async () => {
@@ -55,6 +65,14 @@ export default function UsersTab() {
 
   const openNew = () => { setEditingUser({ nume_prenume: '', telefon: '', email: '', status: 'parinte', grupe: [] }); setIsNew(true); setEditOpen(true); };
   const openEdit = (user: User) => { setEditingUser({ ...user }); setIsNew(false); setEditOpen(true); };
+
+  // Find school name for a user based on their groups
+  const getUserSchool = (user: User): string => {
+    for (const school of schools) {
+      if (user.grupe.some(g => school.grupe.includes(g))) return school.nume;
+    }
+    return '—';
+  };
 
   const EditForm = (
     <div className="space-y-4">
@@ -81,7 +99,7 @@ export default function UsersTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">{users.length} utilizatori înregistrați</p>
+        <p className="text-sm text-muted-foreground">{filtered.length} utilizatori{schoolId !== 'all' ? ` în ${schools.find(s => s.id_scoala.toString() === schoolId)?.nume || ''}` : ' înregistrați'}</p>
         <Button size="sm" className="gap-1.5" onClick={openNew}><Plus className="h-4 w-4" />Adaugă Utilizator</Button>
       </div>
 
@@ -113,6 +131,7 @@ export default function UsersTab() {
                     <p className="font-medium text-sm truncate">{user.nume_prenume}</p>
                     <p className="text-xs text-muted-foreground font-mono">{user.telefon}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    {schoolId === 'all' && <p className="text-xs text-muted-foreground mt-0.5">{getUserSchool(user)}</p>}
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {user.status.split(',').map(r => <Badge key={r.trim()} variant="secondary" className="text-[10px]">{getRoleLabel(r.trim())}</Badge>)}
                     </div>
@@ -142,6 +161,7 @@ export default function UsersTab() {
                     <TableHead>Nume</TableHead>
                     <TableHead>Telefon</TableHead>
                     <TableHead>Email</TableHead>
+                    {schoolId === 'all' && <TableHead>Școală</TableHead>}
                     <TableHead>Roluri</TableHead>
                     <TableHead>Grupe</TableHead>
                     <TableHead className="w-24">Acțiuni</TableHead>
@@ -153,6 +173,7 @@ export default function UsersTab() {
                       <TableCell className="font-medium">{user.nume_prenume}</TableCell>
                       <TableCell className="font-mono text-sm">{user.telefon}</TableCell>
                       <TableCell className="text-sm">{user.email}</TableCell>
+                      {schoolId === 'all' && <TableCell className="text-sm text-muted-foreground">{getUserSchool(user)}</TableCell>}
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {user.status.split(',').map(r => <Badge key={r.trim()} variant="secondary" className="text-xs">{getRoleLabel(r.trim())}</Badge>)}
