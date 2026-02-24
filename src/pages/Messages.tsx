@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-export default function Messages() {
+export default function Messages({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -48,7 +48,7 @@ export default function Messages() {
 
   return (
     <div className="space-y-4 min-w-0">
-      <h1 className="text-xl sm:text-2xl font-display font-bold">Mesaje</h1>
+      {!embedded && <h1 className="text-xl sm:text-2xl font-display font-bold">Mesaje</h1>}
 
       <div className="flex gap-4 h-[calc(100vh-200px)] min-w-0">
         {/* Conversations List */}
