@@ -1,5 +1,5 @@
 import { USE_MOCK } from './config';
-import type { Sponsor, SponsorPromo, SponsorPlan, SponsorCampaign, SponsorStats, CampaignStatus } from '@/types/sponsor';
+import type { Sponsor, SponsorPromo, SponsorPlan, SponsorCampaign, SponsorStats, CampaignStatus, RotationConfig } from '@/types/sponsor';
 
 // ===== Mock Data =====
 const MOCK_SPONSORS: Sponsor[] = [
@@ -325,4 +325,54 @@ export async function updateCampaignStatus(id: number, status: CampaignStatus): 
 export async function getSponsorStats(sponsorId: number): Promise<SponsorStats> {
   if (USE_MOCK) return MOCK_STATS[sponsorId] || { total_afisari: 0, total_clickuri: 0, ctr_mediu: 0, campanii_active: 0, campanii_totale: 0, scoli_active: 0 };
   throw new Error('Not implemented');
+}
+
+// ===== Rotation System =====
+export async function getRotationConfig(tip?: SponsorPromo['tip'], schoolId?: number): Promise<RotationConfig> {
+  if (USE_MOCK) {
+    // Build rotation config from mock data
+    let promos = MOCK_PROMOS.filter(p => p.activ);
+    if (tip) promos = promos.filter(p => p.tip === tip);
+    if (schoolId) {
+      promos = promos.filter(p => p.scoli_target.includes('all') || p.scoli_target.includes(schoolId.toString()));
+    }
+    promos.sort((a, b) => a.prioritate - b.prioritate);
+
+    // Calculate weights based on sponsor plans
+    const sloturiWithPrices = promos.map(p => {
+      const sponsor = MOCK_SPONSORS.find(s => s.id_sponsor === p.id_sponsor);
+      const plan = MOCK_PLANS.find(pl => pl.nume_plan === sponsor?.plan);
+      return { promo: p, pret: plan?.pret || 500 };
+    });
+
+    const totalPret = sloturiWithPrices.reduce((sum, s) => sum + s.pret, 0) || 1;
+    const ciclu = 60;
+
+    const sloturi = sloturiWithPrices.map(s => ({
+      id_sponsor: s.promo.id_sponsor,
+      id_promo: s.promo.id_promo,
+      pondere: s.pret / totalPret,
+      durata_secunde: Math.max(5, Math.round((s.pret / totalPret) * ciclu)),
+      promo: s.promo,
+    }));
+
+    return { ciclu_total_secunde: ciclu, sloturi };
+  }
+  throw new Error('Not implemented');
+}
+
+export async function logImpression(data: { id_promo: number; tip: string; school_id?: number }): Promise<void> {
+  if (USE_MOCK) {
+    console.log('[Sponsor] Impression logged:', data);
+    return;
+  }
+  // apiFetch('/sponsors.php?action=log_impression', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function logClick(data: { id_promo: number; tip: string; school_id?: number }): Promise<void> {
+  if (USE_MOCK) {
+    console.log('[Sponsor] Click logged:', data);
+    return;
+  }
+  // apiFetch('/sponsors.php?action=log_click', { method: 'POST', body: JSON.stringify(data) });
 }

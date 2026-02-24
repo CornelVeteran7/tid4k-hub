@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Megaphone, Award } from 'lucide-react';
 import { getAnnouncements } from '@/api/announcements';
-import { getActivePromos } from '@/api/sponsors';
-import type { Announcement } from '@/types';
+import { useSponsorRotation } from '@/hooks/useSponsorRotation';
 import type { SponsorPromo } from '@/types/sponsor';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,20 +15,22 @@ interface TickerItem {
 
 export default function AnnouncementsTicker() {
   const navigate = useNavigate();
-  const [items, setItems] = useState<TickerItem[]>([]);
+  const [announcementItems, setAnnouncementItems] = useState<TickerItem[]>([]);
   const { user } = useAuth();
 
+  const schoolId = user?.grupe_disponibile?.[user.index_grupa_clasa_curenta]?.id
+    ? Number(user.grupe_disponibile[user.index_grupa_clasa_curenta].id.split('_')[0])
+    : undefined;
+
+  const { currentPromo } = useSponsorRotation('ticker', schoolId);
+
   useEffect(() => {
-    const schoolId = user?.grupe_disponibile?.[user.index_grupa_clasa_curenta]?.id ? Number(user.grupe_disponibile[user.index_grupa_clasa_curenta].id.split('_')[0]) : undefined;
-    Promise.all([
-      getAnnouncements(),
-      getActivePromos('ticker', schoolId),
-    ]).then(([announcements, sponsorPromos]) => {
+    getAnnouncements().then(announcements => {
       const visible = announcements
         .filter(a => !a.ascuns_banda)
         .sort((a, b) => (a.pozitie_banda ?? 99) - (b.pozitie_banda ?? 99));
 
-      const announcementItems: TickerItem[] = visible.map(a => ({
+      setAnnouncementItems(visible.map(a => ({
         id: `ann-${a.id_info}`,
         text: (
           <span className="inline-flex items-center gap-2">
@@ -42,58 +43,53 @@ export default function AnnouncementsTicker() {
           </span>
         ),
         isSponsor: false,
-      }));
-
-      // Build sponsor ticker items with custom styles
-      const sponsorItems: TickerItem[] = sponsorPromos.map(p => {
-        const stil = p.stil_ticker;
-        const badgeBg = stil?.badge_bg || p.sponsor_culoare || 'rgba(255,215,0,0.3)';
-        const badgeText = stil?.badge_text || 'Sponsor';
-        const glowEffect = stil?.glow_effect;
-
-        return {
-          id: `sponsor-${p.id_promo}`,
-          text: (
-            <span className="inline-flex items-center gap-2">
-              <span
-                className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full text-white ${glowEffect ? 'animate-pulse' : ''}`}
-                style={{ backgroundColor: badgeBg }}
-              >
-                <Award className="h-2.5 w-2.5" />
-                {badgeText}
-              </span>
-              <span className="font-bold" style={{ color: stil?.text_color }}>
-                {p.titlu}
-              </span>
-            </span>
-          ),
-          isSponsor: true,
-          link_url: p.link_url,
-        };
-      });
-
-      // Interleave: insert sponsor every 3 announcements
-      const merged: TickerItem[] = [];
-      let sponsorIdx = 0;
-      announcementItems.forEach((item, i) => {
-        merged.push(item);
-        if ((i + 1) % 3 === 0 && sponsorIdx < sponsorItems.length) {
-          merged.push(sponsorItems[sponsorIdx]);
-          sponsorIdx++;
-        }
-      });
-      while (sponsorIdx < sponsorItems.length) {
-        merged.push(sponsorItems[sponsorIdx]);
-        sponsorIdx++;
-      }
-
-      setItems(merged);
+      })));
     });
   }, [user]);
 
-  if (items.length === 0) return null;
+  // Build sponsor ticker item from current rotation promo
+  const sponsorItem: TickerItem | null = currentPromo ? (() => {
+    const stil = currentPromo.stil_ticker;
+    const badgeBg = stil?.badge_bg || currentPromo.sponsor_culoare || 'rgba(255,215,0,0.3)';
+    const badgeText = stil?.badge_text || 'Sponsor';
+    const glowEffect = stil?.glow_effect;
 
-  const tickerContent = items.map(item => (
+    return {
+      id: `sponsor-${currentPromo.id_promo}`,
+      text: (
+        <span className="inline-flex items-center gap-2">
+          <span
+            className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full text-white ${glowEffect ? 'animate-pulse' : ''}`}
+            style={{ backgroundColor: badgeBg }}
+          >
+            <Award className="h-2.5 w-2.5" />
+            {badgeText}
+          </span>
+          <span className="font-bold" style={{ color: stil?.text_color }}>
+            {currentPromo.titlu}
+          </span>
+        </span>
+      ),
+      isSponsor: true,
+      link_url: currentPromo.link_url,
+    };
+  })() : null;
+
+  // Merge: insert single sponsor after 3rd announcement
+  const merged: TickerItem[] = [];
+  announcementItems.forEach((item, i) => {
+    merged.push(item);
+    if (i === 2 && sponsorItem) {
+      merged.push(sponsorItem);
+    }
+  });
+  if (sponsorItem && announcementItems.length <= 2) {
+    merged.push(sponsorItem);
+  }
+
+  if (merged.length === 0) return null;
+
+  const tickerContent = merged.map(item => (
     <span key={item.id} className="inline-flex items-center gap-2 mx-6">
       {item.text}
     </span>
