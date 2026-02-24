@@ -457,10 +457,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 ? 'bg-destructive/10 text-destructive'
                                 : notif.icon === 'message'
                                 ? 'bg-sky-500/10 text-sky-600'
+                                : notif.icon === 'paintbrush'
+                                ? 'bg-purple-500/10 text-purple-600'
                                 : 'bg-amber-500/10 text-amber-600'
                             }`}>
                               {notif.icon === 'message'
                                 ? <MessageSquare className="h-4 w-4" />
+                                : notif.icon === 'paintbrush'
+                                ? <Paintbrush className="h-4 w-4" />
                                 : <Megaphone className="h-4 w-4" />
                               }
                             </div>

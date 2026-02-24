@@ -2,17 +2,18 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useAuth } from './AuthContext';
 import { getConversations } from '@/api/messages';
 import { getAnnouncements } from '@/api/announcements';
+import { getWorkshopOfMonth } from '@/api/workshops';
 import type { Conversation, Announcement } from '@/types';
 
 export interface NotificationItem {
   id: string;
-  type: 'message' | 'announcement';
+  type: 'message' | 'announcement' | 'workshop';
   title: string;
   description: string;
   timestamp: string;
   read: boolean;
   navigateTo: string;
-  icon: 'message' | 'megaphone' | 'alert';
+  icon: 'message' | 'megaphone' | 'alert' | 'paintbrush';
 }
 
 interface NotificationContextType {
@@ -38,9 +39,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!user) return;
 
     try {
-      const [conversations, announcements] = await Promise.all([
+      const [conversations, announcements, workshopOfMonth] = await Promise.all([
         getConversations(user.id_utilizator),
         getAnnouncements(),
+        getWorkshopOfMonth(),
       ]);
 
       // Count real unread messages
@@ -78,8 +80,26 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         icon: a.prioritate === 'urgent' ? 'alert' as const : 'megaphone' as const,
       }));
 
+      // Workshop notification
+      const workshopNotifs: NotificationItem[] = [];
+      if (workshopOfMonth) {
+        const seenKey = `tid4k_seen_workshop_${workshopOfMonth.id_atelier}`;
+        if (!localStorage.getItem(seenKey)) {
+          workshopNotifs.push({
+            id: `ws-${workshopOfMonth.id_atelier}`,
+            type: 'workshop',
+            title: `Atelier nou: ${workshopOfMonth.titlu}`,
+            description: `${workshopOfMonth.instructor} · ${workshopOfMonth.durata_minute} min`,
+            timestamp: workshopOfMonth.data_publicare || workshopOfMonth.data_creare,
+            read: false,
+            navigateTo: '/',
+            icon: 'paintbrush',
+          });
+        }
+      }
+
       // Sort by timestamp descending
-      const all = [...msgNotifs, ...annNotifs].sort(
+      const all = [...msgNotifs, ...annNotifs, ...workshopNotifs].sort(
         (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
