@@ -68,16 +68,27 @@ export default function TutorialOverlay() {
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
   const isMobile = useIsMobile();
   const rafRef = useRef<number>();
+  const location = useLocation();
 
-  // Auto-start on first visit
+  // Only run tutorial on the dashboard
+  const isDashboard = location.pathname === '/';
+
+  // Auto-start on first visit (only on dashboard)
   useEffect(() => {
+    if (!isDashboard) return;
     const done = localStorage.getItem(STORAGE_KEY);
     if (!done) {
-      // Delay slightly so DOM elements are rendered
       const timer = setTimeout(() => setIsActive(true), 800);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isDashboard]);
+
+  // Deactivate if user navigates away from dashboard
+  useEffect(() => {
+    if (!isDashboard && isActive) {
+      setIsActive(false);
+    }
+  }, [isDashboard, isActive]);
 
   // Listen for restart event
   useEffect(() => {
