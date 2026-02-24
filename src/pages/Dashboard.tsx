@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/components/dashboard/ModuleHub';
 import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
+import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
 
 const STORAGE_KEY = 'tid4k_visible_modules';
 
