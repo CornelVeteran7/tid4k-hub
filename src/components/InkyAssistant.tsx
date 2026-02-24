@@ -211,9 +211,9 @@ export default function InkyAssistant() {
           whileTap={{ scale: 0.95 }}
           animate={open ? { rotate: 0 } : { rotate: [0, -5, 5, 0] }}
           transition={open ? {} : { repeat: Infinity, repeatDelay: 4, duration: 0.5 }}
-          className="h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-lg border border-primary/20 flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 glass-card"
+          className="h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-lg border border-primary/20 flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 glass-card p-0"
         >
-          <img src={costumeUrl || inkyImg} alt="Inky Assistant" className="h-12 w-12 sm:h-14 sm:w-14 object-contain" />
+          <img src={costumeUrl || inkyImg} alt="Inky Assistant" className="h-[90%] w-[90%] object-contain" />
         </motion.button>
       </div>
     </>
