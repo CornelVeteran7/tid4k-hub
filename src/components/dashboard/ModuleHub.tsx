@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { ClipboardList, Image, FileText, BookOpen, UtensilsCrossed, MessageSquare } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -59,7 +59,7 @@ export default function ModuleHub({ visibility }: ModuleHubProps) {
   const ModuleComponent = openModule ? MODULE_COMPONENTS[openModule] : null;
 
   return (
-    <>
+    <LayoutGroup>
       <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
         <AnimatePresence mode="popLayout">
           {visibleModules.map(mod => (
@@ -71,31 +71,38 @@ export default function ModuleHub({ visibility }: ModuleHubProps) {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
             >
-              <ModuleCard
-                icon={mod.icon}
-                title={mod.title}
-                subtitle={mod.subtitle}
-                color={mod.color}
-                onOpen={() => setOpenModule(mod.key)}
-              />
+              {/* Only render card if this module isn't the one currently open */}
+              {openModule !== mod.key && (
+                <ModuleCard
+                  icon={mod.icon}
+                  title={mod.title}
+                  subtitle={mod.subtitle}
+                  color={mod.color}
+                  onOpen={() => setOpenModule(mod.key)}
+                  layoutId={`module-${mod.key}`}
+                />
+              )}
             </motion.div>
           ))}
         </AnimatePresence>
       </div>
 
-      {/* Module Panel Overlay */}
-      {openMod && ModuleComponent && (
-        <ModulePanel
-          isOpen={!!openModule}
-          onClose={() => setOpenModule(null)}
-          title={openMod.title}
-          color={openMod.color}
-        >
-          <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
-            <ModuleComponent embedded />
-          </Suspense>
-        </ModulePanel>
-      )}
-    </>
+      {/* Module Panel Overlay — shares layoutId with the card for morph animation */}
+      <AnimatePresence>
+        {openMod && ModuleComponent && (
+          <ModulePanel
+            isOpen={!!openModule}
+            onClose={() => setOpenModule(null)}
+            title={openMod.title}
+            color={openMod.color}
+            layoutId={`module-${openMod.key}`}
+          >
+            <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+              <ModuleComponent embedded />
+            </Suspense>
+          </ModulePanel>
+        )}
+      </AnimatePresence>
+    </LayoutGroup>
   );
 }
