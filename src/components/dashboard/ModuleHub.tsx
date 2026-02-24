@@ -5,7 +5,6 @@ import { Loader2 } from 'lucide-react';
 import ModuleCard from './ModuleCard';
 import ModulePanel from './ModulePanel';
 import ShareDialog from './ShareDialog';
-import { useGroup } from '@/contexts/GroupContext';
 
 const Attendance = lazy(() => import('@/pages/Attendance'));
 const Documents = lazy(() => import('@/pages/Documents'));
@@ -34,12 +33,12 @@ export const DEFAULT_VISIBILITY: ModuleVisibility = {
 };
 
 const MODULES = [
-  { key: 'prezenta', title: 'PREZENTA', subtitle: 'Înregistrează prezența', color: '#D4A017', icon: ClipboardList, countLabel: '', showShare: false },
-  { key: 'imagini', title: 'IMAGINI', subtitle: 'Fotografii activitati', color: '#27AE60', icon: Image, countLabel: 'imagini', showShare: true },
-  { key: 'documente', title: 'DOCUMENTE', subtitle: 'Fisiere PDF', color: '#2980B9', icon: FileText, countLabel: 'documente', showShare: true },
-  { key: 'povesti', title: 'POVESTI', subtitle: 'Povesti pentru copii', color: '#8E44AD', icon: BookOpen, countLabel: 'povesti', showShare: false },
-  { key: 'ateliere', title: 'ATELIERE', subtitle: 'Activitati creative pentru copii', color: '#7D3C98', icon: Paintbrush, countLabel: 'ateliere', showShare: false },
-  { key: 'meniu', title: 'MENIUL SAPTAMANII', subtitle: 'Meniul zilnic pentru copii', color: '#E67E22', icon: UtensilsCrossed, countLabel: 'meniuri', showShare: false },
+  { key: 'prezenta', title: 'PREZENTA', subtitle: 'Înregistrează prezența', color: '#FFC107', icon: ClipboardList, countLabel: '', showShare: false },
+  { key: 'imagini', title: 'IMAGINI', subtitle: 'Fotografii activitati', color: '#2ECC71', icon: Image, countLabel: 'imagini', showShare: true },
+  { key: 'documente', title: 'DOCUMENTE', subtitle: 'Fisiere PDF', color: '#3498DB', icon: FileText, countLabel: 'documente', showShare: true },
+  { key: 'povesti', title: 'POVESTI', subtitle: 'Povesti pentru copii', color: '#9B59B6', icon: BookOpen, countLabel: 'povesti', showShare: false },
+  { key: 'ateliere', title: 'ATELIERE', subtitle: 'Activitati creative pentru copii', color: '#8E44AD', icon: Paintbrush, countLabel: 'ateliere', showShare: false },
+  { key: 'meniu', title: 'MENIUL SAPTAMANII', subtitle: 'Meniul zilnic pentru copii', color: '#F39C12', icon: UtensilsCrossed, countLabel: 'meniuri', showShare: false },
   { key: 'mesaje', title: 'MESAJE', subtitle: 'Comunicare cu parintii', color: '#E91E63', icon: MessageSquare, countLabel: 'mesaje', showShare: false },
 ] as const;
 
@@ -72,8 +71,6 @@ interface ModuleHubProps {
 export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
-  const { currentGroup } = useGroup();
-  const groupName = currentGroup?.nume || 'grupa mica A';
 
   let visibleModules = MODULES.filter(m => visibility[m.key as keyof ModuleVisibility]);
 
@@ -106,7 +103,7 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
                 <ModuleCard
                   icon={mod.icon}
                   title={mod.title}
-                  subtitle={groupName}
+                  subtitle={mod.subtitle}
                   color={mod.color}
                   count={MOCK_COUNTS[mod.key]}
                   countLabel={mod.countLabel}
