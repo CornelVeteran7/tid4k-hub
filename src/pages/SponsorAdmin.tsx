@@ -38,6 +38,7 @@ export default function SponsorAdmin() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Partial<SponsorCampaign> | undefined>();
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
+  const { openLink } = useExternalLink();
 
   useEffect(() => {
     Promise.all([getSponsors(), getActivePromos(), getSponsorPlans(), getAllCampaigns()]).then(
