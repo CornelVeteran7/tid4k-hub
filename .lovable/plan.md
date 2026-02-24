@@ -1,58 +1,35 @@
 
 
-# Add Announcement Ticker to Homepage
+# Fix Header, Inky Button & General Mobile Alignment
 
-## What This Does
+## Issues Found
 
-Adds a scrolling "news band" (bandă de anunțuri) at the bottom of the Dashboard/Homepage, showing active announcements that haven't been hidden from the ticker (`ascuns_banda: false`). This mirrors the ticker concept from the Infodisplay module but places it directly on the teacher's home screen.
-
-## Visual Layout
-
-The ticker will sit as a fixed bar at the very bottom of the Dashboard, above the Inky button. It will have a colored accent background and announcements will scroll continuously from right to left, like a news channel ticker.
-
-```text
-+------------------------------------------+
-| Header                                   |
-+------------------------------------------+
-| Welcome Banner                           |
-| Children Scroller                        |
-| Module Cards                             |
-|                                          |
-+------------------------------------------+
-| [Megaphone icon] Excursie la Gradina ... | <- scrolling ticker
-+------------------------------------------+
-|                                [Inky FAB]|
-```
+1. **Header cramped on mobile**: The group selector, notification bell, and favicon logo are competing for space in the header bar, causing the right side to get cut off on narrow screens (390px).
+2. **Inky button image too small**: The owl image is `h-12 w-12` inside a `h-16 w-16` circle -- too much white border around it. The image should fill more of the button.
+3. **Inky button position**: Currently placed inside `<main>` (line 232 of AppLayout), which means it scrolls with page content. It should be outside `<main>`, directly in the flex container, so it stays truly fixed on screen regardless of scroll position.
 
 ## Changes
 
-### 1. New Component: `src/components/dashboard/AnnouncementTicker.tsx`
+### 1. Fix header layout (AppLayout.tsx)
 
-- Fetches announcements via `getAnnouncements()` from `src/api/announcements.ts`
-- Filters to only those with `ascuns_banda === false`
-- Renders a fixed-bottom bar with a CSS `@keyframes scroll-left` infinite animation
-- Each announcement title separated by a dot or star separator
-- Urgent announcements highlighted in a different color (red/orange text)
-- Tapping the ticker navigates to `/anunturi`
-- Styled with a semi-transparent dark or accent background, white text, and a small Megaphone icon on the left
+- Reduce the favicon logo from `h-8 w-8` to `h-7 w-7`
+- Reduce the group selector width from `w-[200px]` to `w-[160px]`
+- These small adjustments prevent the right-side elements from being cut off on 390px screens
 
-### 2. Edit: `src/pages/Dashboard.tsx`
+### 2. Make Inky image larger (InkyAssistant.tsx)
 
-- Import and render `<AnnouncementTicker />` at the bottom of the Dashboard component
-- The ticker is positioned as a sticky/fixed bar at the bottom of the dashboard view
+- Change the Inky image from `h-12 w-12` to `h-14 w-14` (or even removing the border and making the image fill edge-to-edge)
+- This keeps the `h-16 w-16` circle but fills it more with the owl character
 
-### 3. Edit: `src/index.css`
+### 3. Move Inky outside main scroll area (AppLayout.tsx)
 
-- Add a `@keyframes scroll-left` animation that translates the ticker content from `100%` to `-100%` over ~20 seconds, looping infinitely
-- Add a `.ticker-band` utility class
+- Move `<InkyAssistant />` from inside `<main>` (where it scrolls) to after `<main>`, still inside the flex column container
+- This ensures the fixed-position button is always visible and not affected by scroll context
 
-## Technical Details
+### Technical Details
 
-| File | Action |
+| File | Change |
 |------|--------|
-| `src/components/dashboard/AnnouncementTicker.tsx` | New: scrolling ticker component |
-| `src/pages/Dashboard.tsx` | Edit: add `<AnnouncementTicker />` at bottom |
-| `src/index.css` | Edit: add `scroll-left` keyframes animation |
-
-The ticker animation uses pure CSS (`translateX`) for smooth 60fps performance without JavaScript timers. The animation duration scales with the number of announcements to maintain readable scroll speed.
+| `src/components/layout/AppLayout.tsx` | Move `<InkyAssistant />` outside `<main>`, shrink group selector width, shrink favicon size |
+| `src/components/InkyAssistant.tsx` | Increase owl image from `h-12 w-12` to `h-14 w-14`, reduce border to `border` (from `border-2`) |
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import AnnouncementTicker from '@/components/dashboard/AnnouncementTicker';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel, areRol } from '@/utils/roles';
 import { getAttendance, saveAttendance } from '@/api/attendance';
@@ -76,7 +75,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6 min-w-0 pb-12">
+    <div className="space-y-6 min-w-0">
       {/* Welcome card with gradient accent */}
       <motion.div {...fadeIn}>
         <Card className="overflow-hidden border-0 shadow-lg">
@@ -208,8 +207,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
-      <AnnouncementTicker />
     </div>
   );
 }

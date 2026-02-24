@@ -171,13 +171,3 @@
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-
-/* Announcement ticker scroll */
-@keyframes scroll-left {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-
-.ticker-band {
-  animation: scroll-left 20s linear infinite;
-}
