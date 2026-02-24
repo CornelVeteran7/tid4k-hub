@@ -7,6 +7,8 @@ import { Loader2 } from 'lucide-react';
 import ModuleCard from './ModuleCard';
 import ModulePanel from './ModulePanel';
 import ShareDialog from './ShareDialog';
+import { getWorkshopOfMonth, getCategoryLabel } from '@/api/workshops';
+import type { Workshop } from '@/api/workshops';
 
 const Attendance = lazy(() => import('@/pages/Attendance'));
 const Documents = lazy(() => import('@/pages/Documents'));
@@ -73,7 +75,11 @@ interface ModuleHubProps {
 export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
+  const [workshopOfMonth, setWorkshopOfMonth] = useState<Workshop | null>(null);
 
+  useEffect(() => {
+    getWorkshopOfMonth().then(setWorkshopOfMonth).catch(() => {});
+  }, []);
   useEffect(() => {
     const handler = (e: Event) => {
       setOpenModule((e as CustomEvent).detail || null);
@@ -121,6 +127,12 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
                     onShare={() => setShareModule(mod.key)}
                     onOpen={() => setOpenModule(mod.key)}
                     layoutId={`module-${mod.key}`}
+                    preview={mod.key === 'ateliere' && workshopOfMonth ? (
+                      <div className="bg-white/15 rounded-lg px-3 py-2 mt-1">
+                        <p className="text-sm font-semibold text-white">{workshopOfMonth.titlu}</p>
+                        <p className="text-xs text-white/80">{getCategoryLabel(workshopOfMonth.categorie)} · {new Date(workshopOfMonth.luna + '-01').toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}</p>
+                      </div>
+                    ) : undefined}
                   />
                 )}
               </motion.div>
