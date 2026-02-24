@@ -207,6 +207,7 @@ export interface School {
   nr_copii: number;
   nr_profesori: number;
   activ: boolean;
+  sponsori_activi: number[];
 }
 
 // ===== Settings =====

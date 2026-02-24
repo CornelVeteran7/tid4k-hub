@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getSponsors, getActivePromos, getSponsorPlans, getAllCampaigns } from '@/api/sponsors';
+import { getSchools } from '@/api/schools';
 import type { Sponsor, SponsorPromo, SponsorPlan, SponsorCampaign } from '@/types/sponsor';
+import type { School } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +33,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 export default function SponsorsTab() {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
   const [promos, setPromos] = useState<SponsorPromo[]>([]);
   const [plans, setPlans] = useState<SponsorPlan[]>([]);
   const [campaigns, setCampaigns] = useState<SponsorCampaign[]>([]);
@@ -41,8 +44,8 @@ export default function SponsorsTab() {
   const { openLink } = useExternalLink();
 
   useEffect(() => {
-    Promise.all([getSponsors(), getActivePromos(), getSponsorPlans(), getAllCampaigns()]).then(
-      ([s, p, pl, c]) => { setSponsors(s); setPromos(p); setPlans(pl); setCampaigns(c); }
+    Promise.all([getSponsors(), getActivePromos(), getSponsorPlans(), getAllCampaigns(), getSchools()]).then(
+      ([s, p, pl, c, sc]) => { setSponsors(s); setPromos(p); setPlans(pl); setCampaigns(c); setSchools(sc); }
     );
   }, []);
 
@@ -163,6 +166,14 @@ export default function SponsorsTab() {
                         </div>
                         <h3 className="text-sm font-semibold">{campaign.titlu}</h3>
                         <p className="text-xs text-muted-foreground">{campaign.data_start_campanie} → {campaign.data_end_campanie}</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {campaign.scoli_target.includes('all') ? (
+                            <Badge variant="outline" className="text-[10px]">Toate școlile</Badge>
+                          ) : campaign.scoli_target.map(sid => {
+                            const school = schools.find(s => s.id_scoala.toString() === sid);
+                            return <Badge key={sid} variant="outline" className="text-[10px]">{school?.nume || sid}</Badge>;
+                          })}
+                        </div>
                       </div>
                       <div className="text-right text-xs text-muted-foreground shrink-0">
                         <div>{campaign.statistici.afisari.toLocaleString()} afișări</div>
@@ -247,7 +258,7 @@ export default function SponsorsTab() {
       </Tabs>
 
       {editingSponsor && (
-        <CampaignEditor open={editorOpen} onOpenChange={setEditorOpen} campaign={editingCampaign} sponsorNume={editingSponsor.nume} sponsorLogo={editingSponsor.logo_url} sponsorCuloare={editingSponsor.culoare_brand} onSave={data => console.log('Save:', data)} />
+        <CampaignEditor open={editorOpen} onOpenChange={setEditorOpen} campaign={editingCampaign} sponsorNume={editingSponsor.nume} sponsorLogo={editingSponsor.logo_url} sponsorCuloare={editingSponsor.culoare_brand} schools={schools} onSave={data => console.log('Save:', data)} />
       )}
     </div>
   );

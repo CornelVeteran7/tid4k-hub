@@ -4,16 +4,20 @@ import type { SponsorPromo } from '@/types/sponsor';
 import { motion } from 'framer-motion';
 import { ExternalLink, Award } from 'lucide-react';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SponsorCard() {
   const [promo, setPromo] = useState<SponsorPromo | null>(null);
   const { openLink } = useExternalLink();
+  const { user } = useAuth();
 
   useEffect(() => {
-    getActivePromos('card_dashboard').then(promos => {
+    // Use the user's school ID (derived from first group) to filter promos
+    const schoolId = user?.grupe_disponibile?.[user.index_grupa_clasa_curenta]?.id ? Number(user.grupe_disponibile[user.index_grupa_clasa_curenta].id.split('_')[0]) : undefined;
+    getActivePromos('card_dashboard', schoolId).then(promos => {
       if (promos.length > 0) setPromo(promos[0]);
     });
-  }, []);
+  }, [user]);
 
   if (!promo) return null;
 

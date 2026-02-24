@@ -13,6 +13,8 @@ import CardPreview from './previews/CardPreview';
 import TickerPreview from './previews/TickerPreview';
 import InkyPreview from './previews/InkyPreview';
 
+import type { School } from '@/types';
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -20,10 +22,11 @@ interface Props {
   sponsorNume?: string;
   sponsorLogo?: string;
   sponsorCuloare?: string;
+  schools?: School[];
   onSave: (data: Partial<SponsorCampaign>) => void;
 }
 
-export default function CampaignEditor({ open, onOpenChange, campaign, sponsorNume, sponsorLogo, sponsorCuloare = '#e1001a', onSave }: Props) {
+export default function CampaignEditor({ open, onOpenChange, campaign, sponsorNume, sponsorLogo, sponsorCuloare = '#e1001a', schools = [], onSave }: Props) {
   const [form, setForm] = useState<Partial<SponsorCampaign>>({
     tip: 'card_dashboard',
     titlu: '',
@@ -250,7 +253,6 @@ export default function CampaignEditor({ open, onOpenChange, campaign, sponsorNu
             </div>
           </TabsContent>
 
-          {/* === TARGETARE === */}
           <TabsContent value="targetare" className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -263,11 +265,43 @@ export default function CampaignEditor({ open, onOpenChange, campaign, sponsorNu
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Școli target (separate prin virgulă, sau "all")</Label>
-              <Input
-                value={form.scoli_target?.join(', ') || 'all'}
-                onChange={e => update('scoli_target', e.target.value.split(',').map(s => s.trim()))}
-              />
+              <Label>Școli target</Label>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.scoli_target?.includes('all') || false}
+                    onChange={e => {
+                      if (e.target.checked) update('scoli_target', ['all']);
+                      else update('scoli_target', []);
+                    }}
+                    className="rounded"
+                  />
+                  Toate școlile
+                </label>
+                {!form.scoli_target?.includes('all') && schools.length > 0 && (
+                  <div className="pl-4 space-y-1.5 border-l-2 border-muted ml-2">
+                    {schools.map(school => (
+                      <label key={school.id_scoala} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={form.scoli_target?.includes(school.id_scoala.toString()) || false}
+                          onChange={e => {
+                            const current = form.scoli_target || [];
+                            if (e.target.checked) {
+                              update('scoli_target', [...current, school.id_scoala.toString()]);
+                            } else {
+                              update('scoli_target', current.filter(s => s !== school.id_scoala.toString()));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        {school.nume}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </TabsContent>
         </Tabs>

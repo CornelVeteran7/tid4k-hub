@@ -43,7 +43,7 @@ const MOCK_PROMOS: SponsorPromo[] = [
     cta_text: 'Vezi oferta',
     prioritate: 1,
     activ: true,
-    scoli_target: ['all'],
+    scoli_target: ['1'],
     stil_card: {
       background: 'linear-gradient(135deg, #e1001a08 0%, #e1001a18 50%, #fff5f5 100%)',
       text_color: '#1a1a1a',
@@ -66,7 +66,7 @@ const MOCK_PROMOS: SponsorPromo[] = [
     cta_text: 'Descoperă',
     prioritate: 1,
     activ: true,
-    scoli_target: ['all'],
+    scoli_target: ['1'],
     stil_inky: {
       bg_color: '#e1001a',
       text_color: '#ffffff',
@@ -89,7 +89,7 @@ const MOCK_PROMOS: SponsorPromo[] = [
     link_url: 'https://www.kaufland.ro/educatie',
     prioritate: 1,
     activ: true,
-    scoli_target: ['all'],
+    scoli_target: ['1'],
     stil_ticker: {
       bg_color: '#e1001a',
       text_color: '#ffffff',
@@ -110,7 +110,7 @@ const MOCK_PROMOS: SponsorPromo[] = [
     link_url: 'https://www.lidl.ro',
     prioritate: 2,
     activ: true,
-    scoli_target: ['all'],
+    scoli_target: ['2'],
     stil_ticker: {
       bg_color: '#0050aa',
       text_color: '#ffffff',
@@ -242,10 +242,13 @@ export async function getSponsor(id: number): Promise<Sponsor | null> {
   return null;
 }
 
-export async function getActivePromos(tip?: SponsorPromo['tip']): Promise<SponsorPromo[]> {
+export async function getActivePromos(tip?: SponsorPromo['tip'], schoolId?: number): Promise<SponsorPromo[]> {
   if (USE_MOCK) {
     let promos = MOCK_PROMOS.filter(p => p.activ);
     if (tip) promos = promos.filter(p => p.tip === tip);
+    if (schoolId) {
+      promos = promos.filter(p => p.scoli_target.includes('all') || p.scoli_target.includes(schoolId.toString()));
+    }
     return promos.sort((a, b) => a.prioritate - b.prioritate);
   }
   return [];
