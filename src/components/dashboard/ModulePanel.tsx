@@ -35,7 +35,7 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
         layoutId={layoutId}
         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
         className="fixed inset-x-0 bottom-0 z-30 flex flex-col overflow-hidden shadow-2xl"
-        style={{ top: 'var(--header-height, 56px)', backgroundColor: color }}
+        style={{ top: 0, paddingTop: 'var(--header-height, 56px)', backgroundColor: color }}
       >
         {/* Colored header bar */}
         <div className="flex items-center justify-between px-4 py-3 shrink-0">
