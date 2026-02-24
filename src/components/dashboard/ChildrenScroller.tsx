@@ -3,6 +3,7 @@ import { getChildrenByGroup } from '@/api/children';
 import { useGroup } from '@/contexts/GroupContext';
 import type { Child } from '@/types';
 import { Phone, Mail } from 'lucide-react';
+import ChildDetailDialog from './ChildDetailDialog';
 
 const PASTEL_COLORS = [
   'hsl(340 80% 85%)',
@@ -21,6 +22,8 @@ function getInitials(name: string) {
 export default function ChildrenScroller() {
   const { currentGroup } = useGroup();
   const [children, setChildren] = useState<Child[]>([]);
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [selectedColor, setSelectedColor] = useState('');
 
   useEffect(() => {
     if (currentGroup) {
@@ -38,7 +41,8 @@ export default function ChildrenScroller() {
         {children.map((child, i) => (
           <div
             key={child.id_copil}
-            className="snap-start shrink-0 w-[110px] lg:w-auto rounded-2xl border border-border/60 shadow-sm p-3 flex flex-col items-center gap-2 bg-card card-tappable active:scale-95 transition-transform"
+            onClick={() => { setSelectedChild(child); setSelectedColor(PASTEL_COLORS[i % PASTEL_COLORS.length]); }}
+            className="snap-start shrink-0 w-[110px] lg:w-auto rounded-2xl border border-border/60 shadow-sm p-3 flex flex-col items-center gap-2 bg-card card-tappable active:scale-95 transition-transform cursor-pointer hover:shadow-md hover:border-primary/30"
           >
             {/* Avatar */}
             <div
@@ -74,6 +78,14 @@ export default function ChildrenScroller() {
           </div>
         ))}
       </div>
+
+      {/* Child detail dialog */}
+      <ChildDetailDialog
+        child={selectedChild}
+        open={!!selectedChild}
+        onOpenChange={(open) => { if (!open) setSelectedChild(null); }}
+        avatarColor={selectedColor}
+      />
     </div>
   );
 }
