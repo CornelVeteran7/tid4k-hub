@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
-import { getSponsors, getActivePromos, getSponsorPlans, getAllCampaigns, updateCampaignStatus } from '@/api/sponsors';
-import type { Sponsor, SponsorPromo, SponsorPlan, SponsorCampaign } from '@/types/sponsor';
+import { getSponsors, getActivePromos, getSponsorPlans, getAllCampaigns, getSponsorStats } from '@/api/sponsors';
+import { getSchools } from '@/api/schools';
+import type { Sponsor, SponsorPromo, SponsorPlan, SponsorCampaign, SponsorStats } from '@/types/sponsor';
+import type { School } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Award, Plus, Building2, Megaphone, Monitor, MessageSquare, Layout,
-  ExternalLink, Calendar, CheckCircle2, XCircle, Eye, BarChart3, Play, Pause, Archive, FileEdit, Clock
+  Award, Plus, ArrowLeft, Megaphone, Monitor, MessageSquare, Layout,
+  ExternalLink, Calendar, CheckCircle2, XCircle, Eye, BarChart3, Play, Pause, Archive, FileEdit, Clock,
+  TrendingUp, MousePointerClick, Target
 } from 'lucide-react';
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const PROMO_TYPE_LABELS: Record<SponsorPromo['tip'], { label: string; icon: React.ElementType; color: string }> = {
   card_dashboard: { label: 'Card Dashboard', icon: Layout, color: '#2ECC71' },
@@ -34,48 +38,120 @@ export default function SponsorAdmin() {
   const [promos, setPromos] = useState<SponsorPromo[]>([]);
   const [plans, setPlans] = useState<SponsorPlan[]>([]);
   const [campaigns, setCampaigns] = useState<SponsorCampaign[]>([]);
+  const [schools, setSchools] = useState<School[]>([]);
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
+  const [stats, setStats] = useState<SponsorStats | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Partial<SponsorCampaign> | undefined>();
-  const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const { openLink } = useExternalLink();
 
   useEffect(() => {
-    Promise.all([getSponsors(), getActivePromos(), getSponsorPlans(), getAllCampaigns()]).then(
-      ([s, p, pl, c]) => { setSponsors(s); setPromos(p); setPlans(pl); setCampaigns(c); }
+    Promise.all([getSponsors(), getActivePromos(), getSponsorPlans(), getAllCampaigns(), getSchools()]).then(
+      ([s, p, pl, c, sc]) => { setSponsors(s); setPromos(p); setPlans(pl); setCampaigns(c); setSchools(sc); }
     );
   }, []);
 
-  const sponsorPromos = selectedSponsor
-    ? promos.filter(p => p.id_sponsor === selectedSponsor.id_sponsor)
-    : promos;
+  // Fetch stats when sponsor selected
+  useEffect(() => {
+    if (selectedSponsor) {
+      getSponsorStats(selectedSponsor.id_sponsor).then(setStats);
+    } else {
+      setStats(null);
+    }
+  }, [selectedSponsor]);
 
-  const filteredCampaigns = selectedSponsor
-    ? campaigns.filter(c => c.id_sponsor === selectedSponsor.id_sponsor)
-    : campaigns;
+  const openSponsorDetail = (sponsor: Sponsor) => setSelectedSponsor(sponsor);
+  const goBack = () => setSelectedSponsor(null);
 
-  const openEditorForSponsor = (sponsor: Sponsor, campaign?: Partial<SponsorCampaign>) => {
-    setEditingSponsor(sponsor);
+  const openEditor = (campaign?: Partial<SponsorCampaign>) => {
+    if (!selectedSponsor) return;
     setEditingCampaign(campaign);
     setEditorOpen(true);
   };
 
-  // Aggregate stats
+  // Global stats
   const totalAfisari = campaigns.reduce((sum, c) => sum + c.statistici.afisari, 0);
   const totalClickuri = campaigns.reduce((sum, c) => sum + c.statistici.clickuri, 0);
+
+  return (
+    <div className="space-y-5 pb-20">
+      <AnimatePresence mode="wait">
+        {!selectedSponsor ? (
+          <SponsorList
+            key="list"
+            sponsors={sponsors}
+            campaigns={campaigns}
+            promos={promos}
+            plans={plans}
+            totalAfisari={totalAfisari}
+            totalClickuri={totalClickuri}
+            onSelect={openSponsorDetail}
+          />
+        ) : (
+          <SponsorDetail
+            key={`detail-${selectedSponsor.id_sponsor}`}
+            sponsor={selectedSponsor}
+            promos={promos.filter(p => p.id_sponsor === selectedSponsor.id_sponsor)}
+            campaigns={campaigns.filter(c => c.id_sponsor === selectedSponsor.id_sponsor)}
+            stats={stats}
+            plan={plans.find(p => p.nume_plan === selectedSponsor.plan) || null}
+            schools={schools}
+            onBack={goBack}
+            onNewCampaign={() => openEditor()}
+            onEditCampaign={(c) => openEditor(c)}
+            openLink={openLink}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Campaign Editor */}
+      {selectedSponsor && (
+        <CampaignEditor
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          campaign={editingCampaign}
+          sponsorNume={selectedSponsor.nume}
+          sponsorLogo={selectedSponsor.logo_url}
+          sponsorCuloare={selectedSponsor.culoare_brand}
+          schools={schools}
+          onSave={(data) => console.log('Save campaign:', data)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ========== SPONSOR LIST VIEW ==========
+function SponsorList({
+  sponsors, campaigns, promos, plans, totalAfisari, totalClickuri, onSelect,
+}: {
+  sponsors: Sponsor[];
+  campaigns: SponsorCampaign[];
+  promos: SponsorPromo[];
+  plans: SponsorPlan[];
+  totalAfisari: number;
+  totalClickuri: number;
+  onSelect: (s: Sponsor) => void;
+}) {
   const avgCtr = totalAfisari > 0 ? ((totalClickuri / totalAfisari) * 100).toFixed(1) : '0';
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-5"
+    >
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-display font-bold flex items-center gap-2">
             <Award className="h-6 w-6 text-primary" />
-            Administrare Sponsori
+            Sponsori
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Gestionează sponsorii, promoțiile, campaniile și planurile
+            Selectează un sponsor pentru a vedea detaliile complete
           </p>
         </div>
         <Button className="gap-2">
@@ -84,154 +160,338 @@ export default function SponsorAdmin() {
         </Button>
       </div>
 
-      <Tabs defaultValue="sponsors" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="sponsors" className="gap-1.5">
-            <Building2 className="h-4 w-4" />
-            Sponsori
-          </TabsTrigger>
-          <TabsTrigger value="promos" className="gap-1.5">
-            <Megaphone className="h-4 w-4" />
-            Promoții
-          </TabsTrigger>
-          <TabsTrigger value="campaigns" className="gap-1.5">
-            <BarChart3 className="h-4 w-4" />
-            Campanii
-          </TabsTrigger>
-          <TabsTrigger value="stats" className="gap-1.5">
-            <Eye className="h-4 w-4" />
-            Statistici
-          </TabsTrigger>
-          <TabsTrigger value="plans" className="gap-1.5">
-            <Award className="h-4 w-4" />
-            Planuri
-          </TabsTrigger>
-        </TabsList>
+      {/* Quick stats */}
+      <div className="grid gap-3 grid-cols-3">
+        <Card className="glass-card">
+          <CardContent className="p-3 sm:p-4 text-center">
+            <p className="text-xl sm:text-2xl font-bold">{sponsors.filter(s => s.activ).length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Sponsori activi</p>
+          </CardContent>
+        </Card>
+        <Card className="glass-card">
+          <CardContent className="p-3 sm:p-4 text-center">
+            <p className="text-xl sm:text-2xl font-bold">{totalAfisari.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Afișări totale</p>
+          </CardContent>
+        </Card>
+        <Card className="glass-card">
+          <CardContent className="p-3 sm:p-4 text-center">
+            <p className="text-xl sm:text-2xl font-bold">{avgCtr}%</p>
+            <p className="text-xs text-muted-foreground mt-0.5">CTR mediu</p>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* === SPONSORS TAB === */}
-        <TabsContent value="sponsors" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {sponsors.map(sponsor => (
-              <Card
-                key={sponsor.id_sponsor}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  selectedSponsor?.id_sponsor === sponsor.id_sponsor ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => setSelectedSponsor(
-                  selectedSponsor?.id_sponsor === sponsor.id_sponsor ? null : sponsor
-                )}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="h-12 w-12 rounded-xl bg-white shadow-sm flex items-center justify-center p-1.5 border"
-                        style={{ borderColor: `${sponsor.culoare_brand}30` }}
-                      >
-                        <img src={sponsor.logo_url} alt={sponsor.nume} className="h-full w-full object-contain" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{sponsor.nume}</CardTitle>
-                        <Badge variant={sponsor.activ ? 'default' : 'secondary'} className="mt-1">
+      {/* Sponsor cards */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {sponsors.map(sponsor => {
+          const spCampaigns = campaigns.filter(c => c.id_sponsor === sponsor.id_sponsor);
+          const spPromos = promos.filter(p => p.id_sponsor === sponsor.id_sponsor);
+          const spAfisari = spCampaigns.reduce((s, c) => s + c.statistici.afisari, 0);
+
+          return (
+            <Card
+              key={sponsor.id_sponsor}
+              className="cursor-pointer transition-all hover:shadow-md hover:border-primary/30 group"
+              onClick={() => onSelect(sponsor)}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="h-12 w-12 rounded-xl bg-white shadow-sm flex items-center justify-center p-1.5 border transition-colors group-hover:border-primary/40"
+                      style={{ borderColor: `${sponsor.culoare_brand}30` }}
+                    >
+                      <img src={sponsor.logo_url} alt={sponsor.nume} className="h-full w-full object-contain" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base group-hover:text-primary transition-colors">{sponsor.nume}</CardTitle>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <Badge variant={sponsor.activ ? 'default' : 'secondary'} className="text-[10px]">
                           {sponsor.activ ? 'Activ' : 'Inactiv'}
                         </Badge>
+                        <Badge variant="outline" className="text-[10px]">{sponsor.plan}</Badge>
                       </div>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <p className="text-muted-foreground line-clamp-2">{sponsor.descriere}</p>
-                  <Separator />
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {sponsor.data_start} — {sponsor.data_expirare}
-                    </span>
-                    <Badge variant="outline" className="text-[10px]">{sponsor.plan}</Badge>
-                  </div>
-                  <div className="flex gap-1">
-                    {promos.filter(p => p.id_sponsor === sponsor.id_sponsor).map(p => {
-                      const meta = PROMO_TYPE_LABELS[p.tip];
-                      return (
-                        <span
-                          key={p.id_promo}
-                          className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full text-white font-medium"
-                          style={{ backgroundColor: meta.color }}
-                          title={meta.label}
-                        >
-                          <meta.icon className="h-2.5 w-2.5" />
-                        </span>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            <Card className="border-dashed cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors flex items-center justify-center min-h-[200px]">
-              <div className="text-center text-muted-foreground">
-                <Plus className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                <p className="text-sm font-medium">Adaugă sponsor</p>
-              </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <p className="text-muted-foreground line-clamp-2">{sponsor.descriere}</p>
+                <Separator />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{spCampaigns.length} campanii · {spPromos.length} promoții</span>
+                  <span>{spAfisari.toLocaleString()} afișări</span>
+                </div>
+                <div className="flex gap-1">
+                  {spPromos.map(p => {
+                    const meta = PROMO_TYPE_LABELS[p.tip];
+                    return (
+                      <span
+                        key={p.id_promo}
+                        className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full text-white font-medium"
+                        style={{ backgroundColor: meta.color }}
+                        title={meta.label}
+                      >
+                        <meta.icon className="h-2.5 w-2.5" />
+                      </span>
+                    );
+                  })}
+                </div>
+              </CardContent>
             </Card>
-          </div>
-        </TabsContent>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
 
-        {/* === PROMOS TAB === */}
-        <TabsContent value="promos" className="space-y-4">
-          {selectedSponsor && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 text-sm">
-              <Eye className="h-4 w-4 text-muted-foreground" />
-              <span>Filtrare: <strong>{selectedSponsor.nume}</strong></span>
-              <button onClick={() => setSelectedSponsor(null)} className="ml-auto text-xs text-primary hover:underline">
-                Afișează toate
-              </button>
-            </div>
-          )}
-          <div className="flex justify-end">
-            <Button size="sm" className="gap-1.5">
-              <Plus className="h-4 w-4" />
-              Promoție nouă
-            </Button>
+// ========== SPONSOR DETAIL VIEW ==========
+function SponsorDetail({
+  sponsor, promos, campaigns, stats, plan, schools, onBack, onNewCampaign, onEditCampaign, openLink,
+}: {
+  sponsor: Sponsor;
+  promos: SponsorPromo[];
+  campaigns: SponsorCampaign[];
+  stats: SponsorStats | null;
+  plan: SponsorPlan | null;
+  schools: School[];
+  onBack: () => void;
+  onNewCampaign: () => void;
+  onEditCampaign: (c: Partial<SponsorCampaign>) => void;
+  openLink: (url: string) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-5"
+    >
+      {/* Header with back button */}
+      <div className="flex items-start gap-3">
+        <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" onClick={onBack}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div
+            className="h-14 w-14 rounded-xl bg-white shadow-sm flex items-center justify-center p-2 border shrink-0"
+            style={{ borderColor: `${sponsor.culoare_brand}30` }}
+          >
+            <img src={sponsor.logo_url} alt={sponsor.nume} className="h-full w-full object-contain" />
           </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-display font-bold truncate">{sponsor.nume}</h1>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <Badge variant={sponsor.activ ? 'default' : 'secondary'}>{sponsor.activ ? 'Activ' : 'Inactiv'}</Badge>
+              <Badge variant="outline">{sponsor.plan}</Badge>
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {sponsor.data_start} — {sponsor.data_expirare}
+              </span>
+            </div>
+          </div>
+        </div>
+        <Button size="sm" className="gap-1.5 shrink-0" onClick={onNewCampaign}>
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Campanie nouă</span>
+        </Button>
+      </div>
+
+      {/* Sponsor description */}
+      <p className="text-sm text-muted-foreground ml-12">{sponsor.descriere}</p>
+
+      {/* Stats cards */}
+      {stats && (
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+          <Card className="glass-card">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-sky-500/10 flex items-center justify-center shrink-0">
+                <Eye className="h-4 w-4 text-sky-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{stats.total_afisari.toLocaleString()}</p>
+                <p className="text-[11px] text-muted-foreground">Afișări</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="glass-card">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <MousePointerClick className="h-4 w-4 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{stats.total_clickuri.toLocaleString()}</p>
+                <p className="text-[11px] text-muted-foreground">Click-uri</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="glass-card">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                <TrendingUp className="h-4 w-4 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{stats.ctr_mediu}%</p>
+                <p className="text-[11px] text-muted-foreground">CTR mediu</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="glass-card">
+            <CardContent className="p-3 flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
+                <Target className="h-4 w-4 text-violet-600" />
+              </div>
+              <div>
+                <p className="text-lg font-bold">{stats.scoli_active}</p>
+                <p className="text-[11px] text-muted-foreground">Școli active</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Plan info */}
+      {plan && (
+        <Card className="glass-card">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Award className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-semibold">Plan {plan.nume_plan}</p>
+                  <p className="text-xs text-muted-foreground">{plan.descriere}</p>
+                </div>
+              </div>
+              <p className="text-lg font-bold">{plan.pret} <span className="text-xs font-normal text-muted-foreground">RON/lună</span></p>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {plan.include_dashboard && <Badge variant="outline" className="text-[10px] gap-1"><Layout className="h-3 w-3" />Dashboard</Badge>}
+              {plan.include_ticker && <Badge variant="outline" className="text-[10px] gap-1"><Megaphone className="h-3 w-3" />Ticker</Badge>}
+              {plan.include_infodisplay && <Badge variant="outline" className="text-[10px] gap-1"><Monitor className="h-3 w-3" />Infodisplay</Badge>}
+              {plan.include_inky && <Badge variant="outline" className="text-[10px] gap-1"><MessageSquare className="h-3 w-3" />Inky</Badge>}
+              {plan.include_custom_inky && <Badge variant="outline" className="text-[10px] gap-1"><Award className="h-3 w-3" />Custom Inky</Badge>}
+              <Badge variant="outline" className="text-[10px]">{plan.numar_scoli === -1 ? 'Școli nelimitate' : `${plan.numar_scoli} școli`}</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Campaigns section */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            Campanii ({campaigns.length})
+          </h2>
+        </div>
+        {campaigns.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="p-8 text-center text-muted-foreground">
+              <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Nicio campanie încă</p>
+              <Button size="sm" variant="outline" className="mt-3 gap-1" onClick={onNewCampaign}>
+                <Plus className="h-3 w-3" />Creează prima campanie
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
           <div className="space-y-3">
-            {sponsorPromos.map(promo => {
+            {campaigns.map(campaign => {
+              const statusCfg = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.draft;
+              const meta = PROMO_TYPE_LABELS[campaign.tip];
+              return (
+                <Card key={campaign.id_campanie} className="overflow-hidden">
+                  <div className="flex items-stretch">
+                    <div className="w-1.5 shrink-0" style={{ backgroundColor: meta.color }} />
+                    <div className="flex-1 p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge className="text-[10px] text-white" style={{ backgroundColor: meta.color }}>
+                              <meta.icon className="h-3 w-3 mr-1" />{meta.label}
+                            </Badge>
+                            <Badge className={`gap-1 text-[10px] text-white ${statusCfg.color}`}>
+                              <statusCfg.icon className="h-2.5 w-2.5" />{statusCfg.label}
+                            </Badge>
+                          </div>
+                          <h3 className="text-sm font-semibold">{campaign.titlu}</h3>
+                          <p className="text-xs text-muted-foreground">{campaign.data_start_campanie} → {campaign.data_end_campanie}</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {campaign.scoli_target.includes('all') ? (
+                              <Badge variant="outline" className="text-[10px]">Toate școlile</Badge>
+                            ) : campaign.scoli_target.map(sid => {
+                              const school = schools.find(s => s.id_scoala.toString() === sid);
+                              return <Badge key={sid} variant="outline" className="text-[10px]">{school?.nume || `Școala ${sid}`}</Badge>;
+                            })}
+                          </div>
+                        </div>
+                        <div className="text-right text-xs text-muted-foreground shrink-0 space-y-0.5">
+                          <div>{campaign.statistici.afisari.toLocaleString()} afișări</div>
+                          <div>{campaign.statistici.clickuri} click-uri</div>
+                          <div className="font-semibold">CTR: {campaign.statistici.ctr}%</div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => onEditCampaign(campaign)}>
+                          <FileEdit className="h-3 w-3 mr-1" />Editează
+                        </Button>
+                        {campaign.status === 'activ' && (
+                          <Button variant="outline" size="sm" className="text-xs h-7 text-amber-600">
+                            <Pause className="h-3 w-3 mr-1" />Pauză
+                          </Button>
+                        )}
+                        {campaign.status === 'pauza' && (
+                          <Button variant="outline" size="sm" className="text-xs h-7 text-emerald-600">
+                            <Play className="h-3 w-3 mr-1" />Activează
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Active promos section */}
+      <div>
+        <h2 className="text-base font-semibold flex items-center gap-2 mb-3">
+          <Megaphone className="h-4 w-4 text-muted-foreground" />
+          Promoții active ({promos.filter(p => p.activ).length})
+        </h2>
+        {promos.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="p-6 text-center text-muted-foreground text-sm">
+              Nicio promoție activă
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {promos.map(promo => {
               const meta = PROMO_TYPE_LABELS[promo.tip];
               return (
                 <Card key={promo.id_promo} className="overflow-hidden">
                   <div className="flex items-stretch">
                     <div className="w-1.5 shrink-0" style={{ backgroundColor: meta.color }} />
-                    <div className="flex-1 p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Badge className="text-[10px] text-white" style={{ backgroundColor: meta.color }}>
-                              <meta.icon className="h-3 w-3 mr-1" />
-                              {meta.label}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">{promo.sponsor_nume}</span>
-                          </div>
-                          <h3 className="text-sm font-semibold">{promo.titlu}</h3>
-                          {promo.descriere && <p className="text-xs text-muted-foreground">{promo.descriere}</p>}
-                          {promo.link_url && (
-                            <button onClick={() => openLink(promo.link_url!)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                              <ExternalLink className="h-3 w-3" />
-                              {promo.link_url}
-                            </button>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2 text-xs">
-                            {promo.activ ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground" />}
-                          </div>
-                          <Switch checked={promo.activ} />
-                        </div>
+                    <div className="flex-1 p-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Badge className="text-[10px] text-white shrink-0" style={{ backgroundColor: meta.color }}>
+                          <meta.icon className="h-3 w-3 mr-1" />{meta.label}
+                        </Badge>
+                        <span className="text-sm font-medium truncate">{promo.titlu}</span>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[10px] text-muted-foreground">
-                          Școli: {promo.scoli_target.includes('all') ? 'Toate' : promo.scoli_target.join(', ')}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">·</span>
-                        <span className="text-[10px] text-muted-foreground">Prioritate: {promo.prioritate}</span>
+                      <div className="flex items-center gap-3 shrink-0">
+                        {promo.link_url && (
+                          <button onClick={() => openLink(promo.link_url!)} className="text-primary hover:text-primary/80">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        <Switch checked={promo.activ} />
                       </div>
                     </div>
                   </div>
@@ -239,222 +499,8 @@ export default function SponsorAdmin() {
               );
             })}
           </div>
-        </TabsContent>
-
-        {/* === CAMPAIGNS TAB === */}
-        <TabsContent value="campaigns" className="space-y-4">
-          {selectedSponsor && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 text-sm">
-              <Eye className="h-4 w-4 text-muted-foreground" />
-              <span>Filtrare: <strong>{selectedSponsor.nume}</strong></span>
-              <button onClick={() => setSelectedSponsor(null)} className="ml-auto text-xs text-primary hover:underline">
-                Afișează toate
-              </button>
-            </div>
-          )}
-          <div className="flex justify-end">
-            <Button size="sm" className="gap-1.5" onClick={() => {
-              const sp = selectedSponsor || sponsors[0];
-              if (sp) openEditorForSponsor(sp);
-            }}>
-              <Plus className="h-4 w-4" />
-              Campanie nouă
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {filteredCampaigns.map(campaign => {
-              const statusCfg = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.draft;
-              const meta = PROMO_TYPE_LABELS[campaign.tip];
-              const sp = sponsors.find(s => s.id_sponsor === campaign.id_sponsor);
-              return (
-                <Card key={campaign.id_campanie} className="overflow-hidden">
-                  <div className="flex items-stretch">
-                    <div className="w-1.5 shrink-0" style={{ backgroundColor: campaign.sponsor_culoare || meta.color }} />
-                    <div className="flex-1 p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge className="text-[10px] text-white" style={{ backgroundColor: meta.color }}>
-                              <meta.icon className="h-3 w-3 mr-1" />
-                              {meta.label}
-                            </Badge>
-                            <Badge className={`gap-1 text-[10px] text-white ${statusCfg.color}`}>
-                              <statusCfg.icon className="h-2.5 w-2.5" />
-                              {statusCfg.label}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">{campaign.sponsor_nume}</span>
-                          </div>
-                          <h3 className="text-sm font-semibold">{campaign.titlu}</h3>
-                          <p className="text-xs text-muted-foreground">
-                            {campaign.data_start_campanie} → {campaign.data_end_campanie}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right text-xs text-muted-foreground space-y-0.5">
-                            <div>{campaign.statistici.afisari.toLocaleString()} afișări</div>
-                            <div>{campaign.statistici.clickuri} click-uri</div>
-                            <div>CTR: {campaign.statistici.ctr}%</div>
-                          </div>
-                          <Switch checked={campaign.status === 'activ'} />
-                        </div>
-                      </div>
-                      <div className="flex gap-2 mt-3">
-                        <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => {
-                          if (sp) openEditorForSponsor(sp, campaign);
-                        }}>
-                          <FileEdit className="h-3 w-3 mr-1" />
-                          Editează
-                        </Button>
-                        {campaign.status === 'activ' && (
-                          <Button variant="outline" size="sm" className="text-xs h-7 text-amber-600">
-                            <Pause className="h-3 w-3 mr-1" />
-                            Pauză
-                          </Button>
-                        )}
-                        {campaign.status === 'pauza' && (
-                          <Button variant="outline" size="sm" className="text-xs h-7 text-emerald-600">
-                            <Play className="h-3 w-3 mr-1" />
-                            Activează
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-
-        {/* === STATS TAB === */}
-        <TabsContent value="stats" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-foreground">{totalAfisari.toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground mt-1">Afișări totale</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-foreground">{totalClickuri.toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground mt-1">Click-uri totale</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-foreground">{avgCtr}%</p>
-                <p className="text-sm text-muted-foreground mt-1">CTR mediu</p>
-              </CardContent>
-            </Card>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Performanță per sponsor</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {sponsors.map(sponsor => {
-                  const spCampaigns = campaigns.filter(c => c.id_sponsor === sponsor.id_sponsor);
-                  const spAfisari = spCampaigns.reduce((s, c) => s + c.statistici.afisari, 0);
-                  const spClickuri = spCampaigns.reduce((s, c) => s + c.statistici.clickuri, 0);
-                  const spCtr = spAfisari > 0 ? ((spClickuri / spAfisari) * 100).toFixed(1) : '0';
-                  return (
-                    <div key={sponsor.id_sponsor} className="flex items-center gap-4">
-                      <div
-                        className="h-10 w-10 rounded-lg bg-white shadow-sm flex items-center justify-center p-1.5 border shrink-0"
-                        style={{ borderColor: `${sponsor.culoare_brand}30` }}
-                      >
-                        <img src={sponsor.logo_url} alt={sponsor.nume} className="h-full w-full object-contain" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{sponsor.nume}</p>
-                        <div className="flex gap-4 text-xs text-muted-foreground mt-0.5">
-                          <span>{spAfisari.toLocaleString()} afișări</span>
-                          <span>{spClickuri} click-uri</span>
-                          <span>CTR: {spCtr}%</span>
-                          <span>{spCampaigns.length} campanii</span>
-                        </div>
-                      </div>
-                      <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            backgroundColor: sponsor.culoare_brand,
-                            width: `${Math.min((spAfisari / Math.max(totalAfisari, 1)) * 100, 100)}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* === PLANS TAB === */}
-        <TabsContent value="plans" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            {plans.map(plan => (
-              <Card key={plan.id_plan} className={plan.nume_plan === 'Premium' ? 'ring-2 ring-primary' : ''}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{plan.nume_plan}</CardTitle>
-                    {plan.nume_plan === 'Premium' && <Badge>Popular</Badge>}
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {plan.pret} <span className="text-sm font-normal text-muted-foreground">RON/lună</span>
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">{plan.descriere}</p>
-                  <Separator />
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      {plan.include_dashboard ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground/40" />}
-                      Card pe Dashboard
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {plan.include_infodisplay ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground/40" />}
-                      Panou Infodisplay
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {plan.include_ticker ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground/40" />}
-                      Anunț în Ticker
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {plan.include_inky ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground/40" />}
-                      Popup Inky
-                    </li>
-                    <li className="flex items-center gap-2">
-                      {plan.include_custom_inky ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground/40" />}
-                      Branding custom Inky
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      {plan.numar_scoli === -1 ? 'Școli nelimitate' : `${plan.numar_scoli} școli`}
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Campaign Editor */}
-      {editingSponsor && (
-        <CampaignEditor
-          open={editorOpen}
-          onOpenChange={setEditorOpen}
-          campaign={editingCampaign}
-          sponsorNume={editingSponsor.nume}
-          sponsorLogo={editingSponsor.logo_url}
-          sponsorCuloare={editingSponsor.culoare_brand}
-          onSave={(data) => console.log('Admin save campaign:', data)}
-        />
-      )}
-    </div>
+        )}
+      </div>
+    </motion.div>
   );
 }
