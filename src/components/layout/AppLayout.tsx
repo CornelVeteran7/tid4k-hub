@@ -422,9 +422,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
               </PopoverContent>
             </Popover>
-            <button onClick={() => navigate('/')} className="focus:outline-none shrink-0">
-              <img src="/favicon.png" alt="InfoDisplay — Acasă" className="h-7 w-7" />
-            </button>
+            <a href="https://tid4kdemo.ro/avizier/tid4k.html" target="_blank" rel="noopener noreferrer" className="focus:outline-none shrink-0">
+              <img src="/favicon.png" alt="InfoDisplay — Avizier" className="h-7 w-7" />
+            </a>
           </div>
         </header>
 
