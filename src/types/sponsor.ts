@@ -12,6 +12,66 @@ export interface Sponsor {
   plan: string;
 }
 
+// ===== Custom Styles =====
+export interface SponsorStyleCard {
+  background?: string;
+  text_color?: string;
+  border_color?: string;
+  border_radius?: string;
+  shadow_style?: string;
+  banner_url?: string;
+}
+
+export interface SponsorStyleTicker {
+  bg_color?: string;
+  text_color?: string;
+  badge_bg?: string;
+  badge_text?: string;
+  glow_effect?: boolean;
+}
+
+export interface SponsorStyleInky {
+  bg_color?: string;
+  text_color?: string;
+  cta_bg?: string;
+  cta_text?: string;
+  icon_color?: string;
+  costume_url?: string;
+  banner_url?: string;
+}
+
+// ===== Campaigns =====
+export type CampaignStatus = 'draft' | 'activ' | 'pauza' | 'expirat' | 'arhivat';
+
+export interface SponsorCampaign {
+  id_campanie: number;
+  id_sponsor: number;
+  sponsor_nume?: string;
+  sponsor_logo?: string;
+  sponsor_culoare?: string;
+  tip: 'card_dashboard' | 'infodisplay' | 'ticker' | 'inky_popup';
+  titlu: string;
+  descriere: string;
+  imagine_url?: string;
+  link_url?: string;
+  cta_text?: string;
+  prioritate: number;
+  scoli_target: string[];
+  status: CampaignStatus;
+  data_start_campanie: string;
+  data_end_campanie: string;
+  stil_card?: SponsorStyleCard;
+  stil_ticker?: SponsorStyleTicker;
+  stil_inky?: SponsorStyleInky;
+  documente_atasate: string[];
+  statistici: {
+    afisari: number;
+    clickuri: number;
+    ctr: number;
+  };
+}
+
+// ===== Promos (legacy, kept for compatibility) =====
 export interface SponsorPromo {
   id_promo: number;
   id_sponsor: number;
@@ -27,6 +87,10 @@ export interface SponsorPromo {
   prioritate: number;
   activ: boolean;
   scoli_target: string[];
+  // Custom styles
+  stil_card?: SponsorStyleCard;
+  stil_ticker?: SponsorStyleTicker;
+  stil_inky?: SponsorStyleInky;
 }
 
 export interface SponsorPlan {
@@ -37,6 +101,16 @@ export interface SponsorPlan {
   include_infodisplay: boolean;
   include_ticker: boolean;
   include_inky: boolean;
+  include_custom_inky: boolean;
   numar_scoli: number;
   descriere: string;
+}
+
+export interface SponsorStats {
+  total_afisari: number;
+  total_clickuri: number;
+  ctr_mediu: number;
+  campanii_active: number;
+  campanii_totale: number;
+  scoli_active: number;
 }
