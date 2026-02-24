@@ -56,66 +56,80 @@ export default function Dashboard() {
   const roles = getRoles(user.status);
 
   return (
-    <div className="space-y-5 min-w-0 pb-32 max-w-4xl mx-auto">
-      {/* Compact welcome banner with stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="rounded-2xl overflow-hidden border border-white/30 shadow-lg"
-        style={{
-          background: 'rgba(255,255,255,0.45)',
-          backdropFilter: 'blur(24px) saturate(1.8)',
-          WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
-        }}
-      >
-        <div className="p-5">
-          <h1 className="text-xl font-display font-bold text-foreground truncate">
-            Bun venit, {user.nume_prenume.split(' ')[0]}! 👋
-          </h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {currentGroup ? `${currentGroup.tip === 'gradinita' ? 'Grădiniță' : 'Școală'}` : 'Selectează o grupă'}
-          </p>
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {roles.map(r => (
-              <Badge key={r} variant="secondary" className="bg-foreground/10 text-foreground/80 border-0 text-xs backdrop-blur-sm">
-                {getRoleLabel(r)}
-              </Badge>
-            ))}
-          </div>
+    <div className="min-w-0 pb-32">
+      {/* Desktop: 2-column layout — welcome + children on left, modules on right */}
+      <div className="lg:grid lg:grid-cols-[1fr_1.2fr] lg:gap-6 lg:items-start space-y-5 lg:space-y-0">
+        {/* Left column: Welcome + Children */}
+        <div className="space-y-5">
+          {/* Compact welcome banner with stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="rounded-2xl overflow-hidden border border-white/30 shadow-lg"
+            style={{
+              background: 'rgba(255,255,255,0.45)',
+              backdropFilter: 'blur(24px) saturate(1.8)',
+              WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+            }}
+          >
+            <div className="p-5">
+              {/* Mobile only: show name (desktop shows in header) */}
+              <h1 className="text-xl font-display font-bold text-foreground truncate lg:hidden">
+                Bun venit, {user.nume_prenume.split(' ')[0]}! 👋
+              </h1>
+              {/* Desktop: show group info more prominently */}
+              <h1 className="hidden lg:block text-lg font-display font-bold text-foreground truncate">
+                {currentGroup?.nume || 'Dashboard'}
+              </h1>
+              <p className="text-muted-foreground text-sm mt-0.5">
+                {currentGroup ? `${currentGroup.tip === 'gradinita' ? 'Grădiniță' : 'Școală'}` : 'Selectează o grupă'}
+              </p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {roles.map(r => (
+                  <Badge key={r} variant="secondary" className="bg-foreground/10 text-foreground/80 border-0 text-xs backdrop-blur-sm">
+                    {getRoleLabel(r)}
+                  </Badge>
+                ))}
+              </div>
 
-          {/* Quick stats row */}
-          <div className="flex flex-wrap gap-2 mt-3">
-            {QUICK_STATS.map(stat => (
-              <button
-                key={stat.label}
-                onClick={() => window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }))}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 ${stat.colorClass}`}
-              >
-                <stat.icon className="h-3.5 w-3.5" />
-                <span>{stat.label}</span>
-                <span className="opacity-80">·</span>
-                <span>{stat.value}</span>
-              </button>
-            ))}
-          </div>
+              {/* Quick stats row */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {QUICK_STATS.map(stat => (
+                  <button
+                    key={stat.label}
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }))}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 hover:scale-105 ${stat.colorClass}`}
+                  >
+                    <stat.icon className="h-3.5 w-3.5" />
+                    <span>{stat.label}</span>
+                    <span className="opacity-80">·</span>
+                    <span>{stat.value}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Children horizontal scroller */}
+          <ChildrenScroller />
         </div>
-      </motion.div>
 
-      {/* Children horizontal scroller */}
-      <ChildrenScroller />
+        {/* Right column: Module cards */}
+        <div className="space-y-3">
+          {/* Settings button */}
+          <div className="flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="gap-1.5 text-muted-foreground">
+              <Settings className="h-4 w-4" />
+              Configurare
+            </Button>
+          </div>
 
-      {/* Settings button */}
-      <div className="flex justify-end">
-        <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="gap-1.5 text-muted-foreground">
-          <Settings className="h-4 w-4" />
-          Configurare
-        </Button>
+          {/* Module card stack */}
+          <ModuleHub visibility={visibility} searchQuery={searchQuery} />
+        </div>
       </div>
-
-      {/* Module card stack */}
-      <ModuleHub visibility={visibility} searchQuery={searchQuery} />
 
       {/* Config sidebar */}
       <ConfigSidebar

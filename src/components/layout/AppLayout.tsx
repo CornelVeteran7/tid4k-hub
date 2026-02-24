@@ -8,15 +8,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush
 } from 'lucide-react';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useLocation, useNavigate } from 'react-router-dom';
 import logoWhite from '@/assets/logo-white.png';
 import InkyAssistant from '@/components/InkyAssistant';
 
-// Full nav items for sidebar (desktop)
+// Full nav items for sidebar
 const NAV_ITEMS = [
   { path: '/', label: 'Acasă', icon: Home, roles: ['all'], adminOnly: false },
   { path: '/prezenta', label: 'Prezența', icon: ClipboardList, roles: ['profesor', 'director', 'administrator'], adminOnly: false },
@@ -31,9 +31,6 @@ const NAV_ITEMS = [
   { path: '/configurari', label: 'Configurări', icon: Settings, roles: ['administrator'], adminOnly: true },
   { path: '/infodisplay', label: 'Infodisplay', icon: Monitor, roles: ['profesor', 'director', 'administrator'], adminOnly: true },
 ];
-
-// Hub module paths — these are handled by ModuleHub on dashboard, so hide from sidebar on desktop
-const HUB_PATHS = ['/prezenta', '/documente', '/mesaje', '/povesti', '/meniu'];
 
 const INKY_ITEMS = [
   { path: '/orar-cancelarie', label: 'Orar CANCELARIE', icon: Calendar },
@@ -69,22 +66,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const userRoles = getRoles(userStatus);
   const isHome = location.pathname === '/';
 
-  // Show group selector only for directors/admins or users with multiple groups
   const showGroupSelector =
     areRol(userStatus, 'director') ||
     areRol(userStatus, 'administrator') ||
     userIsInky ||
     availableGroups.length > 1;
 
-  // Desktop sidebar: filter out hub module paths (they're on the dashboard)
+  // All items the user has access to
   const sidebarItems = NAV_ITEMS.filter((item) => {
     if (item.roles.includes('all')) return true;
     return item.roles.some((role) => areRol(userStatus, role) || userIsInky);
   });
-
-  const desktopSidebarItems = sidebarItems.filter(
-    (item) => !HUB_PATHS.includes(item.path)
-  );
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -93,7 +85,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Desktop Sidebar - admin-only links */}
+      {/* Sidebar — hidden on mobile (drawer), always visible on desktop */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground 
         transform transition-transform duration-200 ease-in-out
@@ -111,48 +103,42 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
 
-          {/* Navigation — on mobile show all, on desktop show only non-hub items */}
+          {/* Group selector in sidebar on desktop */}
+          {showGroupSelector && (
+            <div className="hidden lg:block px-3 py-3 border-b border-sidebar-border">
+              <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
+                <SelectTrigger className="w-full bg-sidebar-accent border-sidebar-border text-sidebar-foreground">
+                  <SelectValue placeholder="Selectează grupa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableGroups.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.nume}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Navigation — show ALL items on desktop sidebar */}
           <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-            {/* Mobile: full list, Desktop: admin-only */}
-            <div className="lg:hidden">
-              {sidebarItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === '/'}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                  activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span>{item.label}</span>
-                  {'badge' in item && item.badge && unreadMessages > 0 && (
-                    <Badge variant="destructive" className="ml-auto text-xs h-5 min-w-[20px] flex items-center justify-center">
-                      {unreadMessages}
-                    </Badge>
-                  )}
-                </NavLink>
-              ))}
-            </div>
-            <div className="hidden lg:block">
-              {desktopSidebarItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === '/'}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                  activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
-                >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span>{item.label}</span>
-                  {'badge' in item && item.badge && unreadMessages > 0 && (
-                    <Badge variant="destructive" className="ml-auto text-xs h-5 min-w-[20px] flex items-center justify-center">
-                      {unreadMessages}
-                    </Badge>
-                  )}
-                </NavLink>
-              ))}
-            </div>
+            {sidebarItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/'}
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span>{item.label}</span>
+                {'badge' in item && item.badge && unreadMessages > 0 && (
+                  <Badge variant="destructive" className="ml-auto text-xs h-5 min-w-[20px] flex items-center justify-center">
+                    {unreadMessages}
+                  </Badge>
+                )}
+              </NavLink>
+            ))}
 
             {/* Inky exclusive items */}
             {userIsInky && (
@@ -217,9 +203,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
-          {/* Center: group selector (only for directors/admins/multi-group users) */}
+          {/* Center: group selector — mobile only, on desktop it's in the sidebar */}
           {showGroupSelector && (
-            <div className="flex-1 flex justify-center min-w-0 px-2">
+            <div className="flex-1 flex justify-center min-w-0 px-2 lg:hidden">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
                 <SelectTrigger className="w-full max-w-[180px]">
                   <SelectValue placeholder="Selectează grupa" />
@@ -233,8 +219,28 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           )}
 
+          {/* Desktop: page title or welcome */}
+          <div className="hidden lg:flex flex-1 items-center min-w-0">
+            <h2 className="text-lg font-display font-bold text-foreground truncate">
+              {isHome ? `Bun venit, ${user.nume_prenume.split(' ')[0]}!` : ''}
+            </h2>
+          </div>
+
           {/* Right: notifications + home favicon */}
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
+            {/* Desktop search — inline in header */}
+            <div className="hidden lg:block relative mr-3">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
+              <input
+                type="text"
+                placeholder="Cauta..."
+                className="w-64 h-9 rounded-lg bg-muted/60 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                onChange={(e) => {
+                  window.dispatchEvent(new CustomEvent('dashboard-search', { detail: e.target.value }));
+                }}
+              />
+            </div>
+
             <Popover open={notifOpen} onOpenChange={setNotifOpen}>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative h-9 w-9">
@@ -281,16 +287,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Search bar — sticky below header */}
-        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md px-3 py-2 lg:px-6 border-b border-border/30">
-          <div className="relative max-w-4xl mx-auto">
+        {/* Search bar — mobile only, sticky below header */}
+        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md px-3 py-2 border-b border-border/30 lg:hidden">
+          <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
             <input
               type="text"
               placeholder="Cauta..."
               className="w-full h-10 rounded-lg bg-muted/60 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               onChange={(e) => {
-                // Dispatch search event for dashboard to pick up
                 window.dispatchEvent(new CustomEvent('dashboard-search', { detail: e.target.value }));
               }}
             />
