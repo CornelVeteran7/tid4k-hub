@@ -62,7 +62,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="rounded-2xl overflow-hidden shadow-md"
+        className="rounded-xl overflow-hidden shadow-md"
       >
         <div className="h-1 gradient-accent" />
         <div className="p-4 bg-primary text-primary-foreground">
