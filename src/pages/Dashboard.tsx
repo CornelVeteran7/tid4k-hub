@@ -4,7 +4,7 @@ import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel } from '@/utils/roles';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, Users, Camera, FileText, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/components/dashboard/ModuleHub';
@@ -20,6 +20,13 @@ function loadVisibility(): ModuleVisibility {
   } catch {}
   return { ...DEFAULT_VISIBILITY };
 }
+
+const QUICK_STATS = [
+  { icon: Users, label: 'Prezența azi', value: '4/5', colorClass: 'bg-[#FFC107] text-[#1a1a1a]' },
+  { icon: Camera, label: 'Fotografii', value: '12', colorClass: 'bg-[#2ECC71] text-white' },
+  { icon: FileText, label: 'Documente noi', value: '3', colorClass: 'bg-[#3498DB] text-white' },
+  { icon: MessageSquare, label: 'Mesaje necitite', value: '2', colorClass: 'bg-[#E91E63] text-white' },
+];
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -41,7 +48,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5 min-w-0 pb-32">
-      {/* Compact welcome banner */}
+      {/* Compact welcome banner with stats */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -61,6 +68,21 @@ export default function Dashboard() {
               <Badge key={r} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs">
                 {getRoleLabel(r)}
               </Badge>
+            ))}
+          </div>
+
+          {/* Quick stats row */}
+          <div className="flex gap-2 mt-3 overflow-x-auto scrollbar-hide pb-1">
+            {QUICK_STATS.map(stat => (
+              <div
+                key={stat.label}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shrink-0 ${stat.colorClass}`}
+              >
+                <stat.icon className="h-3.5 w-3.5" />
+                <span>{stat.label}</span>
+                <span className="opacity-80">·</span>
+                <span>{stat.value}</span>
+              </div>
             ))}
           </div>
         </div>
