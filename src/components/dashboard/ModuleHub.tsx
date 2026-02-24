@@ -5,7 +5,6 @@ import { Loader2 } from 'lucide-react';
 import ModuleCard from './ModuleCard';
 import ModulePanel from './ModulePanel';
 import ShareDialog from './ShareDialog';
-import { useGroup } from '@/contexts/GroupContext';
 
 const Attendance = lazy(() => import('@/pages/Attendance'));
 const Documents = lazy(() => import('@/pages/Documents'));
@@ -72,8 +71,6 @@ interface ModuleHubProps {
 export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
-  const { currentGroup } = useGroup();
-  const groupName = currentGroup?.nume || 'grupa mica A';
 
   let visibleModules = MODULES.filter(m => visibility[m.key as keyof ModuleVisibility]);
 
