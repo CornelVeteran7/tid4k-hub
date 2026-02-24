@@ -204,3 +204,28 @@ html, body {
 .animate-marquee:active {
   animation-play-state: paused;
 }
+
+/* Print styles for attendance */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-table, .print-table * {
+    visibility: visible;
+  }
+  .print-table {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: 1px solid #000;
+  }
+  .print-table th,
+  .print-table td {
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+  }
+  .print\\:hidden {
+    display: none !important;
+  }
+}
