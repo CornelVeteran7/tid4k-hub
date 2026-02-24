@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel } from '@/utils/roles';
@@ -33,6 +33,15 @@ export default function Dashboard() {
   const { currentGroup } = useGroup();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [visibility, setVisibility] = useState<ModuleVisibility>(loadVisibility);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setSearchQuery((e as CustomEvent).detail || '');
+    };
+    window.addEventListener('dashboard-search', handler);
+    return () => window.removeEventListener('dashboard-search', handler);
+  }, []);
 
   const handleToggle = useCallback((key: keyof ModuleVisibility) => {
     setVisibility(prev => {
@@ -53,7 +62,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="rounded-2xl overflow-hidden shadow-md"
+        className="rounded-xl overflow-hidden shadow-md"
       >
         <div className="h-1 gradient-accent" />
         <div className="p-4 bg-primary text-primary-foreground">
@@ -100,7 +109,7 @@ export default function Dashboard() {
       </div>
 
       {/* Module card stack */}
-      <ModuleHub visibility={visibility} />
+      <ModuleHub visibility={visibility} searchQuery={searchQuery} />
 
       {/* Config sidebar */}
       <ConfigSidebar
