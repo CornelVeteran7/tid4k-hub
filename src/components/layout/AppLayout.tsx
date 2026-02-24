@@ -281,6 +281,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
+        {/* Search bar — sticky below header */}
+        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md px-3 py-2 lg:px-6 border-b border-border/30">
+          <div className="relative max-w-4xl mx-auto">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
+            <input
+              type="text"
+              placeholder="Cauta..."
+              className="w-full h-10 rounded-lg bg-muted/60 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              onChange={(e) => {
+                // Dispatch search event for dashboard to pick up
+                window.dispatchEvent(new CustomEvent('dashboard-search', { detail: e.target.value }));
+              }}
+            />
+          </div>
+        </div>
+
         {/* Page content */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 pb-24">
           {children}
