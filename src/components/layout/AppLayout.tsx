@@ -166,6 +166,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </>
           )}
 
+          {/* Profilul meu */}
+          <NavLink to="/profil" className={navLinkClass} activeClassName={activeClass}>
+            <User className="h-5 w-5 shrink-0" />
+            <span>Profilul meu</span>
+          </NavLink>
+
           {/* Tutorial replay */}
           <div className="pt-2">
             <button
@@ -250,14 +256,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </button>
             ))}
 
-            {/* Profilul meu (coming soon) */}
+            {/* Profilul meu */}
             <button
-              disabled
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-sidebar-foreground/40 cursor-not-allowed"
+              onClick={() => { navigate('/profil'); setMobileMenuOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                location.pathname === '/profil'
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                  : 'text-sidebar-foreground/80 hover:bg-sidebar-accent'
+              }`}
             >
               <User className="h-5 w-5 shrink-0" />
               <span>Profilul meu</span>
-              <span className="ml-auto text-[10px] uppercase tracking-wider opacity-60">În curând</span>
             </button>
 
             {/* Tutorial */}
