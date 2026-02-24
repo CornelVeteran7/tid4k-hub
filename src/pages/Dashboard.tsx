@@ -40,7 +40,7 @@ export default function Dashboard() {
   const roles = getRoles(user.status);
 
   return (
-    <div className="space-y-5 min-w-0 pb-20">
+    <div className="space-y-5 min-w-0 pb-32">
       {/* Compact welcome banner */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
