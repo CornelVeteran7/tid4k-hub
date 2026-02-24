@@ -424,7 +424,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
               </PopoverContent>
             </Popover>
-            <button onClick={() => setAvizierOpen(true)} className="focus:outline-none shrink-0">
+            <button onClick={() => openLink('https://tid4kdemo.ro/avizier/tid4k.html')} className="focus:outline-none shrink-0">
               <img src="/favicon.png" alt="InfoDisplay — Avizier" className="h-7 w-7" />
             </button>
           </div>
@@ -453,16 +453,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <TutorialOverlay />
       </div>
 
-      {/* Avizier modal */}
-      <Dialog open={avizierOpen} onOpenChange={(open) => { setAvizierOpen(open); if (!open) navigate('/'); }}>
-        <DialogContent className="max-w-[95vw] w-full max-h-[90vh] h-[90vh] p-0 overflow-hidden">
-          <iframe
-            src="https://tid4kdemo.ro/avizier/tid4k.html"
-            className="w-full h-full border-0"
-            title="Avizier"
-          />
-        </DialogContent>
-      </Dialog>
+
+
     </div>
   );
 }

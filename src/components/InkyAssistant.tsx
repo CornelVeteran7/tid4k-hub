@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
@@ -95,6 +96,7 @@ export default function InkyAssistant() {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { openLink } = useExternalLink();
 
   useEffect(() => {
     getActivePromos('inky_popup').then(promos => {
