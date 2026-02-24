@@ -48,6 +48,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { unreadMessages, newAnnouncements } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [avizierOpen, setAvizierOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const headerRef = useRef<HTMLElement>(null);
