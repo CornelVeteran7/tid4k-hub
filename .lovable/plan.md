@@ -1,195 +1,89 @@
 
-# Social Media Hub Redesign -- Complete Rewrite
+# Announcements Ticker Bar + Implementation Audit
 
-## Overview
+## Audit Summary: Current State vs Requirements
 
-Transform the Dashboard from its current "welcome card + activity feed" layout into an Instagram/TikTok-style **Social Media Hub** that serves as the teacher's single navigation surface. Based on the uploaded screenshots of the previous app, the design preserves the colorful module card approach, the children scroller, and the toggle-based sidebar configuration.
+| Requirement | Status | Notes |
+|---|---|---|
+| 1. Horizontal Children Scroller | Done | ChildrenScroller.tsx with snap-x, avatars, parent info |
+| 2. Vibrant Card Stack (Hub) | Done | ModuleHub.tsx + ModuleCard.tsx with correct colors, AnimatePresence |
+| 3. Configuration Sidebar | Done | ConfigSidebar.tsx with Sheet, Switch toggles, localStorage persistence, nav links |
+| 4. Floating Inky Assistant | Done | InkyAssistant.tsx with FAB, context-aware actions, quick-action menu |
+| 5. PWA & Tappable Feedback | Done | card-tappable CSS, overscroll-behavior: none, iOS safe-area |
+| 6. Announcements Ticker Bar | MISSING | Not yet implemented |
 
----
-
-## What the Screenshots Show (Reference)
-
-The uploaded images reveal the previous app had:
-- **Screenshot 1 (Home)**: A vertical stack of colorful rounded module cards (Prezenta in yellow, Imagini in green, Documente in blue, etc.) with icons, titles, subtitles, and item count badges. A horizontal children scroller sits above them.
-- **Screenshot 2 (Sidebar)**: A clean white drawer with toggle switches next to each module name. Toggles control which cards appear on the home page. Below the toggles are standard nav links (Istoric prezenta, Statistici, Profilul meu, Adauga copii).
-- **Screenshot 3 (Child Card)**: Vertical cards with rounded avatar circles, child name in bold, parent contact info below in small light text.
-- **Screenshot 4 (Inky)**: The floating owl FAB in the bottom-right corner with a quick-action tooltip menu.
-
----
-
-## Files to Create
-
-### 1. `src/components/dashboard/ChildrenScroller.tsx` (new)
-
-Horizontal scroll area showing children from the current group.
-
-- Uses `getChildrenByGroup(currentGroup.id)` to fetch children
-- Each child renders as a vertical card (~100px wide):
-  - Pastel-colored circle avatar generated from initials
-  - Child's name (bold, truncated)
-  - Parent name, phone, email in 10px light text
-  - Card styling: `rounded-2xl border border-border/60 shadow-sm p-3`
-- Scroll container: `overflow-x-auto snap-x snap-mandatory` with hidden scrollbar CSS
-- Wraps children in a flex row with `gap-3`
-
-### 2. `src/components/dashboard/ModuleCard.tsx` (new)
-
-A single vibrant module card component.
-
-Props: `icon`, `title`, `subtitle`, `color` (hex), `count`, `route`, `onTap`
-
-Layout:
-```text
-+--------------------------------------------------+
-| [Icon]  Title              [Count Badge]  [>]    |
-|         Subtitle                                  |
-+--------------------------------------------------+
-```
-
-- Card has `rounded-3xl` (24px radius), background uses the module's color at ~15% opacity, left border or accent strip in full color
-- Icon circle in full color on the left
-- Title in bold, subtitle in muted text
-- Count badge (pill) on the right
-- Chevron icon (far right)
-- Tap feedback: `framer-motion` `whileTap={{ scale: 0.97 }}` + `-webkit-tap-highlight-color: transparent`
-- On tap: short 150ms scale animation, then `navigate(route)`
-
-### 3. `src/components/dashboard/ModuleHub.tsx` (new)
-
-Renders the vertical stack of module cards, filtered by visibility.
-
-Module definitions:
-
-| Key | Title | Subtitle | Color | Icon | Route |
-|-----|-------|----------|-------|------|-------|
-| prezenta | PREZENTA | Inregistreaza prezenta | #FFC107 | ClipboardList | /prezenta |
-| imagini | IMAGINI | Fotografii si activitati | #2ECC71 | Image | /documente |
-| documente | DOCUMENTE | Fisiere si materiale | #3498DB | FileText | /documente |
-| povesti | POVESTI / ATELIERE | Povesti interactive | #9B59B6 | BookOpen | /povesti |
-| meniu | MENIU | Meniul saptamanii | #F39C12 | UtensilsCrossed | /meniu |
-| mesaje | MESAJE | Conversatii cu parintii | #E91E63 | MessageSquare | /mesaje |
-
-- Reads `visibleModules` from `localStorage` key `tid4k_visible_modules`
-- Default: all modules visible
-- Uses `AnimatePresence` for smooth show/hide when toggled
-- Each card is wrapped in `motion.div` with `layout` prop for smooth reorder
-
-### 4. `src/components/dashboard/ConfigSidebar.tsx` (new)
-
-A right-side Sheet (using shadcn Sheet component) with:
-
-**Top section -- Module toggles:**
-- Each module listed with its colored icon + name + Switch toggle
-- Toggling ON/OFF updates `localStorage` and re-renders the hub
-- Uses the existing `Switch` component from `src/components/ui/switch.tsx`
-
-**Bottom section -- Navigation links:**
-- "Istoric prezenta" -> `/prezenta`
-- "Statistici" -> `/rapoarte`  
-- "Profilul meu" -> placeholder (shows toast "In curand")
-- "Adauga copii" -> placeholder (shows toast "In curand")
-
-Each link has an icon and chevron, styled as list items.
+Everything from requirements 1-5 is properly implemented. The only missing feature is the **sticky announcements ticker bar**.
 
 ---
 
-## Files to Modify
+## New Feature: Announcements Ticker Bar ("Banda de Anunturi")
 
-### 5. `src/types/index.ts` (edit)
+A fixed-position horizontal scrolling marquee bar at the bottom of the Dashboard screen, above the Inky FAB. It displays active announcements as a continuously scrolling text ribbon, similar to a news ticker.
 
-Add parent contact fields to the `Child` interface:
+### Data Source
 
-```typescript
-export interface Child {
-  id_copil: number;
-  nume_prenume_copil: string;
-  grupa_clasa_copil: string;
-  data_nasterii?: string;
-  parinte_id?: number;
-  parinte_nume?: string;
-  parinte_telefon?: string;
-  parinte_email?: string;
-}
-```
+The `Announcement` type already has `ascuns_banda: boolean` and `pozitie_banda?: number` fields. Announcements where `ascuns_banda === false` will appear in the ticker, sorted by `pozitie_banda`.
 
-### 6. `src/api/children.ts` (edit)
+### Visual Design
 
-Add parent contact mock data to each child entry:
+- Fixed to the bottom of the viewport, just above the safe-area inset
+- Height: ~40px
+- Background: gradient from primary color with slight transparency + backdrop blur (glass effect)
+- Text: white, 13px, bold for urgent announcements
+- Urgent items get a small pulsing red dot indicator
+- Continuous CSS marquee animation (right-to-left scroll), pauses on touch/hover
+- Small "Megaphone" icon at the left edge as a static label
 
-```typescript
-{ id_copil: 1, nume_prenume_copil: 'Alexia Ionescu', ..., parinte_nume: 'Elena Ionescu', parinte_telefon: '0721234567', parinte_email: 'elena.i@email.com' },
-```
-
-### 7. `src/pages/Dashboard.tsx` (rewrite)
-
-Replace the entire current dashboard with:
+### Component: `src/components/dashboard/AnnouncementsTicker.tsx` (new)
 
 ```text
-<div>
-  {/* Compact welcome banner */}
-  <WelcomeBanner />        // user name + group info, small gradient strip
-
-  {/* Children scroller */}
-  <ChildrenScroller />     // horizontal cards
-
-  {/* Settings gear button (opens ConfigSidebar) */}
-  <div className="flex justify-end">
-    <Button variant="ghost" onClick={openSidebar}>
-      <Settings icon />
-    </Button>
-  </div>
-
-  {/* Module card stack */}
-  <ModuleHub visibleModules={visibleModules} />
-
-  {/* Config sidebar (Sheet) */}
-  <ConfigSidebar open={sidebarOpen} onToggle={handleToggle} />
-</div>
++--------+------------------------------------------------------------+
+| [Icon] |  Excursie la Gradina Botanica  *  Modificare program  *  ... |  (scrolling -->)
++--------+------------------------------------------------------------+
 ```
 
-- The welcome banner is kept minimal: user first name, group name, and a small gradient accent (no inline attendance panel -- attendance is accessed via the PREZENTA card)
-- Remove the "Activitate recenta" section entirely
-- Remove the inline attendance panel
+- Fetches announcements via `getAnnouncements()` from `src/api/announcements.ts`
+- Filters to only `ascuns_banda === false` items
+- Joins titles with a separator dot into a single scrolling string
+- Uses CSS `@keyframes marquee` animation for smooth infinite scroll
+- Tapping the bar navigates to `/anunturi`
+- If no visible ticker announcements exist, the bar hides entirely
 
-### 8. `src/index.css` (edit)
-
-Add these utilities:
+### CSS Animation (added to `src/index.css`)
 
 ```css
-/* Tappable card feedback */
-.card-tappable {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
-
-/* Hide scrollbar for children scroller */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+.animate-marquee {
+  animation: marquee 20s linear infinite;
 }
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* iOS scroll bounce prevention */
-html, body {
-  overscroll-behavior: none;
+.animate-marquee:hover,
+.animate-marquee:active {
+  animation-play-state: paused;
 }
 ```
 
+The text content is duplicated inside the scrolling container so the loop appears seamless.
+
+### Dashboard Integration (`src/pages/Dashboard.tsx`)
+
+- Import and render `<AnnouncementsTicker />` at the bottom of the dashboard, as a fixed-position element
+- Adjust `pb-20` to `pb-32` to make room for both the ticker bar and the Inky FAB
+
+### Z-Index Stacking
+
+- Ticker bar: `z-50` (below Inky)
+- Inky FAB: `z-[70]` (already set, stays above)
+- Ticker positioned at `bottom: env(safe-area-inset-bottom) + 56px` to sit above safe area but below Inky
+
 ---
 
-## Summary Table
+## Files Summary
 
 | File | Action | Purpose |
-|------|--------|---------|
-| `src/types/index.ts` | Edit | Add parent fields to Child |
-| `src/api/children.ts` | Edit | Add parent mock data |
-| `src/index.css` | Edit | Add tappable + scrollbar-hide + iOS bounce CSS |
-| `src/components/dashboard/ChildrenScroller.tsx` | Create | Horizontal child card scroller |
-| `src/components/dashboard/ModuleCard.tsx` | Create | Single vibrant module card |
-| `src/components/dashboard/ModuleHub.tsx` | Create | Filtered card stack with AnimatePresence |
-| `src/components/dashboard/ConfigSidebar.tsx` | Create | Toggle sidebar (Sheet) with nav links |
-| `src/pages/Dashboard.tsx` | Rewrite | New hub layout replacing old dashboard |
-
-No changes to `AppLayout.tsx`, `InkyAssistant.tsx`, or any other page -- this is a Dashboard-only redesign.
+|---|---|---|
+| `src/components/dashboard/AnnouncementsTicker.tsx` | Create | Sticky marquee bar component |
+| `src/index.css` | Edit | Add marquee keyframes animation |
+| `src/pages/Dashboard.tsx` | Edit | Add ticker + increase bottom padding |
