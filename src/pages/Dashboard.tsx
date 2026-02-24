@@ -208,6 +208,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <AnnouncementTicker />
     </div>
   );
 }
