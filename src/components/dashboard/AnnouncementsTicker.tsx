@@ -26,7 +26,6 @@ export default function AnnouncementsTicker() {
         .filter(a => !a.ascuns_banda)
         .sort((a, b) => (a.pozitie_banda ?? 99) - (b.pozitie_banda ?? 99));
 
-      // Build ticker items: regular announcements
       const announcementItems: TickerItem[] = visible.map(a => ({
         id: `ann-${a.id_info}`,
         text: (
@@ -42,24 +41,33 @@ export default function AnnouncementsTicker() {
         isSponsor: false,
       }));
 
-      // Build sponsor ticker items
-      const sponsorItems: TickerItem[] = sponsorPromos.map(p => ({
-        id: `sponsor-${p.id_promo}`,
-        text: (
-          <span className="inline-flex items-center gap-2">
-            <span
-              className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full"
-              style={{ backgroundColor: 'rgba(255,215,0,0.3)', color: '#fff' }}
-            >
-              <Award className="h-2.5 w-2.5" />
-              Sponsor
+      // Build sponsor ticker items with custom styles
+      const sponsorItems: TickerItem[] = sponsorPromos.map(p => {
+        const stil = p.stil_ticker;
+        const badgeBg = stil?.badge_bg || p.sponsor_culoare || 'rgba(255,215,0,0.3)';
+        const badgeText = stil?.badge_text || 'Sponsor';
+        const glowEffect = stil?.glow_effect;
+
+        return {
+          id: `sponsor-${p.id_promo}`,
+          text: (
+            <span className="inline-flex items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full text-white ${glowEffect ? 'animate-pulse' : ''}`}
+                style={{ backgroundColor: badgeBg }}
+              >
+                <Award className="h-2.5 w-2.5" />
+                {badgeText}
+              </span>
+              <span className="font-bold" style={{ color: stil?.text_color }}>
+                {p.titlu}
+              </span>
             </span>
-            <span className="font-bold">{p.titlu}</span>
-          </span>
-        ),
-        isSponsor: true,
-        link_url: p.link_url,
-      }));
+          ),
+          isSponsor: true,
+          link_url: p.link_url,
+        };
+      });
 
       // Interleave: insert sponsor every 3 announcements
       const merged: TickerItem[] = [];
@@ -71,7 +79,6 @@ export default function AnnouncementsTicker() {
           sponsorIdx++;
         }
       });
-      // Append remaining sponsors
       while (sponsorIdx < sponsorItems.length) {
         merged.push(sponsorItems[sponsorIdx]);
         sponsorIdx++;
@@ -96,19 +103,13 @@ export default function AnnouncementsTicker() {
       className="fixed bottom-0 right-0 left-0 lg:left-64 z-50 h-10 flex items-center cursor-pointer card-tappable safe-bottom"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      {/* Glass background */}
       <div className="absolute inset-0 bg-primary/90 backdrop-blur-md" />
-
-      {/* Static icon label */}
       <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 h-10 border-r border-primary-foreground/20">
         <Megaphone className="h-4 w-4 text-primary-foreground" />
       </div>
-
-      {/* Scrolling content */}
       <div className="relative z-10 flex-1 overflow-hidden">
         <div className="animate-marquee whitespace-nowrap text-primary-foreground text-[13px]">
           {tickerContent}
-          {/* Duplicate for seamless loop */}
           {tickerContent}
         </div>
       </div>
