@@ -24,7 +24,7 @@ export default function ModuleCard({ icon: Icon, title, subtitle, color, count, 
       className="card-tappable rounded-xl p-4 flex flex-col gap-3 cursor-pointer shadow-md"
       style={{ backgroundColor: color }}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {/* Icon circle */}
         <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-white/20">
           <Icon className="h-6 w-6 text-white" />
@@ -32,29 +32,29 @@ export default function ModuleCard({ icon: Icon, title, subtitle, color, count, 
 
         {/* Text */}
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-xs text-white tracking-widest uppercase">{title}</p>
+          <p className="font-bold text-xs text-white tracking-widest uppercase truncate">{title}</p>
           <p className="text-sm font-semibold text-white/90 truncate">{subtitle}</p>
         </div>
 
-        {/* Share button */}
-        {showShare && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onShare?.(); }}
-            className="shrink-0 w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
-          >
-            <Send className="h-4 w-4 text-white" />
-          </button>
-        )}
+        {/* Actions — grouped to prevent overlap */}
+        <div className="flex items-center gap-2 shrink-0">
+          {showShare && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onShare?.(); }}
+              className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <Send className="h-4 w-4 text-white" />
+            </button>
+          )}
 
-        {/* Count badge */}
-        {count !== undefined && (
-          <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/25 text-white shrink-0">
-            {count} {countLabel || ''}
-          </span>
-        )}
+          {count !== undefined && (
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/25 text-white whitespace-nowrap">
+              {count} {countLabel || ''}
+            </span>
+          )}
 
-        {/* Chevron */}
-        <ChevronDown className="h-5 w-5 text-white/60 shrink-0" />
+          <ChevronDown className="h-5 w-5 text-white/60" />
+        </div>
       </div>
 
       {/* Preview content */}
