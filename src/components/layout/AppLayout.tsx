@@ -20,6 +20,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import logoWhite from '@/assets/logo-white.png';
 import InkyAssistant from '@/components/InkyAssistant';
 import TutorialOverlay from '@/components/TutorialOverlay';
+import QuickUpload from '@/components/QuickUpload';
 
 // Secondary nav — items NOT on the dashboard
 const SECONDARY_NAV = [
@@ -515,6 +516,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
         <InkyAssistant />
         <TutorialOverlay />
+        <QuickUpload />
       </div>
 
 
