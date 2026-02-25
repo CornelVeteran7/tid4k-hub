@@ -33,7 +33,7 @@ export default function ModuleCard({ icon: Icon, title, subtitle, color, count, 
         {/* Text */}
         <div className="flex-1 min-w-0">
           <p className="font-bold text-xs text-white tracking-widest uppercase truncate">{title}</p>
-          <p className="text-sm font-semibold text-white/90 truncate">{subtitle}</p>
+          <p className="text-sm font-semibold text-white/90 truncate hidden lg:block">{subtitle}</p>
         </div>
 
         {/* Actions — grouped to prevent overlap */}
