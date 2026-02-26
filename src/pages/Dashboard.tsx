@@ -11,10 +11,32 @@ import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/componen
 import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
 
+/* Organic flowing background shapes — desktop only */
+function BackgroundShapes() {
+  return (
+    <div className="hidden lg:block fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden>
+      {/* Shape 1 — large organic blob, slow clockwise */}
+      <svg className="absolute animate-slow-rotate" style={{ top: '-15%', right: '-10%', width: '900px', height: '900px', opacity: 0.06 }} viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M250 50C310 50 380 80 420 140C460 200 470 270 440 330C410 390 350 430 290 450C230 470 160 460 110 420C60 380 30 310 30 250C30 190 50 130 100 90C150 50 200 50 250 50Z" stroke="currentColor" strokeWidth="1" className="text-foreground"/>
+        <path d="M250 90C300 85 355 110 390 155C425 200 435 260 415 310C395 360 345 395 295 410C245 425 185 420 145 385C105 350 80 295 80 245C80 195 100 145 140 115C180 85 210 93 250 90Z" stroke="currentColor" strokeWidth="0.5" className="text-foreground"/>
+      </svg>
+      {/* Shape 2 — medium flowing form, counter-clockwise */}
+      <svg className="absolute animate-slow-rotate-reverse" style={{ bottom: '-20%', left: '-5%', width: '700px', height: '700px', opacity: 0.05 }} viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M200 30C250 25 310 60 345 110C380 160 385 225 360 275C335 325 280 365 225 375C170 385 105 370 65 330C25 290 10 225 25 170C40 115 85 70 135 45C155 35 175 32 200 30Z" stroke="currentColor" strokeWidth="1" className="text-foreground"/>
+        <path d="M200 70C240 65 285 90 315 130C345 170 350 220 330 260C310 300 270 330 225 340C180 350 130 340 100 305C70 270 60 220 70 175C80 130 115 95 155 75C170 68 185 72 200 70Z" stroke="currentColor" strokeWidth="0.5" className="text-foreground"/>
+      </svg>
+      {/* Shape 3 — small accent, slow clockwise */}
+      <svg className="absolute animate-slow-rotate" style={{ top: '40%', left: '30%', width: '400px', height: '400px', opacity: 0.035 }} viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M150 20C190 15 240 40 265 80C290 120 295 170 275 210C255 250 215 280 170 285C125 290 75 275 45 240C15 205 5 155 20 115C35 75 75 45 115 28C130 22 140 22 150 20Z" stroke="currentColor" strokeWidth="0.8" className="text-foreground"/>
+      </svg>
+    </div>
+  );
+}
 
-const STORAGE_KEY = 'tid4k_visible_modules';
 
 // Mock data for charts
+const STORAGE_KEY = 'tid4k_visible_modules';
+
 const attendanceData = Array.from({ length: 28 }, (_, i) => ({
   day: String(i + 1).padStart(2, '0'),
   prezenti: Math.floor(Math.random() * 8) + 14,
@@ -207,7 +229,8 @@ export default function Dashboard() {
   const roles = getRoles(user.status);
 
   return (
-    <div className="min-w-0 pb-32">
+    <div className="min-w-0 pb-32 relative">
+      <BackgroundShapes />
       {/* Desktop: 2-column layout — welcome + children on left, modules on right */}
       <div className="lg:grid lg:grid-cols-[1fr_1.2fr] lg:gap-6 lg:items-start space-y-5 lg:space-y-0">
         {/* Left column: Welcome + Children */}

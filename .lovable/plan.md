@@ -1,56 +1,150 @@
 
-# Brand Refresh: Bec Restaurant-Inspired Design
 
-## What Changes
+# Plan: Workshop Management System + Admin Push & Documentation
 
-### 1. Updated Color Palette
-Shift the primary blue from the current teal (#2b516a) to a deeper, richer navy inspired by Bec Restaurant:
-- **Primary**: Deep navy `#1E3A4C` (darker, more sophisticated)
-- **Sidebar**: Even deeper `#162D3B`
-- **Keep**: The existing accent colors for module cards (yellow, teal, orange, etc.)
-- **Remove**: Any salmon/pink tones from the design system
-- Update CSS custom properties in `src/index.css`
+## Overview
 
-### 2. Serif Font for Select Elements
-Add a serif font (Playfair Display or similar elegant serif) alongside existing Poppins:
-- Use serif for section headings like "Rezumatul zilei", chart titles, and the welcome greeting
-- Keep Poppins for body text, navigation, and buttons
-- Add the font import in `index.html`
-- Add it to Tailwind config as a `font-serif` or `font-display` option
+This plan adds a complete **Workshop (Ateliere) management system** to the Admin Panel, enabling admins to create, edit, and push workshops to one or all school units. The dashboard "ATELIERE" module card will show this month's workshop preview directly (without opening), and push notifications will alert teachers about new workshops.
 
-### 3. Animated Organic SVG Background
-Create a floating, slowly rotating SVG with organic flowing shapes (inspired by Bec's topographic-style line art) on the main content area's white background:
-- Add an SVG component with organic curved paths (similar to the flowing lines on Bec's site)
-- Apply a slow CSS rotation animation (~60-90s per revolution)
-- Render it as a fixed/absolute background element behind the dashboard content
-- Use very subtle stroke colors (light gray/muted foreground at ~8-12% opacity) so it doesn't compete with content
-- Desktop only (hidden on mobile for performance)
-- Placed in `src/pages/Dashboard.tsx` as a background layer
+---
 
-## Files to Modify
+## What Gets Built
 
-1. **`index.html`** -- Add Google Fonts import for a serif font (Playfair Display)
-2. **`tailwind.config.ts`** -- Update `fontFamily.serif` to include Playfair Display
-3. **`src/index.css`** -- Adjust CSS custom properties for the deeper navy palette (both light and dark themes)
-4. **`src/pages/Dashboard.tsx`** -- Add the animated organic SVG background component behind content
-5. **`src/components/layout/AppLayout.tsx`** -- Apply serif font to the desktop welcome greeting
+### 1. Workshop Data Model & API
+
+**New file: `src/api/workshops.ts`**
+
+Types and mock data for workshops:
+
+```text
+Workshop {
+  id_atelier: number
+  titlu: string
+  descriere: string
+  luna: string (YYYY-MM)
+  imagine_url: string
+  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
+  materiale: string[]
+  instructor: string
+  durata_minute: number
+  scoli_target: string[] (['all'] or specific school IDs)
+  publicat: boolean
+  data_creare: string
+  data_publicare?: string
+}
+```
+
+API functions:
+- `getWorkshops(schoolId?, luna?)` -- fetch workshops, optionally filtered
+- `getWorkshopOfMonth(schoolId?)` -- returns this month's active published workshop
+- `createWorkshop(data)` -- create new
+- `updateWorkshop(id, data)` -- edit
+- `deleteWorkshop(id)` -- remove
+- `publishWorkshop(id, scoli_target)` -- mark as published + push to units
+- Mock data: 2-3 workshops for the current month
+
+### 2. Admin Panel: New "Ateliere" Tab
+
+**New file: `src/components/admin/WorkshopsTab.tsx`**
+
+A new tab in the Admin Panel (`/admin`) with:
+
+- **School selector awareness**: respects the global "Toate unitatile" / specific school filter at top of admin page
+- **Workshop list**: cards showing title, month, category badge, publish status, target schools
+- **Create/Edit dialog**: form with title, description, category, image URL, materials list, instructor, duration, school target (one / all)
+- **Publish button**: marks workshop as published; when target is "all", pushes to every school. Shows confirmation with school count.
+- **Status indicators**: Draft (gray), Published (green), showing which schools received it
+
+Changes to `src/pages/AdminPanel.tsx`:
+- Add `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` to TABS
+- Import and render `<WorkshopsTab>` in the new TabsContent
+- The tab respects `selectedSchoolId` (all vs specific)
+
+### 3. Dashboard: Workshop Preview on Module Card
+
+**Modified: `src/components/dashboard/ModuleHub.tsx`**
+
+The "ATELIERE" card currently shows just a title and count. Change it to:
+- Fetch `getWorkshopOfMonth()` on mount
+- Display workshop title + short description directly on the card (below the subtitle), so teachers see it without tapping
+- Add a small "Luna: Martie 2026" label and category badge on the card face
+- Keep the card tappable to open full workshop detail
+
+**Modified: `src/components/dashboard/ModuleCard.tsx`**
+
+Add optional `preview` prop (ReactNode) that renders below the subtitle when provided. Only the "ateliere" card will use this prop.
+
+### 4. Notification System: Workshop Push Notifications
+
+**Modified: `src/contexts/NotificationContext.tsx`**
+
+- Import `getWorkshopOfMonth` from workshops API
+- Add `'workshop'` as a new notification type in `NotificationItem`
+- In `refreshNotifications`, check if there's a published workshop for this month that hasn't been seen (track via localStorage key `tid4k_seen_workshop_[id]`)
+- Generate notification: "Atelier nou: [titlu]" with link to open the ateliere module
+
+**Modified: `src/components/layout/AppLayout.tsx`**
+
+- Add `Paintbrush` icon handling for `workshop` notification type in the popover renderer (distinct purple color)
+
+### 5. Documentation
+
+**New file: `docs/WORKSHOPS.md`**
+
+Three sections:
+1. **For Admins**: How to create workshops, target specific schools or all, publish flow, editing after publish
+2. **For Developers/AI**: API endpoints table, TypeScript interfaces, component architecture, notification integration
+3. **API Reference**: Full endpoint spec for backend implementation
+
+```text
+POST /ateliere.php?action=create        -- Create workshop
+POST /ateliere.php?action=update        -- Edit workshop
+POST /ateliere.php?action=publish       -- Publish + push to schools
+GET  /ateliere.php?action=list          -- List workshops (filters: school_id, luna)
+GET  /ateliere.php?action=current       -- This month's active workshop
+POST /ateliere.php?action=delete        -- Delete workshop
+POST /ateliere.php?action=notify        -- Trigger push notifications
+```
+
+---
 
 ## Technical Details
 
-### SVG Background Animation
-- Create a `BackgroundShapes` component with 3-4 organic curved paths
-- Use CSS `@keyframes` for slow continuous rotation (~90s cycle)
-- Position with `fixed` or `absolute` + `pointer-events-none` + low opacity
-- Use `will-change: transform` for GPU-accelerated animation
+### File Changes Summary
 
-### Color Shift (index.css)
-Current sidebar: `204 42% 22%` -> New: `200 45% 16%` (deeper navy)
-Current primary: `204 42% 29%` -> New: `200 42% 21%` (richer)
-Adjust related border/ring/accent values to match
+| File | Action | What |
+|------|--------|------|
+| `src/api/workshops.ts` | NEW | Workshop types, mock data, API functions |
+| `src/components/admin/WorkshopsTab.tsx` | NEW | Full admin UI for workshop CRUD + publish |
+| `docs/WORKSHOPS.md` | NEW | Documentation for admins and devs |
+| `src/pages/AdminPanel.tsx` | EDIT | Add "Ateliere" tab (icon + TabsContent) |
+| `src/components/dashboard/ModuleCard.tsx` | EDIT | Add optional `preview` prop |
+| `src/components/dashboard/ModuleHub.tsx` | EDIT | Fetch workshop of month, pass preview to ateliere card |
+| `src/contexts/NotificationContext.tsx` | EDIT | Add workshop notification type |
+| `src/components/layout/AppLayout.tsx` | EDIT | Render workshop notification icon in popover |
 
-### Serif Application
-Apply `font-serif` class to:
-- Welcome heading ("Bun venit, ...")
-- Chart section titles
-- "Rezumatul zilei" heading
-- Group name in the welcome card
+### Patterns Followed
+
+- Same `USE_MOCK` toggle pattern as all other API files
+- Same collapsible card admin UI pattern as SettingsTab/SchoolsTab
+- Same notification item pattern with `type`, `icon`, `navigateTo`
+- School selector `selectedSchoolId` passed through just like other admin tabs
+- `framer-motion` animations consistent with existing module cards
+
+### Workshop Card Preview Rendering
+
+On the dashboard, the ATELIERE module card will show:
+
+```text
++------------------------------------------+
+| [Paintbrush icon]  ATELIERE              |
+|                    Activitati creative     |
+|   ┌─────────────────────────────┐         |
+|   │ Pictură pe sticlă           │  [10]   |
+|   │ Artă · Martie 2026          │         |
+|   └─────────────────────────────┘         |
++------------------------------------------+
+```
+
+This preview text appears only when a workshop-of-the-month exists.
+

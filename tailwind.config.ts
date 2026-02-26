@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Poppins", "system-ui", "sans-serif"],
-        display: ["Poppins", "system-ui", "sans-serif"],
+        display: ["Playfair Display", "Georgia", "serif"],
         serif: ["Lora", "Georgia", "serif"],
         mono: ["Space Mono", "monospace"],
       },
