@@ -11,7 +11,8 @@ import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
   BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award
 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Search } from 'lucide-react';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -113,6 +114,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { unreadMessages, newAnnouncements, notifications, markAsRead, markAllAsRead } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const mobileSearchRef = useRef<HTMLInputElement>(null);
   const { openLink } = useExternalLink();
   const location = useLocation();
   const navigate = useNavigate();
@@ -423,8 +426,51 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
-          {/* Center: group selector — mobile only */}
-          {showGroupSelector && (
+          {/* Mobile: search icon OR expanded search input */}
+          {!mobileSearchOpen ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden h-9 w-9 shrink-0"
+              onClick={() => {
+                setMobileSearchOpen(true);
+                setTimeout(() => mobileSearchRef.current?.focus(), 50);
+              }}
+            >
+              <Search className="h-4.5 w-4.5" />
+            </Button>
+          ) : (
+            <div className="flex-1 flex items-center min-w-0 px-1 lg:hidden">
+              <div className="relative w-full">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <input
+                  ref={mobileSearchRef}
+                  type="text"
+                  placeholder="Caută..."
+                  autoFocus
+                  className="w-full h-8 rounded-lg bg-muted/60 pl-8 pr-8 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  onChange={(e) => {
+                    window.dispatchEvent(new CustomEvent('dashboard-search', { detail: e.target.value }));
+                  }}
+                  onBlur={(e) => {
+                    if (!e.target.value) setMobileSearchOpen(false);
+                  }}
+                />
+                <button
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setMobileSearchOpen(false);
+                    window.dispatchEvent(new CustomEvent('dashboard-search', { detail: '' }));
+                  }}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Center: group selector — mobile only (hidden when search is expanded) */}
+          {showGroupSelector && !mobileSearchOpen && (
             <div data-tutorial="group-selector" className="flex-1 flex justify-center min-w-0 px-2 lg:hidden">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
                 <SelectTrigger className="w-full max-w-[180px]">
@@ -584,20 +630,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Search bar — mobile only */}
-        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md px-3 py-2 border-b border-border/30 lg:hidden">
-          <div className="relative">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
-            <input
-              type="text"
-              placeholder="Cauta..."
-              className="w-full h-10 rounded-lg bg-muted/60 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              onChange={(e) => {
-                window.dispatchEvent(new CustomEvent('dashboard-search', { detail: e.target.value }));
-              }}
-            />
-          </div>
-        </div>
+        {/* Mobile search bar removed — now inline in header */}
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-6 pb-24">
