@@ -27,7 +27,7 @@ function SidebarDecoration() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <svg
-        className="absolute inset-0 w-full h-full opacity-[0.06]"
+        className="absolute inset-0 w-full h-full opacity-[0.10]"
         viewBox="0 0 280 900"
         preserveAspectRatio="xMidYMid slice"
         fill="none"
@@ -43,7 +43,7 @@ function SidebarDecoration() {
         </g>
 
         {/* Flower — upper-right area */}
-        <g transform="translate(200, 180)" stroke="white" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.12">
+        <g transform="translate(200, 180)" stroke="white" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.18">
           <ellipse cx="0" cy="-10" rx="4" ry="8" />
           <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(72)" />
           <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(144)" />
@@ -56,7 +56,7 @@ function SidebarDecoration() {
         </g>
 
         {/* Bee — lower-left area */}
-        <g transform="translate(70, 620) rotate(-15)" stroke="white" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.12">
+        <g transform="translate(70, 620) rotate(-15)" stroke="white" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.18">
           <ellipse cx="0" cy="0" rx="9" ry="5" />
           <line x1="-2.5" y1="-4.5" x2="-2.5" y2="4.5" />
           <line x1="2.5" y1="-5" x2="2.5" y2="5" />
