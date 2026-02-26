@@ -106,14 +106,14 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
     <LayoutGroup>
       <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
         <AnimatePresence mode="popLayout">
-          {visibleModules.map(mod => (
+          {visibleModules.map((mod, i) => (
             <React.Fragment key={mod.key}>
               <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
+                layout="position"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ type: 'spring', damping: 22, stiffness: 300, delay: i * 0.03 }}
                 className={mod.wide ? 'lg:col-span-2' : ''}
               >
                 {openModule !== mod.key && (
@@ -139,10 +139,10 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
               </motion.div>
               {mod.key === 'documente' && (
                 <motion.div
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
+                  layout="position"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', damping: 22, stiffness: 300, delay: 0.15 }}
                   className="lg:col-span-2"
                 >
                   <SponsorCard />
