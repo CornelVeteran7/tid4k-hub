@@ -7,9 +7,10 @@ import { Users, Camera, FileText, MessageSquare, Clock, CalendarDays, Utensils, 
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
-import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/components/dashboard/ModuleHub';
-import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
+import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility, loadModuleOrder, saveModuleOrder } from '@/components/dashboard/ModuleHub';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
+import { Button } from '@/components/ui/button';
+import { Check } from 'lucide-react';
 
 /* Topographic contour lines background — inline SVG, no external files */
 function BackgroundShapes() {
@@ -340,15 +341,16 @@ const QUICK_STATS = [
 export default function Dashboard() {
   const { user } = useAuth();
   const { currentGroup } = useGroup();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [visibility, setVisibility] = useState<ModuleVisibility>(loadVisibility);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editMode, setEditMode] = useState(false);
+  const [moduleOrder, setModuleOrder] = useState<string[]>(loadModuleOrder);
 
   useEffect(() => {
     const handler = (e: Event) => {
       setSearchQuery((e as CustomEvent).detail || '');
     };
-    const configHandler = () => setSidebarOpen(true);
+    const configHandler = () => setEditMode(true);
     window.addEventListener('dashboard-search', handler);
     window.addEventListener('open-config-sidebar', configHandler);
     return () => {
@@ -459,19 +461,36 @@ export default function Dashboard() {
         <div className="space-y-3">
           {/* Module card stack */}
           <div data-tutorial="module-hub">
-            <ModuleHub visibility={visibility} searchQuery={searchQuery} />
+            <ModuleHub
+              visibility={visibility}
+              searchQuery={searchQuery}
+              editMode={editMode}
+              onToggle={handleToggle}
+              moduleOrder={moduleOrder}
+              onReorder={(order) => { setModuleOrder(order); saveModuleOrder(order); }}
+            />
           </div>
 
         </div>
       </div>
 
-      {/* Config sidebar */}
-      <ConfigSidebar
-        open={sidebarOpen}
-        onOpenChange={setSidebarOpen}
-        visibility={visibility}
-        onToggle={handleToggle}
-      />
+      {/* Edit mode floating "Done" button */}
+      {editMode && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50"
+        >
+          <Button
+            onClick={() => setEditMode(false)}
+            className="rounded-full px-6 py-3 text-sm font-bold shadow-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            size="lg"
+          >
+            <Check className="h-4 w-4 mr-2" />
+            Gata
+          </Button>
+        </motion.div>
+      )}
 
       {/* Sticky announcements ticker */}
       <AnnouncementsTicker />
