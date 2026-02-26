@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Megaphone, Award } from 'lucide-react';
 import { getAnnouncements } from '@/api/announcements';
@@ -13,7 +13,45 @@ interface TickerItem {
   link_url?: string;
 }
 
-export default function AnnouncementsTicker() {
+/* Organic wave SVG that sits on top of the ticker bar */
+function WaveDecoration() {
+  return (
+    <div className="absolute -top-[22px] left-0 right-0 h-[24px] pointer-events-none overflow-hidden">
+      <svg
+        viewBox="0 0 1440 24"
+        preserveAspectRatio="none"
+        className="w-full h-full"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Back wave — lighter */}
+        <path
+          d="M0,18 C120,6 240,2 360,8 C480,14 540,20 720,14 C900,8 1020,2 1140,6 C1260,10 1380,18 1440,14 L1440,24 L0,24 Z"
+          className="fill-primary/60"
+        />
+        {/* Middle wave */}
+        <path
+          d="M0,20 C160,10 280,6 420,12 C560,18 640,22 800,16 C960,10 1080,6 1200,10 C1320,14 1400,20 1440,18 L1440,24 L0,24 Z"
+          className="fill-primary/80"
+        />
+        {/* Front wave — solid */}
+        <path
+          d="M0,22 C200,14 320,10 480,16 C640,22 720,24 880,20 C1040,16 1160,12 1280,16 C1360,18 1420,22 1440,20 L1440,24 L0,24 Z"
+          className="fill-primary/90"
+        />
+        {/* Organic blob accents */}
+        <ellipse cx="280" cy="12" rx="14" ry="10" className="fill-primary/70" />
+        <ellipse cx="340" cy="8" rx="8" ry="7" className="fill-primary/65" />
+      </svg>
+    </div>
+  );
+}
+
+/* Vertical separator between ticker items */
+const Separator = () => (
+  <span className="inline-block w-px h-3.5 bg-primary-foreground/30 mx-5 align-middle" />
+);
+
+export default memo(function AnnouncementsTicker() {
   const navigate = useNavigate();
   const [announcementItems, setAnnouncementItems] = useState<TickerItem[]>([]);
   const { user } = useAuth();
@@ -89,29 +127,55 @@ export default function AnnouncementsTicker() {
 
   if (merged.length === 0) return null;
 
-  const tickerContent = merged.map(item => (
-    <span key={item.id} className="inline-flex items-center gap-2 mx-6">
-      {item.text}
-    </span>
-  ));
+  // Build ticker content with separators between items
+  const tickerContent = merged.flatMap((item, i) => {
+    const elements = [
+      <span key={item.id} className="inline-flex items-center gap-2">
+        {item.text}
+      </span>,
+    ];
+    if (i < merged.length - 1) {
+      elements.push(<Separator key={`sep-${item.id}`} />);
+    }
+    return elements;
+  });
+
+  // Duplicate with a separator in between for seamless loop
+  const fullContent = (
+    <>
+      {tickerContent}
+      <Separator key="sep-loop" />
+      {tickerContent}
+      <Separator key="sep-loop-2" />
+    </>
+  );
 
   return (
     <div
       data-tutorial="announcements"
       onClick={() => navigate('/anunturi')}
-      className="fixed bottom-0 right-0 left-0 lg:left-64 z-50 h-10 flex items-center cursor-pointer card-tappable safe-bottom"
+      className="fixed bottom-0 right-0 left-0 lg:left-64 z-50 cursor-pointer card-tappable safe-bottom"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="absolute inset-0 bg-primary/90 backdrop-blur-md" />
-      <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 h-10 border-r border-primary-foreground/20">
-        <Megaphone className="h-4 w-4 text-primary-foreground" />
-      </div>
-      <div className="relative z-10 flex-1 overflow-hidden">
-        <div className="animate-marquee whitespace-nowrap text-primary-foreground text-[13px]">
-          {tickerContent}
-          {tickerContent}
+      {/* Wave decoration above the bar */}
+      <WaveDecoration />
+
+      {/* Main ticker bar */}
+      <div className="relative h-10 flex items-center">
+        <div className="absolute inset-0 bg-primary/90 backdrop-blur-md" />
+
+        {/* Megaphone icon */}
+        <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 h-10 border-r border-primary-foreground/15">
+          <Megaphone className="h-4 w-4 text-primary-foreground" />
+        </div>
+
+        {/* Scrolling content */}
+        <div className="relative z-10 flex-1 overflow-hidden">
+          <div className="animate-marquee whitespace-nowrap text-primary-foreground text-[13px]">
+            {fullContent}
+          </div>
         </div>
       </div>
     </div>
   );
-}
+});
