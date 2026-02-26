@@ -41,7 +41,7 @@ export default memo(function ModulePanel({ isOpen, onClose, title, color, layout
         transition={panelSpring}
         className="fixed bottom-0 z-30 flex flex-col overflow-hidden shadow-2xl
           inset-x-0 lg:left-auto lg:right-0 lg:w-[min(640px,50vw)]"
-        style={{ top: 0, paddingTop: 'var(--header-height, 56px)', backgroundColor: color }}
+        style={{ top: 'var(--header-height, 56px)', backgroundColor: color }}
       >
         {/* Colored header bar */}
         <div className="flex items-center justify-between px-4 py-3 shrink-0">
