@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, memo, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel } from '@/utils/roles';
@@ -54,7 +54,7 @@ function BackgroundShapes() {
 }
 
 
-// Mock data for charts
+// Stable mock data — created once outside component to avoid re-renders
 const STORAGE_KEY = 'tid4k_visible_modules';
 
 const attendanceData = Array.from({ length: 28 }, (_, i) => ({
