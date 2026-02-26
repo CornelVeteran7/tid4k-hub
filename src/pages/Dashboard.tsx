@@ -14,6 +14,151 @@ import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
 
 const STORAGE_KEY = 'tid4k_visible_modules';
 
+// Mock data for charts
+const attendanceData = Array.from({ length: 28 }, (_, i) => ({
+  day: String(i + 1).padStart(2, '0'),
+  prezenti: Math.floor(Math.random() * 8) + 14,
+  absenti: Math.floor(Math.random() * 4) + 1,
+}));
+
+const userActivityData = [
+  { name: 'Maria Popescu', actions: 142 },
+  { name: 'Ion Ionescu', actions: 89 },
+  { name: 'Ana Dumitrescu', actions: 105 },
+  { name: 'Andrei Părinte', actions: 67 },
+  { name: 'Elena Stănescu', actions: 34 },
+];
+
+const docCategoryData = [
+  { name: 'Activități', value: 45, color: 'hsl(210,30%,40%)' },
+  { name: 'Administrativ', value: 23, color: 'hsl(145,63%,42%)' },
+  { name: 'Teme', value: 31, color: 'hsl(40,90%,55%)' },
+  { name: 'Fotografii', value: 67, color: 'hsl(0,72%,50%)' },
+];
+
+function DashboardCharts() {
+  return (
+    <div className="hidden lg:flex flex-col gap-5">
+      {/* Attendance trends */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.15 }}
+        className="rounded-2xl overflow-hidden border border-white/30 shadow-lg p-5"
+        style={{
+          background: 'rgba(255,255,255,0.45)',
+          backdropFilter: 'blur(24px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+        }}
+      >
+        <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-2 mb-4">
+          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          Tendințe prezență (ultimele 30 zile)
+        </h3>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={attendanceData}>
+            <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+            <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+            <Tooltip
+              contentStyle={{
+                background: 'rgba(255,255,255,0.9)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(0,0,0,0.1)',
+                borderRadius: '8px',
+                fontSize: '12px',
+              }}
+            />
+            <Line type="monotone" dataKey="prezenti" stroke="hsl(145,63%,42%)" strokeWidth={2} dot={{ r: 3 }} name="Prezenți" />
+            <Line type="monotone" dataKey="absenti" stroke="hsl(0,72%,50%)" strokeWidth={2} dot={{ r: 3 }} name="Absenți" />
+            <Legend iconSize={8} wrapperStyle={{ fontSize: '11px' }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      {/* Bottom row: User activity + Document categories */}
+      <div className="grid grid-cols-2 gap-5">
+        {/* User activity */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+          className="rounded-2xl overflow-hidden border border-white/30 shadow-lg p-5"
+          style={{
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(24px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+          }}
+        >
+          <h3 className="text-sm font-display font-bold text-foreground mb-4">Activitate utilizatori</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={userActivityData} layout="vertical" margin={{ left: 10 }}>
+              <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={80} stroke="hsl(var(--muted-foreground))" />
+              <Tooltip
+                contentStyle={{
+                  background: 'rgba(255,255,255,0.9)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                }}
+              />
+              <Bar dataKey="actions" fill="hsl(210,30%,35%)" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        {/* Document categories */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="rounded-2xl overflow-hidden border border-white/30 shadow-lg p-5"
+          style={{
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(24px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+          }}
+        >
+          <h3 className="text-sm font-display font-bold text-foreground mb-4">Documente pe categorii</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <PieChart>
+              <Pie
+                data={docCategoryData}
+                cx="50%"
+                cy="50%"
+                outerRadius={65}
+                dataKey="value"
+                label={({ value }) => value}
+                labelLine={false}
+                fontSize={11}
+                fontWeight={700}
+              >
+                {docCategoryData.map((entry, index) => (
+                  <Cell key={index} fill={entry.color} />
+                ))}
+              </Pie>
+              <Legend iconSize={8} wrapperStyle={{ fontSize: '10px' }} />
+              <Tooltip
+                contentStyle={{
+                  background: 'rgba(255,255,255,0.9)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 function loadVisibility(): ModuleVisibility {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
