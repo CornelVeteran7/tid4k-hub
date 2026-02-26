@@ -3,15 +3,142 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel } from '@/utils/roles';
 import { Badge } from '@/components/ui/badge';
-import { Users, Camera, FileText, MessageSquare, Clock, CalendarDays, Utensils, BookOpen, BarChart3 } from 'lucide-react';
+import { Users, Camera, FileText, Clock, CalendarDays, Utensils, BookOpen, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useModuleConfig } from '@/config/moduleConfig';
+import { useModuleConfig, type ModuleConfig } from '@/config/moduleConfig';
+import { getMenu } from '@/api/menu';
+import { format } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility, loadModuleOrder, saveModuleOrder } from '@/components/dashboard/ModuleHub';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
+import type { MenuItem } from '@/types';
+
+/* ── Meal time thresholds ── */
+const MEAL_SLOTS = [
+  { masa: 'mic_dejun', label: 'Mic dejun', startHour: 0, startMin: 0, endHour: 9, endMin: 0 },
+  { masa: 'gustare_1', label: 'Gustare 1', startHour: 9, startMin: 1, endHour: 10, endMin: 30 },
+  { masa: 'pranz', label: 'Prânz', startHour: 10, startMin: 31, endHour: 13, endMin: 0 },
+  { masa: 'gustare_2', label: 'Gustare 2', startHour: 13, startMin: 1, endHour: 23, endMin: 59 },
+];
+
+const RO_DAYS = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+
+function getCurrentMealSlot() {
+  const now = new Date();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  for (const slot of MEAL_SLOTS) {
+    const start = slot.startHour * 60 + slot.startMin;
+    const end = slot.endHour * 60 + slot.endMin;
+    if (mins >= start && mins <= end) return slot;
+  }
+  return MEAL_SLOTS[MEAL_SLOTS.length - 1];
+}
+
+function useCurrentMeal() {
+  const [meal, setMeal] = useState<{ label: string; content: string; emoji: string } | null>(null);
+  const [isWeekend, setIsWeekend] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const update = async () => {
+      const now = new Date();
+      const dayIndex = now.getDay();
+      if (dayIndex === 0 || dayIndex === 6) {
+        setIsWeekend(true);
+        setMeal(null);
+        return;
+      }
+      setIsWeekend(false);
+
+      const weekStr = format(now, "yyyy-'W'II");
+      const dayName = RO_DAYS[dayIndex];
+      const slot = getCurrentMealSlot();
+
+      try {
+        const menuData = await getMenu(weekStr);
+        const item = menuData.items.find(
+          (m: MenuItem) => m.masa === slot.masa && m.zi === dayName
+        );
+        if (!cancelled) {
+          setMeal({
+            label: slot.label,
+            content: item?.continut || 'Nu este disponibil',
+            emoji: item?.emoji || '🍽️',
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setMeal({ label: slot.label, content: 'Meniu indisponibil', emoji: '🍽️' });
+        }
+      }
+    };
+
+    update();
+    const interval = setInterval(update, 60_000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, []);
+
+  return { meal, isWeekend };
+}
+
+/* ── Quick Stats Row (extracted for meal integration) ── */
+function QuickStatsRow({ config }: { config: ModuleConfig }) {
+  const { meal, isWeekend } = useCurrentMeal();
+
+  return (
+    <div className="grid grid-cols-2 gap-2 mt-3">
+      {QUICK_STATS_BASE.map(stat => (
+        <button
+          key={stat.moduleKey}
+          onClick={() => window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }))}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 hover:scale-105 text-white"
+          style={{ backgroundColor: config[stat.moduleKey].color }}
+        >
+          <stat.icon className="h-3.5 w-3.5" />
+          <span>{config[stat.moduleKey].title}</span>
+          <span className="opacity-80">·</span>
+          <span>{stat.value}</span>
+        </button>
+      ))}
+      {/* 4th button: current meal */}
+      <button
+        onClick={() => window.dispatchEvent(new CustomEvent('open-module', { detail: 'meniu' }))}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 hover:scale-105 text-white"
+        style={{ backgroundColor: config.meniu.color }}
+      >
+        <Utensils className="h-3.5 w-3.5" />
+        {isWeekend ? (
+          <span>Weekend 😴</span>
+        ) : meal ? (
+          <span className="truncate">{meal.emoji} {meal.content.length > 20 ? meal.content.slice(0, 20) + '…' : meal.content}</span>
+        ) : (
+          <span>Se încarcă…</span>
+        )}
+      </button>
+    </div>
+  );
+}
+
+/* ── Desktop Summary Row (dynamic meal) ── */
+function DesktopSummary({ config }: { config: ModuleConfig }) {
+  const { meal, isWeekend } = useCurrentMeal();
+  const mealText = isWeekend ? 'Weekend — fără meniu' : (meal?.content || 'Se încarcă…');
+
+  return (
+    <div className="hidden lg:block mt-4 pt-3 border-t border-foreground/10">
+      <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
+        <div className="flex items-center gap-1.5"><Utensils className="h-3 w-3 text-[hsl(28,80%,52%)]" /><span className="text-muted-foreground">{meal?.label || 'Meniu'}:</span></div>
+        <span className="col-span-2 font-semibold text-foreground truncate">{mealText}</span>
+        <div className="flex items-center gap-1.5"><BookOpen className="h-3 w-3 text-[hsl(271,47%,53%)]" /><span className="text-muted-foreground">Activitate:</span></div>
+        <span className="col-span-2 font-semibold text-foreground truncate">Pictură pe sticlă</span>
+      </div>
+    </div>
+  );
+}
 
 /* Topographic contour lines background — inline SVG, no external files */
 function BackgroundShapes() {
@@ -336,7 +463,6 @@ const QUICK_STATS_BASE = [
   { icon: Users, value: '4/5', moduleKey: 'prezenta' as const },
   { icon: Camera, value: '12', moduleKey: 'imagini' as const },
   { icon: FileText, value: '3', moduleKey: 'documente' as const },
-  { icon: MessageSquare, value: '2', moduleKey: 'mesaje' as const },
 ];
 
 export default function Dashboard() {
@@ -427,31 +553,10 @@ export default function Dashboard() {
               </div>
 
               {/* Quick stats row */}
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                {QUICK_STATS_BASE.map(stat => (
-                  <button
-                    key={stat.moduleKey}
-                    onClick={() => window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }))}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 hover:scale-105 text-white"
-                    style={{ backgroundColor: config[stat.moduleKey].color }}
-                  >
-                    <stat.icon className="h-3.5 w-3.5" />
-                    <span>{config[stat.moduleKey].title}</span>
-                    <span className="opacity-80">·</span>
-                    <span>{stat.value}</span>
-                  </button>
-                ))}
-              </div>
+              <QuickStatsRow config={config} />
 
               {/* Desktop: Rezumatul zilei details */}
-              <div className="hidden lg:block mt-4 pt-3 border-t border-foreground/10">
-                <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
-                  <div className="flex items-center gap-1.5"><Utensils className="h-3 w-3 text-[hsl(28,80%,52%)]" /><span className="text-muted-foreground">Meniu:</span></div>
-                  <span className="col-span-2 font-semibold text-foreground truncate">Supă de legume, Pui</span>
-                  <div className="flex items-center gap-1.5"><BookOpen className="h-3 w-3 text-[hsl(271,47%,53%)]" /><span className="text-muted-foreground">Activitate:</span></div>
-                  <span className="col-span-2 font-semibold text-foreground truncate">Pictură pe sticlă</span>
-                </div>
-              </div>
+              <DesktopSummary config={config} />
             </div>
           </motion.div>
 
