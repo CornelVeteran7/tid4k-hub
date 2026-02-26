@@ -144,15 +144,15 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   // Drag handlers for reordering
   const makeDragProps = (idx: number) => ({
     draggable: true,
-    onDragStart: (e: React.DragEvent) => {
+    onDragStartCapture: (e: React.DragEvent) => {
       setDragIdx(idx);
       e.dataTransfer.effectAllowed = 'move';
     },
-    onDragOver: (e: React.DragEvent) => {
+    onDragOverCapture: (e: React.DragEvent) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
     },
-    onDrop: (e: React.DragEvent) => {
+    onDropCapture: (e: React.DragEvent) => {
       e.preventDefault();
       if (dragIdx === null || dragIdx === idx) return;
       const currentOrder = moduleOrder || MODULES.map(m => m.key);
@@ -162,7 +162,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
       onReorder?.(newOrder);
       setDragIdx(null);
     },
-    onDragEnd: () => setDragIdx(null),
+    onDragEndCapture: () => setDragIdx(null),
   });
 
   return (
