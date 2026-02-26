@@ -35,6 +35,8 @@ function BackgroundShapes() {
 
 
 // Mock data for charts
+const STORAGE_KEY = 'tid4k_visible_modules';
+
 const attendanceData = Array.from({ length: 28 }, (_, i) => ({
   day: String(i + 1).padStart(2, '0'),
   prezenti: Math.floor(Math.random() * 8) + 14,
