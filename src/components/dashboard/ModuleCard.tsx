@@ -49,7 +49,7 @@ export default function ModuleCard({ icon: Icon, title, subtitle, color, count, 
 
           {count !== undefined && (
             <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/25 text-white whitespace-nowrap">
-              {count} {countLabel || ''}
+              {count} <span className="hidden lg:inline">{countLabel || ''}</span>
             </span>
           )}
 
