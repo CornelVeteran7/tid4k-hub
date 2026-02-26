@@ -34,42 +34,38 @@ function SidebarDecoration() {
         xmlns="http://www.w3.org/2000/svg"
       >
         <g stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-          {/* Curvy lines that visually "continue" from the homepage background */}
-          <path d="M-10,60 C40,30 100,90 160,55 C220,20 250,80 290,50" />
-          <path d="M-10,120 C50,150 110,80 170,120 C230,160 260,100 290,130" />
-          <path d="M-10,200 C60,170 120,230 180,195 C240,160 270,210 290,190" />
-          <path d="M-10,290 C40,320 110,260 170,300 C230,340 260,280 290,310" />
-          <path d="M-10,380 C70,350 130,410 190,375 C250,340 270,390 290,370" />
-          <path d="M-10,470 C50,500 120,440 180,480 C240,520 260,460 290,490" />
-          <path d="M-10,560 C60,530 130,590 190,555 C250,520 270,570 290,550" />
-          <path d="M-10,650 C40,680 110,620 170,660 C230,700 260,640 290,670" />
-          <path d="M-10,740 C70,710 130,770 190,735 C250,700 270,750 290,730" />
-          <path d="M-10,830 C50,860 120,800 180,840 C240,880 260,820 290,850" />
+          {/* Fewer, more spaced curvy lines */}
+          <path d="M-10,80 C40,50 100,110 160,75 C220,40 250,100 290,70" />
+          <path d="M-10,250 C60,220 120,280 180,245 C240,210 270,260 290,240" />
+          <path d="M-10,450 C50,480 120,420 180,460 C240,500 260,440 290,470" />
+          <path d="M-10,650 C70,620 130,680 190,645 C250,610 270,660 290,640" />
+          <path d="M-10,820 C40,850 110,790 170,830 C230,870 260,810 290,840" />
         </g>
 
-        {/* Small flower — upper area */}
-        <g transform="translate(200, 160)" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.08">
-          <ellipse cx="0" cy="-8" rx="3.5" ry="7" />
-          <ellipse cx="0" cy="-8" rx="3.5" ry="7" transform="rotate(72)" />
-          <ellipse cx="0" cy="-8" rx="3.5" ry="7" transform="rotate(144)" />
-          <ellipse cx="0" cy="-8" rx="3.5" ry="7" transform="rotate(216)" />
-          <ellipse cx="0" cy="-8" rx="3.5" ry="7" transform="rotate(288)" />
-          <circle cx="0" cy="0" r="3" />
-          <path d="M0,7 C-1,20 1,35 -2,50" />
-          <path d="M-1,22 C-9,18 -10,26 -3,29" />
+        {/* Flower — upper-right area */}
+        <g transform="translate(200, 180)" stroke="white" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.12">
+          <ellipse cx="0" cy="-10" rx="4" ry="8" />
+          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(72)" />
+          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(144)" />
+          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(216)" />
+          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(288)" />
+          <circle cx="0" cy="0" r="3.5" />
+          <path d="M0,8 C-1,24 1,42 -2,60" />
+          <path d="M-1,28 C-11,23 -12,33 -4,36" />
+          <path d="M0,45 C8,40 11,48 4,52" />
         </g>
 
-        {/* Small bee — lower area */}
-        <g transform="translate(60, 580) rotate(-20)" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.08">
-          <ellipse cx="0" cy="0" rx="7" ry="4" />
-          <line x1="-2" y1="-3.5" x2="-2" y2="3.5" />
-          <line x1="2" y1="-4" x2="2" y2="4" />
-          <circle cx="8.5" cy="0" r="3" />
-          <path d="M10,-2 C12,-6 14,-7 15.5,-4.5" />
-          <path d="M10.5,-1 C13,-5 15,-4 16,-2" />
-          <ellipse cx="-1" cy="-6" rx="5" ry="2.5" transform="rotate(-12, -1, -6)" />
-          <ellipse cx="2" cy="-6.5" rx="4.5" ry="2" transform="rotate(10, 2, -6.5)" />
-          <line x1="-7" y1="0" x2="-9.5" y2="0.5" />
+        {/* Bee — lower-left area */}
+        <g transform="translate(70, 620) rotate(-15)" stroke="white" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.12">
+          <ellipse cx="0" cy="0" rx="9" ry="5" />
+          <line x1="-2.5" y1="-4.5" x2="-2.5" y2="4.5" />
+          <line x1="2.5" y1="-5" x2="2.5" y2="5" />
+          <circle cx="11" cy="0" r="3.5" />
+          <path d="M13,-2.5 C15,-8 18,-9 20,-6" />
+          <path d="M13.5,-1.5 C17,-7 20,-6 21,-3" />
+          <ellipse cx="-1" cy="-7.5" rx="6" ry="3" transform="rotate(-12, -1, -7.5)" />
+          <ellipse cx="3" cy="-8" rx="5.5" ry="2.5" transform="rotate(10, 3, -8)" />
+          <line x1="-9" y1="0" x2="-12" y2="0.5" />
         </g>
       </svg>
     </div>
