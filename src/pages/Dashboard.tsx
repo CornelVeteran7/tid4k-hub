@@ -7,9 +7,10 @@ import { Users, Camera, FileText, MessageSquare, Clock, CalendarDays, Utensils, 
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
-import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/components/dashboard/ModuleHub';
-import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
+import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility, loadModuleOrder, saveModuleOrder } from '@/components/dashboard/ModuleHub';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
+import { Button } from '@/components/ui/button';
+import { Check } from 'lucide-react';
 
 /* Topographic contour lines background — inline SVG, no external files */
 function BackgroundShapes() {
@@ -340,15 +341,16 @@ const QUICK_STATS = [
 export default function Dashboard() {
   const { user } = useAuth();
   const { currentGroup } = useGroup();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [visibility, setVisibility] = useState<ModuleVisibility>(loadVisibility);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editMode, setEditMode] = useState(false);
+  const [moduleOrder, setModuleOrder] = useState<string[]>(loadModuleOrder);
 
   useEffect(() => {
     const handler = (e: Event) => {
       setSearchQuery((e as CustomEvent).detail || '');
     };
-    const configHandler = () => setSidebarOpen(true);
+    const configHandler = () => setEditMode(true);
     window.addEventListener('dashboard-search', handler);
     window.addEventListener('open-config-sidebar', configHandler);
     return () => {

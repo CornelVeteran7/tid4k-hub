@@ -67,15 +67,41 @@ const MODULE_COMPONENTS: Record<string, React.LazyExoticComponent<React.Componen
   mesaje: Messages,
 };
 
+const ORDER_STORAGE_KEY = 'tid4k_module_order';
+
+export function loadModuleOrder(): string[] {
+  try {
+    const stored = localStorage.getItem(ORDER_STORAGE_KEY);
+    if (stored) {
+      const order = JSON.parse(stored) as string[];
+      // Ensure all modules are present
+      const allKeys = MODULES.map(m => m.key);
+      const validOrder = order.filter(k => allKeys.includes(k));
+      const missing = allKeys.filter(k => !validOrder.includes(k));
+      return [...validOrder, ...missing];
+    }
+  } catch {}
+  return MODULES.map(m => m.key);
+}
+
+export function saveModuleOrder(order: string[]) {
+  localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(order));
+}
+
 interface ModuleHubProps {
   visibility: ModuleVisibility;
   searchQuery?: string;
+  editMode?: boolean;
+  onToggle?: (key: keyof ModuleVisibility) => void;
+  moduleOrder?: string[];
+  onReorder?: (order: string[]) => void;
 }
 
-export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
+export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<Workshop | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
 
   useEffect(() => {
     getWorkshopOfMonth().then(setWorkshopOfMonth).catch(() => {});
@@ -88,12 +114,25 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
     return () => window.removeEventListener('open-module', handler);
   }, []);
 
-  let visibleModules = MODULES.filter(m => visibility[m.key as keyof ModuleVisibility]);
+  // Order modules according to saved order
+  const orderedModules = React.useMemo(() => {
+    if (!moduleOrder) return [...MODULES];
+    return [...MODULES].sort((a, b) => {
+      const ia = moduleOrder.indexOf(a.key);
+      const ib = moduleOrder.indexOf(b.key);
+      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+    });
+  }, [moduleOrder]);
 
-  // Filter by search
-  if (searchQuery && searchQuery.trim()) {
+  // In edit mode show ALL modules (so user can toggle hidden ones on); in normal mode filter
+  let displayModules = editMode
+    ? orderedModules
+    : orderedModules.filter(m => visibility[m.key as keyof ModuleVisibility]);
+
+  // Filter by search (only in normal mode)
+  if (!editMode && searchQuery && searchQuery.trim()) {
     const q = searchQuery.toLowerCase();
-    visibleModules = visibleModules.filter(m =>
+    displayModules = displayModules.filter(m =>
       m.title.toLowerCase().includes(q) || m.subtitle.toLowerCase().includes(q)
     );
   }
@@ -102,11 +141,35 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
   const ModuleComponent = openModule ? MODULE_COMPONENTS[openModule] : null;
   const shareModData = MODULES.find(m => m.key === shareModule);
 
+  // Drag handlers for reordering
+  const makeDragProps = (idx: number) => ({
+    draggable: true,
+    onDragStart: (e: React.DragEvent) => {
+      setDragIdx(idx);
+      e.dataTransfer.effectAllowed = 'move';
+    },
+    onDragOver: (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    },
+    onDrop: (e: React.DragEvent) => {
+      e.preventDefault();
+      if (dragIdx === null || dragIdx === idx) return;
+      const currentOrder = moduleOrder || MODULES.map(m => m.key);
+      const newOrder = [...currentOrder];
+      const [moved] = newOrder.splice(dragIdx, 1);
+      newOrder.splice(idx, 0, moved);
+      onReorder?.(newOrder);
+      setDragIdx(null);
+    },
+    onDragEnd: () => setDragIdx(null),
+  });
+
   return (
     <LayoutGroup>
       <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
         <AnimatePresence mode="popLayout">
-          {visibleModules.map((mod, i) => (
+          {displayModules.map((mod, i) => (
             <React.Fragment key={mod.key}>
               <motion.div
                 layout="position"
@@ -128,6 +191,10 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
                     onShare={() => setShareModule(mod.key)}
                     onOpen={() => setOpenModule(mod.key)}
                     layoutId={`module-${mod.key}`}
+                    editMode={editMode}
+                    visible={visibility[mod.key as keyof ModuleVisibility]}
+                    onToggleVisibility={() => onToggle?.(mod.key as keyof ModuleVisibility)}
+                    dragHandleProps={editMode ? makeDragProps(i) : undefined}
                     preview={mod.key === 'ateliere' && workshopOfMonth ? (
                       <div className="bg-white/15 rounded-lg px-3 py-2 mt-1">
                         <p className="text-sm font-semibold text-white">{workshopOfMonth.titlu}</p>
@@ -137,7 +204,8 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
                   />
                 )}
               </motion.div>
-              {mod.key === 'documente' && (
+              {/* Sponsor card stays fixed — not reorderable */}
+              {mod.key === 'documente' && !editMode && (
                 <motion.div
                   layout="position"
                   initial={{ opacity: 0, y: 8 }}
