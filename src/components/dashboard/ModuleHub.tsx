@@ -75,7 +75,7 @@ export function loadModuleOrder(): string[] {
     if (stored) {
       const order = JSON.parse(stored) as string[];
       // Ensure all modules are present
-      const allKeys = MODULES.map(m => m.key);
+      const allKeys: string[] = MODULES.map(m => m.key);
       const validOrder = order.filter(k => allKeys.includes(k));
       const missing = allKeys.filter(k => !validOrder.includes(k));
       return [...validOrder, ...missing];
