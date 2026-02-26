@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel } from '@/utils/roles';
 import { Badge } from '@/components/ui/badge';
-import { Users, Camera, FileText, MessageSquare } from 'lucide-react';
+import { Users, Camera, FileText, MessageSquare, Clock, CalendarDays, Utensils, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/components/dashboard/ModuleHub';
@@ -114,6 +114,49 @@ export default function Dashboard() {
                     <span>{stat.value}</span>
                   </button>
                 ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Desktop-only: Today's statistics */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+            className="hidden lg:block rounded-2xl overflow-hidden border border-white/30 shadow-lg"
+            style={{
+              background: 'rgba(255,255,255,0.45)',
+              backdropFilter: 'blur(24px) saturate(1.8)',
+              WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+            }}
+          >
+            <div className="p-5 space-y-3">
+              <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                Rezumatul zilei
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { icon: Users, label: 'Prezență', value: '4 din 5 copii', accent: 'text-[hsl(168,56%,42%)]' },
+                  { icon: Camera, label: 'Fotografii noi', value: '12 încărcate', accent: 'text-[hsl(145,63%,49%)]' },
+                  { icon: FileText, label: 'Documente', value: '3 noi', accent: 'text-[hsl(204,70%,53%)]' },
+                  { icon: MessageSquare, label: 'Mesaje', value: '2 necitite', accent: 'text-[hsl(340,82%,52%)]' },
+                  { icon: Utensils, label: 'Meniu', value: 'Supă de legume, Pui', accent: 'text-[hsl(28,80%,52%)]' },
+                  { icon: BookOpen, label: 'Activitate', value: 'Pictură pe sticlă', accent: 'text-[hsl(271,47%,53%)]' },
+                ].map(stat => (
+                  <div key={stat.label} className="flex items-center justify-between py-1.5 border-b border-foreground/5 last:border-0">
+                    <div className="flex items-center gap-2">
+                      <stat.icon className={`h-4 w-4 ${stat.accent}`} />
+                      <span className="text-sm text-muted-foreground">{stat.label}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-foreground">{stat.value}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
+                <Clock className="h-3 w-3" />
+                <span>Actualizat acum 5 minute</span>
               </div>
             </div>
           </motion.div>

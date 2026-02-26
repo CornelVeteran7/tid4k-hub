@@ -32,7 +32,7 @@ export default function ModuleCard({ icon: Icon, title, subtitle, color, count, 
 
         {/* Text */}
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-xs text-white tracking-widest uppercase truncate">{title}</p>
+          <p className="font-bold text-xs text-white tracking-widest uppercase">{title}</p>
           <p className="text-sm font-semibold text-white/90 truncate hidden lg:block">{subtitle}</p>
         </div>
 
@@ -48,8 +48,8 @@ export default function ModuleCard({ icon: Icon, title, subtitle, color, count, 
           )}
 
           {count !== undefined && (
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/25 text-white whitespace-nowrap">
-              {count} <span className="hidden lg:inline">{countLabel || ''}</span>
+            <span className="text-xs font-bold px-2 py-1 rounded-full bg-white/25 text-white whitespace-nowrap">
+              {count}
             </span>
           )}
 
