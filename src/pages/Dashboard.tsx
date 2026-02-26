@@ -116,51 +116,31 @@ export default function Dashboard() {
                   </button>
                 ))}
               </div>
+
+              {/* Desktop: Rezumatul zilei inline */}
+              <div className="hidden lg:block mt-4 pt-3 border-t border-foreground/10">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-display font-bold text-muted-foreground flex items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    Rezumatul zilei
+                  </h3>
+                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
+                    <Clock className="h-2.5 w-2.5" />
+                    Acum 5 min
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-x-4 gap-y-1 mt-2 text-xs">
+                  <div className="flex items-center gap-1.5"><Utensils className="h-3 w-3 text-[hsl(28,80%,52%)]" /><span className="text-muted-foreground">Meniu:</span></div>
+                  <span className="col-span-2 font-semibold text-foreground truncate">Supă de legume, Pui</span>
+                  <div className="flex items-center gap-1.5"><BookOpen className="h-3 w-3 text-[hsl(271,47%,53%)]" /><span className="text-muted-foreground">Activitate:</span></div>
+                  <span className="col-span-2 font-semibold text-foreground truncate">Pictură pe sticlă</span>
+                </div>
+              </div>
             </div>
           </motion.div>
 
-          {/* Desktop-only: Today's statistics */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.15 }}
-            className="hidden lg:block rounded-2xl overflow-hidden border border-white/30 shadow-lg"
-            style={{
-              background: 'rgba(255,255,255,0.45)',
-              backdropFilter: 'blur(24px) saturate(1.8)',
-              WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
-            }}
-          >
-            <div className="p-5 space-y-3">
-              <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                Rezumatul zilei
-              </h3>
-              <div className="space-y-2">
-                {[
-                  { icon: Users, label: 'Prezență', value: '4 din 5 copii', accent: 'text-[hsl(168,56%,42%)]' },
-                  { icon: Camera, label: 'Fotografii noi', value: '12 încărcate', accent: 'text-[hsl(145,63%,49%)]' },
-                  { icon: FileText, label: 'Documente', value: '3 noi', accent: 'text-[hsl(204,70%,53%)]' },
-                  { icon: MessageSquare, label: 'Mesaje', value: '2 necitite', accent: 'text-[hsl(340,82%,52%)]' },
-                  { icon: Utensils, label: 'Meniu', value: 'Supă de legume, Pui', accent: 'text-[hsl(28,80%,52%)]' },
-                  { icon: BookOpen, label: 'Activitate', value: 'Pictură pe sticlă', accent: 'text-[hsl(271,47%,53%)]' },
-                ].map(stat => (
-                  <div key={stat.label} className="flex items-center justify-between py-1.5 border-b border-foreground/5 last:border-0">
-                    <div className="flex items-center gap-2">
-                      <stat.icon className={`h-4 w-4 ${stat.accent}`} />
-                      <span className="text-sm text-muted-foreground">{stat.label}</span>
-                    </div>
-                    <span className="text-sm font-semibold text-foreground">{stat.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
-                <Clock className="h-3 w-3" />
-                <span>Actualizat acum 5 minute</span>
-              </div>
-            </div>
-          </motion.div>
+          {/* Desktop-only: Charts */}
+          <DashboardCharts />
 
         </div>
 
