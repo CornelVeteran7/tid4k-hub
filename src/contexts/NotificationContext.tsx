@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { getConversations } from '@/api/messages';
 import { getAnnouncements } from '@/api/announcements';
@@ -29,11 +29,36 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+const STORAGE_KEY = 'tid4k_notif_read';
+const MAX_NOTIFICATIONS = 15;
+
+function loadReadIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return new Set(JSON.parse(raw));
+  } catch {}
+  return new Set();
+}
+
+function saveReadIds(ids: Set<string>) {
+  // Only keep last 50 to avoid unbounded growth
+  const arr = [...ids].slice(-50);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+}
+
+function isWithinPastMonth(dateStr: string): boolean {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+  return date >= monthAgo;
+}
+
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [newAnnouncements, setNewAnnouncements] = useState(0);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const readIdsRef = useRef<Set<string>>(loadReadIds());
 
   const refreshNotifications = useCallback(async () => {
     if (!user) return;
@@ -45,64 +70,60 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         getWorkshopOfMonth(),
       ]);
 
-      // Count real unread messages
-      const totalUnreadMsgs = conversations.reduce((sum, c) => sum + c.necitite, 0);
-      setUnreadMessages(totalUnreadMsgs);
+      const readIds = readIdsRef.current;
 
-      // Count unread announcements
-      const unreadAnns = announcements.filter(a => !a.citit);
-      setNewAnnouncements(unreadAnns.length);
+      // Build ALL notification items (not just unread)
+      const msgNotifs: NotificationItem[] = conversations.map(c => ({
+        id: `msg-${c.id}`,
+        type: 'message' as const,
+        title: c.contact_nume,
+        description: c.necitite > 0
+          ? (c.necitite === 1 ? c.ultimul_mesaj : `${c.necitite} mesaje necitite`)
+          : c.ultimul_mesaj,
+        timestamp: c.data_ultimul_mesaj,
+        read: readIds.has(`msg-${c.id}`) || c.necitite === 0,
+        navigateTo: '/mesaje',
+        icon: 'message' as const,
+      }));
 
-      // Build notification items
-      const msgNotifs: NotificationItem[] = conversations
-        .filter(c => c.necitite > 0)
-        .map(c => ({
-          id: `msg-${c.id}`,
-          type: 'message' as const,
-          title: c.contact_nume,
-          description: c.necitite === 1
-            ? c.ultimul_mesaj
-            : `${c.necitite} mesaje necitite`,
-          timestamp: c.data_ultimul_mesaj,
-          read: false,
-          navigateTo: '/mesaje',
-          icon: 'message' as const,
-        }));
-
-      const annNotifs: NotificationItem[] = unreadAnns.map(a => ({
+      const annNotifs: NotificationItem[] = announcements.map(a => ({
         id: `ann-${a.id_info}`,
         type: 'announcement' as const,
         title: a.titlu,
         description: a.prioritate === 'urgent' ? '⚠️ Urgent' : a.autor,
         timestamp: a.data_upload,
-        read: false,
+        read: readIds.has(`ann-${a.id_info}`) || a.citit,
         navigateTo: '/anunturi',
         icon: a.prioritate === 'urgent' ? 'alert' as const : 'megaphone' as const,
       }));
 
-      // Workshop notification
       const workshopNotifs: NotificationItem[] = [];
       if (workshopOfMonth) {
-        const seenKey = `tid4k_seen_workshop_${workshopOfMonth.id_atelier}`;
-        if (!localStorage.getItem(seenKey)) {
-          workshopNotifs.push({
-            id: `ws-${workshopOfMonth.id_atelier}`,
-            type: 'workshop',
-            title: `Atelier nou: ${workshopOfMonth.titlu}`,
-            description: `${workshopOfMonth.instructor} · ${workshopOfMonth.durata_minute} min`,
-            timestamp: workshopOfMonth.data_publicare || workshopOfMonth.data_creare,
-            read: false,
-            navigateTo: '/',
-            icon: 'paintbrush',
-          });
-        }
+        const wsId = `ws-${workshopOfMonth.id_atelier}`;
+        workshopNotifs.push({
+          id: wsId,
+          type: 'workshop',
+          title: `Atelier nou: ${workshopOfMonth.titlu}`,
+          description: `${workshopOfMonth.instructor} · ${workshopOfMonth.durata_minute} min`,
+          timestamp: workshopOfMonth.data_publicare || workshopOfMonth.data_creare,
+          read: readIds.has(wsId),
+          navigateTo: '/',
+          icon: 'paintbrush',
+        });
       }
 
-      // Sort by timestamp descending
-      const all = [...msgNotifs, ...annNotifs, ...workshopNotifs].sort(
-        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
+      // Combine, filter to past month, sort by date, limit to MAX
+      const all = [...msgNotifs, ...annNotifs, ...workshopNotifs]
+        .filter(n => isWithinPastMonth(n.timestamp))
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, MAX_NOTIFICATIONS);
 
+      // Count unread
+      const unreadMsgs = all.filter(n => n.type === 'message' && !n.read).length;
+      const unreadAnns = all.filter(n => (n.type === 'announcement' || n.type === 'workshop') && !n.read).length;
+
+      setUnreadMessages(unreadMsgs);
+      setNewAnnouncements(unreadAnns);
       setNotifications(all);
     } catch (err) {
       console.error('Failed to refresh notifications:', err);
@@ -122,19 +143,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [user, refreshNotifications]);
 
   const markAsRead = useCallback((id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    // Recalculate counts
+    readIdsRef.current.add(id);
+    saveReadIds(readIdsRef.current);
+
     setNotifications(prev => {
-      const unreadMsgs = prev.filter(n => n.type === 'message' && !n.read && n.id !== id).length;
-      const unreadAnns = prev.filter(n => n.type === 'announcement' && !n.read && n.id !== id).length;
-      setUnreadMessages(unreadMsgs);
-      setNewAnnouncements(unreadAnns);
-      return prev.map(n => n.id === id ? { ...n, read: true } : n);
+      const updated = prev.map(n => n.id === id ? { ...n, read: true } : n);
+      setUnreadMessages(updated.filter(n => n.type === 'message' && !n.read).length);
+      setNewAnnouncements(updated.filter(n => (n.type === 'announcement' || n.type === 'workshop') && !n.read).length);
+      return updated;
     });
   }, []);
 
   const markAllAsRead = useCallback(() => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications(prev => {
+      prev.forEach(n => readIdsRef.current.add(n.id));
+      saveReadIds(readIdsRef.current);
+      return prev.map(n => ({ ...n, read: true }));
+    });
     setUnreadMessages(0);
     setNewAnnouncements(0);
   }, []);
