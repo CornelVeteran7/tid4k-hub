@@ -72,7 +72,7 @@ export default memo(function ModuleCard({
 
         {/* Text */}
         <div className="flex-1 min-w-0">
-          <p className="font-display font-bold text-xs text-white tracking-widest uppercase">{title}</p>
+          <p className="font-display font-bold text-sm text-white tracking-wide uppercase">{title}</p>
           <p className="font-display text-sm font-semibold text-white/90 hidden lg:block">{subtitle}</p>
         </div>
 
