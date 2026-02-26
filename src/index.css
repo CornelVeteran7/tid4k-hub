@@ -205,6 +205,24 @@ html, body {
   animation-play-state: paused;
 }
 
+/* Organic background rotation */
+@keyframes slow-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes slow-rotate-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+.animate-slow-rotate {
+  animation: slow-rotate 90s linear infinite;
+  will-change: transform;
+}
+.animate-slow-rotate-reverse {
+  animation: slow-rotate-reverse 120s linear infinite;
+  will-change: transform;
+}
+
 /* Print styles for attendance */
 @media print {
   body * {
