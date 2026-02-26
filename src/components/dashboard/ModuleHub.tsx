@@ -37,7 +37,7 @@ export const DEFAULT_VISIBILITY: ModuleVisibility = {
 };
 
 const MODULES = [
-  { key: 'prezenta', title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă', color: '#1ABC9C', icon: ClipboardList, countLabel: '', showShare: false, wide: false },
+  { key: 'prezenta', title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă', color: '#FF69B4', icon: ClipboardList, countLabel: '', showShare: false, wide: false },
   { key: 'imagini', title: 'IMAGINI', subtitle: 'Fotografii din activități', color: '#2ECC71', icon: Image, countLabel: 'imagini', showShare: true, wide: false },
   { key: 'documente', title: 'DOCUMENTE', subtitle: 'Fișiere PDF partajate', color: '#3498DB', icon: FileText, countLabel: 'documente', showShare: true, wide: false },
   { key: 'povesti', title: 'POVEȘTI', subtitle: 'Povești pentru copii', color: '#9B59B6', icon: BookOpen, countLabel: 'povești', showShare: false, wide: false },
