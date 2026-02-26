@@ -194,33 +194,37 @@ html, body {
 
 /* Marquee animation for announcements ticker */
 @keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 .animate-marquee {
   animation: marquee 20s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .animate-marquee:hover,
 .animate-marquee:active {
   animation-play-state: paused;
 }
 
-/* Organic background rotation */
+/* Organic background rotation — GPU-accelerated */
 @keyframes slow-rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from { transform: rotate(0deg) translateZ(0); }
+  to { transform: rotate(360deg) translateZ(0); }
 }
 @keyframes slow-rotate-reverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+  from { transform: rotate(360deg) translateZ(0); }
+  to { transform: rotate(0deg) translateZ(0); }
 }
 .animate-slow-rotate {
   animation: slow-rotate 90s linear infinite;
   will-change: transform;
+  backface-visibility: hidden;
 }
 .animate-slow-rotate-reverse {
   animation: slow-rotate-reverse 120s linear infinite;
   will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* Print styles for attendance */
