@@ -37,12 +37,12 @@ export const DEFAULT_VISIBILITY: ModuleVisibility = {
 };
 
 const MODULES = [
-  { key: 'prezenta', title: 'PREZENTA', subtitle: 'Înregistrează prezența', color: '#FFC107', icon: ClipboardList, countLabel: '', showShare: false },
+  { key: 'prezenta', title: 'PREZENTA', subtitle: 'Înregistrează prezența', color: '#1ABC9C', icon: ClipboardList, countLabel: '', showShare: false },
   { key: 'imagini', title: 'IMAGINI', subtitle: 'Fotografii activitati', color: '#2ECC71', icon: Image, countLabel: 'imagini', showShare: true },
   { key: 'documente', title: 'DOCUMENTE', subtitle: 'Fisiere PDF', color: '#3498DB', icon: FileText, countLabel: 'documente', showShare: true },
   { key: 'povesti', title: 'POVESTI', subtitle: 'Povesti pentru copii', color: '#9B59B6', icon: BookOpen, countLabel: 'povesti', showShare: false },
-  { key: 'ateliere', title: 'ATELIERE', subtitle: 'Activitati creative pentru copii', color: '#8E44AD', icon: Paintbrush, countLabel: 'ateliere', showShare: false },
-  { key: 'meniu', title: 'MENIUL SAPTAMANII', subtitle: 'Meniul zilnic pentru copii', color: '#F39C12', icon: UtensilsCrossed, countLabel: 'meniuri', showShare: false },
+  { key: 'ateliere', title: 'ATELIERE', subtitle: 'Activitati creative pentru copii', color: '#FFC107', icon: Paintbrush, countLabel: 'ateliere', showShare: false },
+  { key: 'meniu', title: 'MENIUL SAPTAMANII', subtitle: 'Meniul zilnic pentru copii', color: '#E67E22', icon: UtensilsCrossed, countLabel: 'meniuri', showShare: false },
   { key: 'mesaje', title: 'MESAJE', subtitle: 'Comunicare cu parintii', color: '#E91E63', icon: MessageSquare, countLabel: 'mesaje', showShare: false },
 ] as const;
 

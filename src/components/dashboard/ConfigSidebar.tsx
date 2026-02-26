@@ -7,11 +7,11 @@ import { toast } from 'sonner';
 import type { ModuleVisibility } from './ModuleHub';
 
 const MODULE_ITEMS = [
-  { key: 'prezenta', label: 'Prezența', icon: ClipboardList, color: '#FFC107' },
+  { key: 'prezenta', label: 'Prezența', icon: ClipboardList, color: '#1ABC9C' },
   { key: 'imagini', label: 'Imagini', icon: Image, color: '#2ECC71' },
   { key: 'documente', label: 'Documente', icon: FileText, color: '#3498DB' },
   { key: 'povesti', label: 'Povești / Ateliere', icon: BookOpen, color: '#9B59B6' },
-  { key: 'meniu', label: 'Meniu', icon: UtensilsCrossed, color: '#F39C12' },
+  { key: 'meniu', label: 'Meniu', icon: UtensilsCrossed, color: '#E67E22' },
   { key: 'mesaje', label: 'Mesaje', icon: MessageSquare, color: '#E91E63' },
 ] as const;
 
