@@ -102,6 +102,18 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<Workshop | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const { config } = useModuleConfig();
+
+  // Merge structural data with config
+  const MODULES = useMemo(() =>
+    MODULES_STRUCTURAL.map(m => ({
+      ...m,
+      title: config[m.key].title,
+      subtitle: config[m.key].subtitle,
+      color: config[m.key].color,
+    })),
+    [config]
+  );
 
   useEffect(() => {
     getWorkshopOfMonth().then(setWorkshopOfMonth).catch(() => {});
@@ -115,14 +127,14 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   }, []);
 
   // Order modules according to saved order
-  const orderedModules = React.useMemo(() => {
+  const orderedModules = useMemo(() => {
     if (!moduleOrder) return [...MODULES];
     return [...MODULES].sort((a, b) => {
       const ia = moduleOrder.indexOf(a.key);
       const ib = moduleOrder.indexOf(b.key);
       return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     });
-  }, [moduleOrder]);
+  }, [moduleOrder, MODULES]);
 
   // In edit mode show ALL modules (so user can toggle hidden ones on); in normal mode filter
   let displayModules = editMode
@@ -204,7 +216,6 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                   />
                 )}
               </motion.div>
-              {/* Sponsor card stays fixed — not reorderable */}
               {mod.key === 'documente' && !editMode && (
                 <motion.div
                   layout="position"
@@ -237,7 +248,6 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
         )}
       </AnimatePresence>
 
-      {/* Share dialog */}
       <ShareDialog
         open={!!shareModule}
         onOpenChange={(open) => { if (!open) setShareModule(null); }}
