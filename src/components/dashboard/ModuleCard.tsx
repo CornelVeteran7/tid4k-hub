@@ -32,9 +32,9 @@ const cardTransition = { type: 'spring', damping: 24, stiffness: 350, mass: 0.8 
 const wiggleAnimation = {
   rotate: [0, -0.8, 0.8, -0.6, 0.6, 0],
   transition: {
-    duration: 0.4,
+    duration: 0.8,
     repeat: Infinity,
-    repeatDelay: 0.1,
+    repeatDelay: 0.2,
     ease: 'easeInOut' as const,
   },
 };
@@ -51,10 +51,10 @@ export default memo(function ModuleCard({
       animate={editMode ? wiggleAnimation : {}}
       transition={cardTransition}
       onClick={editMode ? undefined : onOpen}
-      className={`card-tappable rounded-xl p-4 flex flex-col gap-3 shadow-md min-h-[72px] lg:min-h-[80px] relative ${
+      className={`card-tappable rounded-xl p-4 flex flex-col gap-3 shadow-md min-h-[72px] lg:min-h-[80px] relative transition-opacity duration-300 ${
         editMode ? 'cursor-default' : 'cursor-pointer'
-      } ${editMode && !visible ? 'opacity-40' : ''}`}
-      style={{ backgroundColor: color }}
+      }`}
+      style={{ backgroundColor: color, opacity: editMode && !visible ? 0.35 : 1 }}
       {...(editMode ? dragHandleProps : {})}
     >
       <div className="flex items-center gap-3">
