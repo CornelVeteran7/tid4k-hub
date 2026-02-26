@@ -16,31 +16,28 @@ interface TickerItem {
 /* Organic wave SVG that sits on top of the ticker bar */
 function WaveDecoration() {
   return (
-    <div className="absolute -top-[22px] left-0 right-0 h-[24px] pointer-events-none overflow-hidden">
+    <div className="absolute -top-[20px] left-0 right-0 h-[22px] pointer-events-none overflow-hidden">
       <svg
-        viewBox="0 0 1440 24"
+        viewBox="0 0 1440 22"
         preserveAspectRatio="none"
-        className="w-full h-full"
+        className="w-full h-full block"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Back wave — lighter */}
+        {/* Back wave — matches bar at lower opacity for depth */}
         <path
-          d="M0,18 C120,6 240,2 360,8 C480,14 540,20 720,14 C900,8 1020,2 1140,6 C1260,10 1380,18 1440,14 L1440,24 L0,24 Z"
-          className="fill-primary/60"
+          d="M0,16 C120,6 240,2 360,8 C480,14 540,18 720,12 C900,6 1020,2 1140,6 C1260,10 1380,16 1440,12 L1440,22 L0,22 Z"
+          className="fill-primary opacity-50"
         />
         {/* Middle wave */}
         <path
-          d="M0,20 C160,10 280,6 420,12 C560,18 640,22 800,16 C960,10 1080,6 1200,10 C1320,14 1400,20 1440,18 L1440,24 L0,24 Z"
-          className="fill-primary/80"
+          d="M0,18 C160,10 280,6 420,12 C560,18 640,20 800,14 C960,8 1080,6 1200,10 C1320,14 1400,18 1440,16 L1440,22 L0,22 Z"
+          className="fill-primary opacity-70"
         />
-        {/* Front wave — solid */}
+        {/* Front wave — same opacity as bar for seamless blend */}
         <path
-          d="M0,22 C200,14 320,10 480,16 C640,22 720,24 880,20 C1040,16 1160,12 1280,16 C1360,18 1420,22 1440,20 L1440,24 L0,24 Z"
-          className="fill-primary/90"
+          d="M0,20 C200,14 320,10 480,16 C640,20 720,22 880,18 C1040,14 1160,10 1280,14 C1360,16 1420,20 1440,18 L1440,22 L0,22 Z"
+          className="fill-primary opacity-90"
         />
-        {/* Organic blob accents */}
-        <ellipse cx="280" cy="12" rx="14" ry="10" className="fill-primary/70" />
-        <ellipse cx="340" cy="8" rx="8" ry="7" className="fill-primary/65" />
       </svg>
     </div>
   );
