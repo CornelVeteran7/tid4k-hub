@@ -16,6 +16,12 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const DAYS = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri'];
+const DAY_INDEX_MAP: Record<number, string> = { 1: 'Luni', 2: 'Marți', 3: 'Miercuri', 4: 'Joi', 5: 'Vineri' };
+
+function getTodayName(): string | null {
+  const dow = new Date().getDay();
+  return DAY_INDEX_MAP[dow] || null;
+}
 const MEALS: { key: MenuItem['masa']; label: string }[] = [
   { key: 'mic_dejun', label: 'Mic dejun' },
   { key: 'gustare_1', label: 'Gustare 1' },
