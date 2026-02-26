@@ -11,30 +11,46 @@ import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/componen
 import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
 
-/* Organic flowing background — inverted: blue bg with background-colored shapes */
+/* Topographic contour lines background — inline SVG, no external files */
 function BackgroundShapes() {
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
-      {/* Large inverted organic shape — fills edge to edge, visible on scroll */}
-      <div
-        className="absolute -top-[10%] -left-[5%] w-[110%] h-[120%] opacity-[0.07]"
-        style={{
-          backgroundColor: 'hsl(var(--background))',
-          WebkitMaskImage: 'url(/images/organic-bg-v1.svg)',
-          maskImage: 'url(/images/organic-bg-v1.svg)',
-          WebkitMaskSize: 'cover',
-          maskSize: 'cover',
-          WebkitMaskRepeat: 'no-repeat',
-          maskRepeat: 'no-repeat',
-          WebkitMaskPosition: 'center',
-          maskPosition: 'center',
-        }}
-      />
-      {/* Blue wash behind the mask — the "inverted" effect */}
-      <div
-        className="absolute -top-[10%] -left-[5%] w-[110%] h-[120%] -z-[1] opacity-[0.06]"
-        style={{ backgroundColor: 'hsl(var(--primary))' }}
-      />
+    <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
+      <svg
+        className="w-full h-full opacity-[0.09]"
+        viewBox="0 0 1440 1024"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g stroke="#0B3F56" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+          {/* Layer 1 — top area */}
+          <path d="M-20,80 C120,60 240,110 360,95 C480,80 560,40 720,65 C880,90 1000,50 1140,70 C1280,90 1380,55 1460,75" />
+          <path d="M-20,120 C100,140 220,90 380,115 C540,140 640,100 800,125 C960,150 1080,105 1220,130 C1360,155 1420,120 1460,135" />
+          <path d="M-20,170 C150,150 280,190 440,175 C600,160 700,200 860,180 C1020,160 1120,195 1280,178 C1380,165 1430,185 1460,175" />
+          
+          {/* Layer 2 — upper-mid */}
+          <path d="M-20,240 C80,220 200,260 340,245 C480,230 620,270 760,250 C900,230 1040,265 1180,248 C1320,231 1400,255 1460,242" />
+          <path d="M-20,290 C140,310 260,275 400,295 C540,315 680,280 820,300 C960,320 1100,285 1240,305 C1360,320 1420,295 1460,308" />
+          <path d="M-20,340 C100,325 230,355 370,338 C510,321 650,360 790,342 C930,324 1060,358 1200,340 C1340,322 1410,350 1460,338" />
+          
+          {/* Layer 3 — center */}
+          <path d="M-20,410 C160,430 300,395 440,415 C580,435 720,400 860,420 C1000,440 1140,405 1280,425 C1380,438 1430,415 1460,422" />
+          <path d="M-20,460 C120,445 260,475 400,458 C540,441 680,478 820,460 C960,442 1100,476 1240,458 C1360,445 1420,468 1460,455" />
+          <path d="M-20,510 C90,530 230,500 380,518 C530,536 670,505 810,520 C950,535 1090,502 1230,518 C1370,534 1430,510 1460,520" />
+          <path d="M-20,555 C150,540 290,568 430,552 C570,536 710,565 850,548 C990,531 1130,562 1270,545 C1370,535 1430,555 1460,548" />
+          
+          {/* Layer 4 — lower-mid */}
+          <path d="M-20,620 C130,640 270,610 410,628 C550,646 690,615 830,632 C970,649 1110,618 1250,635 C1370,648 1430,625 1460,635" />
+          <path d="M-20,670 C100,655 240,685 380,668 C520,651 660,688 800,670 C940,652 1080,685 1220,668 C1340,655 1420,675 1460,665" />
+          <path d="M-20,720 C160,738 300,708 440,725 C580,742 720,712 860,728 C1000,744 1140,715 1280,730 C1380,740 1430,720 1460,728" />
+          
+          {/* Layer 5 — bottom area */}
+          <path d="M-20,790 C120,775 260,805 400,788 C540,771 680,808 820,790 C960,772 1100,805 1240,788 C1360,775 1420,798 1460,785" />
+          <path d="M-20,840 C140,858 280,830 420,845 C560,860 700,832 840,848 C980,864 1120,835 1260,850 C1380,860 1430,840 1460,848" />
+          <path d="M-20,900 C100,885 240,915 380,898 C520,881 660,918 800,900 C940,882 1080,915 1220,898 C1340,885 1420,905 1460,895" />
+          <path d="M-20,950 C150,965 290,940 430,955 C570,970 710,942 850,958 C990,974 1130,945 1270,960 C1370,970 1430,948 1460,958" />
+        </g>
+      </svg>
     </div>
   );
 }
