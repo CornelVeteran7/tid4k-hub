@@ -22,6 +22,60 @@ import InkyAssistant from '@/components/InkyAssistant';
 import TutorialOverlay from '@/components/TutorialOverlay';
 import QuickUpload from '@/components/QuickUpload';
 
+/* Decorative SVG background for sidebar — white contour lines + flower + bee */
+function SidebarDecoration() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <svg
+        className="absolute inset-0 w-full h-full opacity-[0.06]"
+        viewBox="0 0 280 900"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+          {/* Curvy lines that visually "continue" from the homepage background */}
+          <path d="M-10,60 C40,30 100,90 160,55 C220,20 250,80 290,50" />
+          <path d="M-10,120 C50,150 110,80 170,120 C230,160 260,100 290,130" />
+          <path d="M-10,200 C60,170 120,230 180,195 C240,160 270,210 290,190" />
+          <path d="M-10,290 C40,320 110,260 170,300 C230,340 260,280 290,310" />
+          <path d="M-10,380 C70,350 130,410 190,375 C250,340 270,390 290,370" />
+          <path d="M-10,470 C50,500 120,440 180,480 C240,520 260,460 290,490" />
+          <path d="M-10,560 C60,530 130,590 190,555 C250,520 270,570 290,550" />
+          <path d="M-10,650 C40,680 110,620 170,660 C230,700 260,640 290,670" />
+          <path d="M-10,740 C70,710 130,770 190,735 C250,700 270,750 290,730" />
+          <path d="M-10,830 C50,860 120,800 180,840 C240,880 260,820 290,850" />
+        </g>
+
+        {/* Small flower — upper area */}
+        <g transform="translate(200, 160)" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.08">
+          <ellipse cx="0" cy="-8" rx="3.5" ry="7" />
+          <ellipse cx="0" cy="-8" rx="3.5" ry="7" transform="rotate(72)" />
+          <ellipse cx="0" cy="-8" rx="3.5" ry="7" transform="rotate(144)" />
+          <ellipse cx="0" cy="-8" rx="3.5" ry="7" transform="rotate(216)" />
+          <ellipse cx="0" cy="-8" rx="3.5" ry="7" transform="rotate(288)" />
+          <circle cx="0" cy="0" r="3" />
+          <path d="M0,7 C-1,20 1,35 -2,50" />
+          <path d="M-1,22 C-9,18 -10,26 -3,29" />
+        </g>
+
+        {/* Small bee — lower area */}
+        <g transform="translate(60, 580) rotate(-20)" stroke="white" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.08">
+          <ellipse cx="0" cy="0" rx="7" ry="4" />
+          <line x1="-2" y1="-3.5" x2="-2" y2="3.5" />
+          <line x1="2" y1="-4" x2="2" y2="4" />
+          <circle cx="8.5" cy="0" r="3" />
+          <path d="M10,-2 C12,-6 14,-7 15.5,-4.5" />
+          <path d="M10.5,-1 C13,-5 15,-4 16,-2" />
+          <ellipse cx="-1" cy="-6" rx="5" ry="2.5" transform="rotate(-12, -1, -6)" />
+          <ellipse cx="2" cy="-6.5" rx="4.5" ry="2" transform="rotate(10, 2, -6.5)" />
+          <line x1="-7" y1="0" x2="-9.5" y2="0.5" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 // Secondary nav — items NOT on the dashboard
 const SECONDARY_NAV = [
   { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'] },
