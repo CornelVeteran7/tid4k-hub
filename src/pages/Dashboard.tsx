@@ -5,6 +5,7 @@ import { getRoles, getRoleLabel } from '@/utils/roles';
 import { Badge } from '@/components/ui/badge';
 import { Users, Camera, FileText, MessageSquare, Clock, CalendarDays, Utensils, BookOpen, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useModuleConfig } from '@/config/moduleConfig';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility, loadModuleOrder, saveModuleOrder } from '@/components/dashboard/ModuleHub';
@@ -331,14 +332,15 @@ function loadVisibility(): ModuleVisibility {
   return { ...DEFAULT_VISIBILITY };
 }
 
-const QUICK_STATS = [
-  { icon: Users, label: 'Prezența azi', value: '4/5', colorClass: 'bg-[#FF69B4] text-white', moduleKey: 'prezenta' },
-  { icon: Camera, label: 'Fotografii azi', value: '12', colorClass: 'bg-[#2ECC71] text-white', moduleKey: 'imagini' },
-  { icon: FileText, label: 'Documente noi', value: '3', colorClass: 'bg-[#3498DB] text-white', moduleKey: 'documente' },
-  { icon: MessageSquare, label: 'Mesaje necitite', value: '2', colorClass: 'bg-[#E91E63] text-white', moduleKey: 'mesaje' },
+const QUICK_STATS_BASE = [
+  { icon: Users, value: '4/5', moduleKey: 'prezenta' as const },
+  { icon: Camera, value: '12', moduleKey: 'imagini' as const },
+  { icon: FileText, value: '3', moduleKey: 'documente' as const },
+  { icon: MessageSquare, value: '2', moduleKey: 'mesaje' as const },
 ];
 
 export default function Dashboard() {
+  const { config } = useModuleConfig();
   const { user } = useAuth();
   const { currentGroup } = useGroup();
   const [visibility, setVisibility] = useState<ModuleVisibility>(loadVisibility);
@@ -426,14 +428,15 @@ export default function Dashboard() {
 
               {/* Quick stats row */}
               <div className="grid grid-cols-2 gap-2 mt-3">
-                {QUICK_STATS.map(stat => (
+                {QUICK_STATS_BASE.map(stat => (
                   <button
-                    key={stat.label}
+                    key={stat.moduleKey}
                     onClick={() => window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }))}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 hover:scale-105 ${stat.colorClass}`}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 hover:scale-105 text-white"
+                    style={{ backgroundColor: config[stat.moduleKey].color }}
                   >
                     <stat.icon className="h-3.5 w-3.5" />
-                    <span>{stat.label}</span>
+                    <span>{config[stat.moduleKey].title}</span>
                     <span className="opacity-80">·</span>
                     <span>{stat.value}</span>
                   </button>

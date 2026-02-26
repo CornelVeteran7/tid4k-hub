@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { GroupProvider } from "@/contexts/GroupContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ExternalLinkProvider } from "@/contexts/ExternalLinkContext";
+import { ModuleConfigProvider } from "@/config/moduleConfig";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 import Login from "./pages/Login";
@@ -78,18 +79,20 @@ function ProtectedRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <ExternalLinkProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              <Route path="/login" element={<LoginRoute />} />
-              <Route path="/*" element={<ProtectedRoutes />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </ExternalLinkProvider>
+      <ModuleConfigProvider>
+        <ExternalLinkProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                <Route path="/login" element={<LoginRoute />} />
+                <Route path="/*" element={<ProtectedRoutes />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </ExternalLinkProvider>
+      </ModuleConfigProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
