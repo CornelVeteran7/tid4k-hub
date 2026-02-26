@@ -2,7 +2,8 @@ import React from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { ClipboardList, Image, FileText, BookOpen, UtensilsCrossed, MessageSquare, Paintbrush } from 'lucide-react';
 import SponsorCard from './SponsorCard';
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect, useMemo } from 'react';
+import { useModuleConfig, type ModuleKey } from '@/config/moduleConfig';
 import { Loader2 } from 'lucide-react';
 import ModuleCard from './ModuleCard';
 import ModulePanel from './ModulePanel';
@@ -36,14 +37,14 @@ export const DEFAULT_VISIBILITY: ModuleVisibility = {
   mesaje: true,
 };
 
-const MODULES = [
-  { key: 'prezenta', title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă', color: '#FF69B4', icon: ClipboardList, countLabel: '', showShare: false, wide: false },
-  { key: 'imagini', title: 'IMAGINI', subtitle: 'Fotografii din activități', color: '#2ECC71', icon: Image, countLabel: 'imagini', showShare: true, wide: false },
-  { key: 'documente', title: 'DOCUMENTE', subtitle: 'Fișiere PDF partajate', color: '#3498DB', icon: FileText, countLabel: 'documente', showShare: true, wide: false },
-  { key: 'povesti', title: 'POVEȘTI', subtitle: 'Povești pentru copii', color: '#9B59B6', icon: BookOpen, countLabel: 'povești', showShare: false, wide: false },
-  { key: 'ateliere', title: 'ATELIERE', subtitle: 'Activități creative pentru copii', color: '#FFC107', icon: Paintbrush, countLabel: 'ateliere', showShare: false, wide: true },
-  { key: 'meniu', title: 'MENIUL SĂPTĂMÂNII', subtitle: 'Meniul zilnic pentru copii', color: '#E67E22', icon: UtensilsCrossed, countLabel: 'meniuri', showShare: false, wide: false },
-  { key: 'mesaje', title: 'MESAJE', subtitle: 'Comunicare cu părinții', color: '#E91E63', icon: MessageSquare, countLabel: 'mesaje', showShare: false, wide: false },
+const MODULES_STRUCTURAL = [
+  { key: 'prezenta' as ModuleKey, icon: ClipboardList, countLabel: '', showShare: false, wide: false },
+  { key: 'imagini' as ModuleKey, icon: Image, countLabel: 'imagini', showShare: true, wide: false },
+  { key: 'documente' as ModuleKey, icon: FileText, countLabel: 'documente', showShare: true, wide: false },
+  { key: 'povesti' as ModuleKey, icon: BookOpen, countLabel: 'povești', showShare: false, wide: false },
+  { key: 'ateliere' as ModuleKey, icon: Paintbrush, countLabel: 'ateliere', showShare: false, wide: true },
+  { key: 'meniu' as ModuleKey, icon: UtensilsCrossed, countLabel: 'meniuri', showShare: false, wide: false },
+  { key: 'mesaje' as ModuleKey, icon: MessageSquare, countLabel: 'mesaje', showShare: false, wide: false },
 ] as const;
 
 // Mock counts
@@ -74,14 +75,13 @@ export function loadModuleOrder(): string[] {
     const stored = localStorage.getItem(ORDER_STORAGE_KEY);
     if (stored) {
       const order = JSON.parse(stored) as string[];
-      // Ensure all modules are present
-      const allKeys: string[] = MODULES.map(m => m.key);
+      const allKeys: string[] = MODULES_STRUCTURAL.map(m => m.key);
       const validOrder = order.filter(k => allKeys.includes(k));
       const missing = allKeys.filter(k => !validOrder.includes(k));
       return [...validOrder, ...missing];
     }
   } catch {}
-  return MODULES.map(m => m.key);
+  return MODULES_STRUCTURAL.map(m => m.key);
 }
 
 export function saveModuleOrder(order: string[]) {
@@ -102,6 +102,18 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<Workshop | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const { config } = useModuleConfig();
+
+  // Merge structural data with config
+  const MODULES = useMemo(() =>
+    MODULES_STRUCTURAL.map(m => ({
+      ...m,
+      title: config[m.key].title,
+      subtitle: config[m.key].subtitle,
+      color: config[m.key].color,
+    })),
+    [config]
+  );
 
   useEffect(() => {
     getWorkshopOfMonth().then(setWorkshopOfMonth).catch(() => {});
@@ -115,14 +127,14 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   }, []);
 
   // Order modules according to saved order
-  const orderedModules = React.useMemo(() => {
+  const orderedModules = useMemo(() => {
     if (!moduleOrder) return [...MODULES];
     return [...MODULES].sort((a, b) => {
       const ia = moduleOrder.indexOf(a.key);
       const ib = moduleOrder.indexOf(b.key);
       return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     });
-  }, [moduleOrder]);
+  }, [moduleOrder, MODULES]);
 
   // In edit mode show ALL modules (so user can toggle hidden ones on); in normal mode filter
   let displayModules = editMode
@@ -204,7 +216,6 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                   />
                 )}
               </motion.div>
-              {/* Sponsor card stays fixed — not reorderable */}
               {mod.key === 'documente' && !editMode && (
                 <motion.div
                   layout="position"
@@ -237,7 +248,6 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
         )}
       </AnimatePresence>
 
-      {/* Share dialog */}
       <ShareDialog
         open={!!shareModule}
         onOpenChange={(open) => { if (!open) setShareModule(null); }}

@@ -1,4 +1,10 @@
-import { Palette, Type, Layout, Megaphone, SidebarIcon, Flower2, Bug } from 'lucide-react';
+import { useState } from 'react';
+import { Palette, Type, Layout, Megaphone, SidebarIcon, Flower2, RotateCcw, Save } from 'lucide-react';
+import { useModuleConfig, DEFAULT_MODULE_CONFIG, type ModuleKey, type ModuleSettings } from '@/config/moduleConfig';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
 
 const BRAND_COLORS = [
   { name: 'Primary (Bec Navy)', token: '--primary', hsl: '200 42% 21%', hex: '#1E3A4C', usage: 'Butoane, ticker anunțuri, accente principale, linii fundal topografic' },
@@ -9,16 +15,6 @@ const BRAND_COLORS = [
   { name: 'Success Green', token: '--success', hsl: '145 63% 42%', hex: '#27AE60', usage: 'Prezență confirmată, acțiuni pozitive' },
   { name: 'Warning Gold', token: '--warning', hsl: '37 90% 51%', hex: '#F39C12', usage: 'Atenționări, badge-uri' },
   { name: 'Destructive Red', token: '--destructive', hsl: '1 66% 46%', hex: '#C0392B', usage: 'Ștergeri, erori, urgențe' },
-];
-
-const MODULE_COLORS = [
-  { name: 'Prezența', hex: '#FF69B4', usage: 'Card modul + buton quick-stat' },
-  { name: 'Imagini', hex: '#2ECC71', usage: 'Card modul fotografii' },
-  { name: 'Documente', hex: '#3498DB', usage: 'Card modul documente' },
-  { name: 'Povești', hex: '#9B59B6', usage: 'Card modul povești' },
-  { name: 'Ateliere', hex: '#FFC107', usage: 'Card modul ateliere' },
-  { name: 'Meniul Săptămânii', hex: '#E67E22', usage: 'Card modul meniu' },
-  { name: 'Mesaje', hex: '#E91E63', usage: 'Card modul mesaje' },
 ];
 
 function ColorSwatch({ hex, name, token, usage }: { hex: string; name: string; token?: string; usage: string }) {
@@ -36,6 +32,128 @@ function ColorSwatch({ hex, name, token, usage }: { hex: string; name: string; t
   );
 }
 
+const MODULE_KEYS: ModuleKey[] = ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje'];
+
+function ModuleEditor() {
+  const { config, updateModule, resetConfig } = useModuleConfig();
+  const [draft, setDraft] = useState<Record<ModuleKey, ModuleSettings>>(() => ({ ...config }));
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const handleChange = (key: ModuleKey, field: keyof ModuleSettings, value: string) => {
+    setDraft(prev => ({
+      ...prev,
+      [key]: { ...prev[key], [field]: value },
+    }));
+    setHasChanges(true);
+  };
+
+  const handleSave = () => {
+    for (const key of MODULE_KEYS) {
+      const d = draft[key];
+      const c = config[key];
+      if (d.color !== c.color || d.title !== c.title || d.subtitle !== c.subtitle) {
+        updateModule(key, d);
+      }
+    }
+    setHasChanges(false);
+    toast({ title: 'Salvat!', description: 'Culorile și textele modulelor au fost actualizate.' });
+  };
+
+  const handleReset = () => {
+    resetConfig();
+    setDraft({ ...DEFAULT_MODULE_CONFIG });
+    setHasChanges(false);
+    toast({ title: 'Resetat', description: 'Modulele au fost readuse la valorile implicite.' });
+  };
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+          <Palette className="h-4 w-4 text-muted-foreground" />
+          Editor Module Dashboard
+        </h3>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5">
+            <RotateCcw className="h-3.5 w-3.5" />
+            Resetează
+          </Button>
+          <Button size="sm" onClick={handleSave} disabled={!hasChanges} className="gap-1.5">
+            <Save className="h-3.5 w-3.5" />
+            Salvează
+          </Button>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Modificările se aplică pe toate școlile și grădinițele din sistem. Culorile, titlurile și subtitlurile se sincronizează între cardurile din dashboard și butoanele rapide.
+      </p>
+
+      <div className="rounded-xl border border-border bg-card divide-y divide-border">
+        {MODULE_KEYS.map(key => {
+          const mod = draft[key];
+          const isDefault = mod.color === DEFAULT_MODULE_CONFIG[key].color
+            && mod.title === DEFAULT_MODULE_CONFIG[key].title
+            && mod.subtitle === DEFAULT_MODULE_CONFIG[key].subtitle;
+
+          return (
+            <div key={key} className="p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                {/* Color picker */}
+                <div className="relative shrink-0">
+                  <div
+                    className="w-10 h-10 rounded-lg border-2 border-border shadow-sm cursor-pointer"
+                    style={{ backgroundColor: mod.color }}
+                  />
+                  <input
+                    type="color"
+                    value={mod.color}
+                    onChange={e => handleChange(key, 'color', e.target.value)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    title="Alege culoare"
+                  />
+                </div>
+
+                <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Titlu</Label>
+                    <Input
+                      value={mod.title}
+                      onChange={e => handleChange(key, 'title', e.target.value)}
+                      className="h-8 text-sm font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Subtitlu</Label>
+                    <Input
+                      value={mod.subtitle}
+                      onChange={e => handleChange(key, 'subtitle', e.target.value)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                </div>
+
+                {!isDefault && (
+                  <span className="text-[10px] text-primary font-medium shrink-0">Modificat</span>
+                )}
+              </div>
+
+              {/* Live preview */}
+              <div
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold text-white w-fit"
+                style={{ backgroundColor: mod.color }}
+              >
+                <span>{mod.title}</span>
+                <span className="opacity-60">·</span>
+                <span className="opacity-80 font-normal">{mod.subtitle}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export default function BrandingTab() {
   return (
     <div className="max-w-3xl space-y-8">
@@ -49,6 +167,9 @@ export default function BrandingTab() {
           Documentație centralizată a identității vizuale, paletei de culori și elementelor de design.
         </p>
       </div>
+
+      {/* Interactive Module Editor */}
+      <ModuleEditor />
 
       {/* Origin */}
       <section className="space-y-2">
@@ -73,19 +194,6 @@ export default function BrandingTab() {
         <div className="rounded-xl border border-border bg-card p-4 space-y-1">
           {BRAND_COLORS.map(c => (
             <ColorSwatch key={c.token} {...c} />
-          ))}
-        </div>
-      </section>
-
-      {/* Module Colors */}
-      <section className="space-y-3">
-        <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-          <Palette className="h-4 w-4 text-muted-foreground" />
-          Culori Module Dashboard
-        </h3>
-        <div className="rounded-xl border border-border bg-card p-4 space-y-1">
-          {MODULE_COLORS.map(c => (
-            <ColorSwatch key={c.hex} hex={c.hex} name={c.name} usage={c.usage} />
           ))}
         </div>
       </section>
