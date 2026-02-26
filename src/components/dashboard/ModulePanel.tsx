@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,10 @@ interface ModulePanelProps {
   children: ReactNode;
 }
 
-export default function ModulePanel({ isOpen, onClose, title, color, layoutId, children }: ModulePanelProps) {
+const panelSpring = { type: 'spring', damping: 30, stiffness: 280, mass: 0.9 } as const;
+const scrimTransition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] } as const;
+
+export default memo(function ModulePanel({ isOpen, onClose, title, color, layoutId, children }: ModulePanelProps) {
   if (!isOpen) return null;
 
   return (
@@ -22,7 +26,7 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
+        transition={scrimTransition}
         className="fixed inset-x-0 bottom-0 z-20"
         style={{ top: 'var(--header-height, 56px)' }}
         onClick={onClose}
@@ -33,7 +37,8 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
       {/* Panel — mobile: fullscreen below header, desktop: right-side panel */}
       <motion.div
         layoutId={layoutId}
-        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        layout="position"
+        transition={panelSpring}
         className="fixed bottom-0 z-30 flex flex-col overflow-hidden shadow-2xl
           inset-x-0 lg:left-auto lg:right-0 lg:w-[min(640px,50vw)]"
         style={{ top: 0, paddingTop: 'var(--header-height, 56px)', backgroundColor: color }}
@@ -55,7 +60,7 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.2 }}
+          transition={{ delay: 0.1, duration: 0.15 }}
           className="flex-1 overflow-y-auto bg-background p-4 lg:p-6 pb-24"
         >
           {children}
@@ -63,4 +68,4 @@ export default function ModulePanel({ isOpen, onClose, title, color, layoutId, c
       </motion.div>
     </>
   );
-}
+});

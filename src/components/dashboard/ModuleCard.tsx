@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, Send, type LucideIcon } from 'lucide-react';
 
@@ -15,11 +16,15 @@ interface ModuleCardProps {
   preview?: React.ReactNode;
 }
 
-export default function ModuleCard({ icon: Icon, title, subtitle, color, count, countLabel, onOpen, onShare, showShare, layoutId, preview }: ModuleCardProps) {
+const cardTransition = { type: 'spring', damping: 24, stiffness: 350, mass: 0.8 } as const;
+
+export default memo(function ModuleCard({ icon: Icon, title, subtitle, color, count, onOpen, onShare, showShare, layoutId, preview }: ModuleCardProps) {
   return (
     <motion.div
       layoutId={layoutId}
+      layout="position"
       whileTap={{ scale: 0.97 }}
+      transition={cardTransition}
       onClick={onOpen}
       className="card-tappable rounded-xl p-4 flex flex-col gap-3 cursor-pointer shadow-md min-h-[72px] lg:min-h-[80px]"
       style={{ backgroundColor: color }}
@@ -65,4 +70,4 @@ export default function ModuleCard({ icon: Icon, title, subtitle, color, count, 
       )}
     </motion.div>
   );
-}
+});
