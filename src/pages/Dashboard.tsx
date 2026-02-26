@@ -63,7 +63,7 @@ function BackgroundShapes() {
         </g>
 
         {/* Flower 2 — tulip, left-mid */}
-        <g transform="translate(120, 480)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <g transform="translate(650, 480)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <path d="M0,-20 C-8,-18 -14,-8 -12,0 C-10,6 -4,10 0,8" />
           <path d="M0,-20 C8,-18 14,-8 12,0 C10,6 4,10 0,8" />
           <path d="M0,-18 C-2,-12 -2,-4 0,8" />
@@ -94,7 +94,7 @@ function BackgroundShapes() {
         </g>
 
         {/* Flower 5 — tiny 4-petal, center-right */}
-        <g transform="translate(1350, 450)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <g transform="translate(780, 350)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <ellipse cx="0" cy="-8" rx="4" ry="7" />
           <ellipse cx="0" cy="-8" rx="4" ry="7" transform="rotate(90)" />
           <ellipse cx="0" cy="-8" rx="4" ry="7" transform="rotate(180)" />
@@ -105,7 +105,7 @@ function BackgroundShapes() {
         </g>
 
         {/* Bee 1 — lower-left */}
-        <g transform="translate(280, 650)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <g transform="translate(720, 750)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <ellipse cx="0" cy="0" rx="10" ry="6" />
           <line x1="-3" y1="-5.5" x2="-3" y2="5.5" />
           <line x1="2" y1="-6" x2="2" y2="6" />
@@ -131,7 +131,7 @@ function BackgroundShapes() {
         </g>
 
         {/* Bee 3 — right-mid, facing left */}
-        <g transform="translate(1300, 550) scale(-1,1)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <g transform="translate(820, 550) scale(-1,1)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <ellipse cx="0" cy="0" rx="9" ry="5.5" />
           <line x1="-2" y1="-5" x2="-2" y2="5" />
           <line x1="3" y1="-5.5" x2="3" y2="5.5" />
