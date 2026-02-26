@@ -155,6 +155,20 @@ function BackgroundShapes() {
           <ellipse cx="2" cy="-7" rx="5" ry="2.5" transform="rotate(12, 2, -7)" />
           <line x1="-7" y1="0" x2="-10" y2="0.5" />
         </g>
+
+        {/* Flower 6 — sunflower-style, bottom-center */}
+        <g transform="translate(720, 920)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="0" cy="-14" rx="4" ry="9" />
+          <ellipse cx="0" cy="-14" rx="4" ry="9" transform="rotate(45)" />
+          <ellipse cx="0" cy="-14" rx="4" ry="9" transform="rotate(90)" />
+          <ellipse cx="0" cy="-14" rx="4" ry="9" transform="rotate(135)" />
+          <ellipse cx="0" cy="-14" rx="4" ry="9" transform="rotate(180)" />
+          <ellipse cx="0" cy="-14" rx="4" ry="9" transform="rotate(225)" />
+          <ellipse cx="0" cy="-14" rx="4" ry="9" transform="rotate(270)" />
+          <ellipse cx="0" cy="-14" rx="4" ry="9" transform="rotate(315)" />
+          <circle cx="0" cy="0" r="5" />
+          <circle cx="0" cy="0" r="2.5" />
+        </g>
       </svg>
     </div>
   );
