@@ -49,40 +49,111 @@ function BackgroundShapes() {
           <path d="M-40,940 C80,1000 220,870 380,950 C540,1030 680,860 840,950 C1000,1040 1120,880 1280,950 C1380,1000 1440,890 1480,940" />
         </g>
 
-        {/* Simple flower — top-right area */}
+        {/* Flower 1 — 5-petal daisy, top-right */}
         <g transform="translate(1080, 180)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-          {/* Petals */}
           <ellipse cx="0" cy="-12" rx="5" ry="10" />
           <ellipse cx="0" cy="-12" rx="5" ry="10" transform="rotate(72)" />
           <ellipse cx="0" cy="-12" rx="5" ry="10" transform="rotate(144)" />
           <ellipse cx="0" cy="-12" rx="5" ry="10" transform="rotate(216)" />
           <ellipse cx="0" cy="-12" rx="5" ry="10" transform="rotate(288)" />
-          {/* Center */}
           <circle cx="0" cy="0" r="4" />
-          {/* Stem */}
           <path d="M0,10 C-2,30 2,50 -4,70" />
-          {/* Leaf */}
           <path d="M-2,40 C-14,35 -16,48 -4,50" />
           <path d="M0,55 C10,48 14,58 4,62" />
         </g>
 
-        {/* Simple bee — lower-left area */}
+        {/* Flower 2 — tulip, left-mid */}
+        <g transform="translate(120, 480)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M0,-20 C-8,-18 -14,-8 -12,0 C-10,6 -4,10 0,8" />
+          <path d="M0,-20 C8,-18 14,-8 12,0 C10,6 4,10 0,8" />
+          <path d="M0,-18 C-2,-12 -2,-4 0,8" />
+          <path d="M0,8 C1,30 -1,50 2,72" />
+          <path d="M0,35 C-12,28 -14,40 -4,44" />
+          <path d="M1,52 C11,46 14,56 5,60" />
+        </g>
+
+        {/* Flower 3 — 6-petal, bottom-right */}
+        <g transform="translate(1250, 750)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="0" cy="-10" rx="4" ry="8" />
+          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(60)" />
+          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(120)" />
+          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(180)" />
+          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(240)" />
+          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(300)" />
+          <circle cx="0" cy="0" r="3" />
+          <path d="M0,8 C-3,28 1,48 -2,65" />
+          <path d="M-1,30 C-10,24 -12,34 -3,38" />
+        </g>
+
+        {/* Flower 4 — simple bell/bluebell, top-left */}
+        <g transform="translate(350, 100)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M0,0 C-10,-4 -12,-16 -6,-22 C-2,-26 4,-26 8,-22 C14,-16 12,-4 0,0" />
+          <path d="M-4,-10 C-2,-6 2,-6 4,-10" />
+          <path d="M0,0 C2,20 -1,40 3,60" />
+          <path d="M1,25 C10,20 12,30 4,34" />
+        </g>
+
+        {/* Flower 5 — tiny 4-petal, center-right */}
+        <g transform="translate(1350, 450)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="0" cy="-8" rx="4" ry="7" />
+          <ellipse cx="0" cy="-8" rx="4" ry="7" transform="rotate(90)" />
+          <ellipse cx="0" cy="-8" rx="4" ry="7" transform="rotate(180)" />
+          <ellipse cx="0" cy="-8" rx="4" ry="7" transform="rotate(270)" />
+          <circle cx="0" cy="0" r="2.5" />
+          <path d="M0,7 C-1,22 1,38 -1,52" />
+          <path d="M0,20 C-8,16 -10,24 -3,27" />
+        </g>
+
+        {/* Bee 1 — lower-left */}
         <g transform="translate(280, 650)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-          {/* Body */}
           <ellipse cx="0" cy="0" rx="10" ry="6" />
-          {/* Stripes */}
           <line x1="-3" y1="-5.5" x2="-3" y2="5.5" />
           <line x1="2" y1="-6" x2="2" y2="6" />
-          {/* Head */}
           <circle cx="12" cy="0" r="4" />
-          {/* Antennae */}
           <path d="M14,-3 C16,-10 20,-12 22,-9" />
           <path d="M15,-2 C19,-8 23,-7 24,-4" />
-          {/* Wings */}
           <ellipse cx="-2" cy="-9" rx="7" ry="4" transform="rotate(-15, -2, -9)" />
           <ellipse cx="3" cy="-10" rx="6" ry="3.5" transform="rotate(10, 3, -10)" />
-          {/* Stinger */}
           <line x1="-10" y1="0" x2="-14" y2="0" />
+        </g>
+
+        {/* Bee 2 — top-center, angled */}
+        <g transform="translate(700, 130) rotate(-25)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="0" cy="0" rx="8" ry="5" />
+          <line x1="-2" y1="-4.5" x2="-2" y2="4.5" />
+          <line x1="2" y1="-5" x2="2" y2="5" />
+          <circle cx="10" cy="0" r="3.5" />
+          <path d="M12,-2 C14,-8 17,-9 19,-6" />
+          <path d="M12.5,-1 C16,-6 19,-5 20,-2" />
+          <ellipse cx="-1" cy="-7" rx="6" ry="3.5" transform="rotate(-10, -1, -7)" />
+          <ellipse cx="3" cy="-8" rx="5" ry="3" transform="rotate(15, 3, -8)" />
+          <line x1="-8" y1="0" x2="-11" y2="1" />
+        </g>
+
+        {/* Bee 3 — right-mid, facing left */}
+        <g transform="translate(1300, 550) scale(-1,1)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="0" cy="0" rx="9" ry="5.5" />
+          <line x1="-2" y1="-5" x2="-2" y2="5" />
+          <line x1="3" y1="-5.5" x2="3" y2="5.5" />
+          <circle cx="11" cy="0" r="3.5" />
+          <path d="M13,-2.5 C15,-9 18,-10 20,-7" />
+          <path d="M13.5,-1.5 C17,-7 20,-6 21,-3" />
+          <ellipse cx="-1" cy="-8" rx="6.5" ry="3.5" transform="rotate(-12, -1, -8)" />
+          <ellipse cx="3" cy="-9" rx="5.5" ry="3" transform="rotate(8, 3, -9)" />
+          <line x1="-9" y1="0" x2="-12" y2="0" />
+        </g>
+
+        {/* Bee 4 — bottom-center, small */}
+        <g transform="translate(600, 880) rotate(15)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="0" cy="0" rx="7" ry="4.5" />
+          <line x1="-2" y1="-4" x2="-2" y2="4" />
+          <line x1="2" y1="-4.5" x2="2" y2="4.5" />
+          <circle cx="9" cy="0" r="3" />
+          <path d="M11,-2 C13,-7 15,-8 17,-5" />
+          <path d="M11.5,-1 C14,-6 16,-5 17,-2.5" />
+          <ellipse cx="-1" cy="-6.5" rx="5.5" ry="3" transform="rotate(-10, -1, -6.5)" />
+          <ellipse cx="2" cy="-7" rx="5" ry="2.5" transform="rotate(12, 2, -7)" />
+          <line x1="-7" y1="0" x2="-10" y2="0.5" />
         </g>
       </svg>
     </div>
