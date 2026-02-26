@@ -487,11 +487,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   {notifications.length === 0 ? (
                     <div className="px-4 py-8 text-center">
                       <Bell className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
-                      <p className="text-sm text-muted-foreground">Nicio notificare nouă</p>
+                      <p className="text-sm text-muted-foreground">Nicio notificare</p>
                     </div>
                   ) : (
                     <div className="p-1.5 space-y-0.5">
-                      {notifications.map(notif => {
+                      {/* Unread section */}
+                      {notifications.some(n => !n.read) && (
+                        <p className="px-3 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Necitite</p>
+                      )}
+                      {notifications.filter(n => !n.read).map(notif => {
                         const timeAgo = getTimeAgo(notif.timestamp);
                         return (
                           <button
@@ -501,9 +505,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                               navigate(notif.navigateTo);
                               setNotifOpen(false);
                             }}
-                            className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted/60 transition-colors text-left ${
-                              !notif.read ? 'bg-primary/5' : ''
-                            }`}
+                            className="w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted/60 transition-all text-left bg-primary/5"
                           >
                             <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
                               notif.icon === 'alert'
@@ -523,13 +525,48 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className={`text-sm truncate ${!notif.read ? 'font-semibold' : 'font-medium'}`}>
-                                  {notif.title}
-                                </span>
-                                {!notif.read && (
-                                  <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
-                                )}
+                                <span className="text-sm font-semibold truncate">{notif.title}</span>
+                                <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
                               </div>
+                              <p className="text-xs text-muted-foreground truncate mt-0.5">{notif.description}</p>
+                              <p className="text-[10px] text-muted-foreground/70 mt-0.5">{timeAgo}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                      {/* Read history section */}
+                      {notifications.some(n => n.read) && (
+                        <p className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Istoric</p>
+                      )}
+                      {notifications.filter(n => n.read).map(notif => {
+                        const timeAgo = getTimeAgo(notif.timestamp);
+                        return (
+                          <button
+                            key={notif.id}
+                            onClick={() => {
+                              navigate(notif.navigateTo);
+                              setNotifOpen(false);
+                            }}
+                            className="w-full flex items-start gap-3 px-3 py-2 rounded-lg text-sm hover:bg-muted/40 transition-all text-left opacity-60"
+                          >
+                            <div className={`mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
+                              notif.icon === 'alert'
+                                ? 'bg-destructive/10 text-destructive'
+                                : notif.icon === 'message'
+                                ? 'bg-sky-500/10 text-sky-600'
+                                : notif.icon === 'paintbrush'
+                                ? 'bg-purple-500/10 text-purple-600'
+                                : 'bg-amber-500/10 text-amber-600'
+                            }`}>
+                              {notif.icon === 'message'
+                                ? <MessageSquare className="h-4 w-4" />
+                                : notif.icon === 'paintbrush'
+                                ? <Paintbrush className="h-4 w-4" />
+                                : <Megaphone className="h-4 w-4" />
+                              }
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm font-medium truncate block">{notif.title}</span>
                               <p className="text-xs text-muted-foreground truncate mt-0.5">{notif.description}</p>
                               <p className="text-[10px] text-muted-foreground/70 mt-0.5">{timeAgo}</p>
                             </div>
