@@ -33,7 +33,7 @@ const ADMIN_NAV = [
   { path: '/sponsori', label: 'Sponsori', icon: Award, roles: ['director', 'administrator'] },
   { path: '/rapoarte', label: 'Rapoarte', icon: BarChart3, roles: ['director', 'administrator'] },
   { path: '/admin', label: 'Panou Admin', icon: Settings, roles: ['administrator'] },
-  { path: '/infodisplay', label: 'Infodisplay', icon: Monitor, roles: ['profesor', 'director', 'administrator'] },
+  { path: '/infodisplay', label: 'InfoDisplay', icon: Monitor, roles: ['profesor', 'director', 'administrator'] },
 ];
 
 const INKY_ITEMS = [
