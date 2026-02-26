@@ -3,8 +3,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel } from '@/utils/roles';
 import { Badge } from '@/components/ui/badge';
-import { Users, Camera, FileText, MessageSquare, Clock, CalendarDays, Utensils, BookOpen } from 'lucide-react';
+import { Users, Camera, FileText, MessageSquare, Clock, CalendarDays, Utensils, BookOpen, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/components/dashboard/ModuleHub';
 import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
@@ -12,6 +13,151 @@ import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
 
 
 const STORAGE_KEY = 'tid4k_visible_modules';
+
+// Mock data for charts
+const attendanceData = Array.from({ length: 28 }, (_, i) => ({
+  day: String(i + 1).padStart(2, '0'),
+  prezenti: Math.floor(Math.random() * 8) + 14,
+  absenti: Math.floor(Math.random() * 4) + 1,
+}));
+
+const userActivityData = [
+  { name: 'Maria Popescu', actions: 142 },
+  { name: 'Ion Ionescu', actions: 89 },
+  { name: 'Ana Dumitrescu', actions: 105 },
+  { name: 'Andrei Părinte', actions: 67 },
+  { name: 'Elena Stănescu', actions: 34 },
+];
+
+const docCategoryData = [
+  { name: 'Activități', value: 45, color: 'hsl(210,30%,40%)' },
+  { name: 'Administrativ', value: 23, color: 'hsl(145,63%,42%)' },
+  { name: 'Teme', value: 31, color: 'hsl(40,90%,55%)' },
+  { name: 'Fotografii', value: 67, color: 'hsl(0,72%,50%)' },
+];
+
+function DashboardCharts() {
+  return (
+    <div className="hidden lg:flex flex-col gap-5">
+      {/* Attendance trends */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.15 }}
+        className="rounded-2xl overflow-hidden border border-white/30 shadow-lg p-5"
+        style={{
+          background: 'rgba(255,255,255,0.45)',
+          backdropFilter: 'blur(24px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+          boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+        }}
+      >
+        <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-2 mb-4">
+          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          Tendințe prezență (ultimele 30 zile)
+        </h3>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={attendanceData}>
+            <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+            <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+            <Tooltip
+              contentStyle={{
+                background: 'rgba(255,255,255,0.9)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(0,0,0,0.1)',
+                borderRadius: '8px',
+                fontSize: '12px',
+              }}
+            />
+            <Line type="monotone" dataKey="prezenti" stroke="hsl(145,63%,42%)" strokeWidth={2} dot={{ r: 3 }} name="Prezenți" />
+            <Line type="monotone" dataKey="absenti" stroke="hsl(0,72%,50%)" strokeWidth={2} dot={{ r: 3 }} name="Absenți" />
+            <Legend iconSize={8} wrapperStyle={{ fontSize: '11px' }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      {/* Bottom row: User activity + Document categories */}
+      <div className="grid grid-cols-2 gap-5">
+        {/* User activity */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+          className="rounded-2xl overflow-hidden border border-white/30 shadow-lg p-5"
+          style={{
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(24px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+          }}
+        >
+          <h3 className="text-sm font-display font-bold text-foreground mb-4">Activitate utilizatori</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={userActivityData} layout="vertical" margin={{ left: 10 }}>
+              <XAxis type="number" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={80} stroke="hsl(var(--muted-foreground))" />
+              <Tooltip
+                contentStyle={{
+                  background: 'rgba(255,255,255,0.9)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                }}
+              />
+              <Bar dataKey="actions" fill="hsl(210,30%,35%)" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        {/* Document categories */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="rounded-2xl overflow-hidden border border-white/30 shadow-lg p-5"
+          style={{
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(24px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+          }}
+        >
+          <h3 className="text-sm font-display font-bold text-foreground mb-4">Documente pe categorii</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <PieChart>
+              <Pie
+                data={docCategoryData}
+                cx="50%"
+                cy="50%"
+                outerRadius={65}
+                dataKey="value"
+                label={({ value }) => value}
+                labelLine={false}
+                fontSize={11}
+                fontWeight={700}
+              >
+                {docCategoryData.map((entry, index) => (
+                  <Cell key={index} fill={entry.color} />
+                ))}
+              </Pie>
+              <Legend iconSize={8} wrapperStyle={{ fontSize: '10px' }} />
+              <Tooltip
+                contentStyle={{
+                  background: 'rgba(255,255,255,0.9)',
+                  backdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 function loadVisibility(): ModuleVisibility {
   try {
@@ -115,51 +261,31 @@ export default function Dashboard() {
                   </button>
                 ))}
               </div>
+
+              {/* Desktop: Rezumatul zilei inline */}
+              <div className="hidden lg:block mt-4 pt-3 border-t border-foreground/10">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-display font-bold text-muted-foreground flex items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    Rezumatul zilei
+                  </h3>
+                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
+                    <Clock className="h-2.5 w-2.5" />
+                    Acum 5 min
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-x-4 gap-y-1 mt-2 text-xs">
+                  <div className="flex items-center gap-1.5"><Utensils className="h-3 w-3 text-[hsl(28,80%,52%)]" /><span className="text-muted-foreground">Meniu:</span></div>
+                  <span className="col-span-2 font-semibold text-foreground truncate">Supă de legume, Pui</span>
+                  <div className="flex items-center gap-1.5"><BookOpen className="h-3 w-3 text-[hsl(271,47%,53%)]" /><span className="text-muted-foreground">Activitate:</span></div>
+                  <span className="col-span-2 font-semibold text-foreground truncate">Pictură pe sticlă</span>
+                </div>
+              </div>
             </div>
           </motion.div>
 
-          {/* Desktop-only: Today's statistics */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.15 }}
-            className="hidden lg:block rounded-2xl overflow-hidden border border-white/30 shadow-lg"
-            style={{
-              background: 'rgba(255,255,255,0.45)',
-              backdropFilter: 'blur(24px) saturate(1.8)',
-              WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
-            }}
-          >
-            <div className="p-5 space-y-3">
-              <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                Rezumatul zilei
-              </h3>
-              <div className="space-y-2">
-                {[
-                  { icon: Users, label: 'Prezență', value: '4 din 5 copii', accent: 'text-[hsl(168,56%,42%)]' },
-                  { icon: Camera, label: 'Fotografii noi', value: '12 încărcate', accent: 'text-[hsl(145,63%,49%)]' },
-                  { icon: FileText, label: 'Documente', value: '3 noi', accent: 'text-[hsl(204,70%,53%)]' },
-                  { icon: MessageSquare, label: 'Mesaje', value: '2 necitite', accent: 'text-[hsl(340,82%,52%)]' },
-                  { icon: Utensils, label: 'Meniu', value: 'Supă de legume, Pui', accent: 'text-[hsl(28,80%,52%)]' },
-                  { icon: BookOpen, label: 'Activitate', value: 'Pictură pe sticlă', accent: 'text-[hsl(271,47%,53%)]' },
-                ].map(stat => (
-                  <div key={stat.label} className="flex items-center justify-between py-1.5 border-b border-foreground/5 last:border-0">
-                    <div className="flex items-center gap-2">
-                      <stat.icon className={`h-4 w-4 ${stat.accent}`} />
-                      <span className="text-sm text-muted-foreground">{stat.label}</span>
-                    </div>
-                    <span className="text-sm font-semibold text-foreground">{stat.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
-                <Clock className="h-3 w-3" />
-                <span>Actualizat acum 5 minute</span>
-              </div>
-            </div>
-          </motion.div>
+          {/* Desktop-only: Charts */}
+          <DashboardCharts />
 
         </div>
 
