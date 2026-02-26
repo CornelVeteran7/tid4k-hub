@@ -48,6 +48,42 @@ function BackgroundShapes() {
           <path d="M-40,880 C110,820 260,950 420,870 C580,790 720,960 880,880 C1040,800 1160,940 1300,870 C1400,820 1450,930 1480,880" />
           <path d="M-40,940 C80,1000 220,870 380,950 C540,1030 680,860 840,950 C1000,1040 1120,880 1280,950 C1380,1000 1440,890 1480,940" />
         </g>
+
+        {/* Simple flower — top-right area */}
+        <g transform="translate(1080, 180)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          {/* Petals */}
+          <ellipse cx="0" cy="-12" rx="5" ry="10" />
+          <ellipse cx="0" cy="-12" rx="5" ry="10" transform="rotate(72)" />
+          <ellipse cx="0" cy="-12" rx="5" ry="10" transform="rotate(144)" />
+          <ellipse cx="0" cy="-12" rx="5" ry="10" transform="rotate(216)" />
+          <ellipse cx="0" cy="-12" rx="5" ry="10" transform="rotate(288)" />
+          {/* Center */}
+          <circle cx="0" cy="0" r="4" />
+          {/* Stem */}
+          <path d="M0,10 C-2,30 2,50 -4,70" />
+          {/* Leaf */}
+          <path d="M-2,40 C-14,35 -16,48 -4,50" />
+          <path d="M0,55 C10,48 14,58 4,62" />
+        </g>
+
+        {/* Simple bee — lower-left area */}
+        <g transform="translate(280, 650)" stroke="hsl(200 42% 21%)" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          {/* Body */}
+          <ellipse cx="0" cy="0" rx="10" ry="6" />
+          {/* Stripes */}
+          <line x1="-3" y1="-5.5" x2="-3" y2="5.5" />
+          <line x1="2" y1="-6" x2="2" y2="6" />
+          {/* Head */}
+          <circle cx="12" cy="0" r="4" />
+          {/* Antennae */}
+          <path d="M14,-3 C16,-10 20,-12 22,-9" />
+          <path d="M15,-2 C19,-8 23,-7 24,-4" />
+          {/* Wings */}
+          <ellipse cx="-2" cy="-9" rx="7" ry="4" transform="rotate(-15, -2, -9)" />
+          <ellipse cx="3" cy="-10" rx="6" ry="3.5" transform="rotate(10, 3, -10)" />
+          {/* Stinger */}
+          <line x1="-10" y1="0" x2="-14" y2="0" />
+        </g>
       </svg>
     </div>
   );
