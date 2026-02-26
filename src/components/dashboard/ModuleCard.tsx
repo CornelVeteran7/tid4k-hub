@@ -35,7 +35,7 @@ const wiggleAnimation = {
     duration: 0.4,
     repeat: Infinity,
     repeatDelay: 0.1,
-    ease: 'easeInOut',
+    ease: 'easeInOut' as const,
   },
 };
 

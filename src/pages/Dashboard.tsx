@@ -467,13 +467,23 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Config sidebar */}
-      <ConfigSidebar
-        open={sidebarOpen}
-        onOpenChange={setSidebarOpen}
-        visibility={visibility}
-        onToggle={handleToggle}
-      />
+      {/* Edit mode floating "Done" button */}
+      {editMode && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50"
+        >
+          <Button
+            onClick={() => setEditMode(false)}
+            className="rounded-full px-6 py-3 text-sm font-bold shadow-xl bg-primary text-primary-foreground hover:bg-primary/90"
+            size="lg"
+          >
+            <Check className="h-4 w-4 mr-2" />
+            Gata
+          </Button>
+        </motion.div>
+      )}
 
       {/* Sticky announcements ticker */}
       <AnnouncementsTicker />
