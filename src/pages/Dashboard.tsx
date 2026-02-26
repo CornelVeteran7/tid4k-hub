@@ -11,44 +11,30 @@ import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/componen
 import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
 
-/* Organic flowing background — blue contour lines, transparent between lines */
+/* Organic flowing background — inverted: blue bg with background-colored shapes */
 function BackgroundShapes() {
   return (
     <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
-      <div className="absolute -left-[22%] -top-[14%] h-[74%] w-[160%] sm:-left-[10%] sm:w-[120%] lg:-top-[20%] lg:h-[95%] lg:w-[120%] opacity-[0.13] sm:opacity-[0.11] lg:opacity-[0.08]">
-        <div
-          className="h-full w-full animate-slow-rotate [animation-duration:160s]"
-          style={{
-            backgroundColor: 'hsl(var(--primary))',
-            WebkitMaskImage: 'url(/images/organic-bg-v1.svg)',
-            maskImage: 'url(/images/organic-bg-v1.svg)',
-            WebkitMaskSize: 'contain',
-            maskSize: 'contain',
-            WebkitMaskRepeat: 'no-repeat',
-            maskRepeat: 'no-repeat',
-            WebkitMaskPosition: 'center',
-            maskPosition: 'center',
-          }}
-        />
-      </div>
-
-      <div className="absolute -right-[35%] -bottom-[24%] h-[58%] w-[140%] sm:-right-[18%] sm:h-[65%] sm:w-[110%] lg:-right-[8%] lg:-bottom-[24%] lg:h-[85%] lg:w-[82%] opacity-[0.08] lg:opacity-[0.05]">
-        <div
-          className="h-full w-full animate-slow-rotate-reverse [animation-duration:210s]"
-          style={{
-            backgroundColor: 'hsl(var(--primary))',
-            WebkitMaskImage: 'url(/images/organic-bg-v1.svg)',
-            maskImage: 'url(/images/organic-bg-v1.svg)',
-            WebkitMaskSize: 'contain',
-            maskSize: 'contain',
-            WebkitMaskRepeat: 'no-repeat',
-            maskRepeat: 'no-repeat',
-            WebkitMaskPosition: 'center',
-            maskPosition: 'center',
-            transform: 'scaleX(-1)',
-          }}
-        />
-      </div>
+      {/* Large inverted organic shape — fills edge to edge, visible on scroll */}
+      <div
+        className="absolute -top-[10%] -left-[5%] w-[110%] h-[120%] opacity-[0.07]"
+        style={{
+          backgroundColor: 'hsl(var(--background))',
+          WebkitMaskImage: 'url(/images/organic-bg-v1.svg)',
+          maskImage: 'url(/images/organic-bg-v1.svg)',
+          WebkitMaskSize: 'cover',
+          maskSize: 'cover',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          maskPosition: 'center',
+        }}
+      />
+      {/* Blue wash behind the mask — the "inverted" effect */}
+      <div
+        className="absolute -top-[10%] -left-[5%] w-[110%] h-[120%] -z-[1] opacity-[0.06]"
+        style={{ backgroundColor: 'hsl(var(--primary))' }}
+      />
     </div>
   );
 }
