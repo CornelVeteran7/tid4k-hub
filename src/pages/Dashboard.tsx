@@ -229,7 +229,8 @@ export default function Dashboard() {
   const roles = getRoles(user.status);
 
   return (
-    <div className="min-w-0 pb-32">
+    <div className="min-w-0 pb-32 relative">
+      <BackgroundShapes />
       {/* Desktop: 2-column layout — welcome + children on left, modules on right */}
       <div className="lg:grid lg:grid-cols-[1fr_1.2fr] lg:gap-6 lg:items-start space-y-5 lg:space-y-0">
         {/* Left column: Welcome + Children */}
