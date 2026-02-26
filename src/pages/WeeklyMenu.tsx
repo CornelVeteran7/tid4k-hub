@@ -77,6 +77,8 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
   const [showEmoji, setShowEmoji] = useState(() => localStorage.getItem('tid4k_emoji') !== 'false');
   const [showNutrients, setShowNutrients] = useState(() => localStorage.getItem('tid4k_nutrients') !== 'false');
   const [showKcal, setShowKcal] = useState(() => localStorage.getItem('tid4k_kcal') !== 'false');
+  const todayName = dateToISOWeek(new Date()) === week ? getTodayName() : null;
+  const isToday = (d: string) => d === todayName;
   const [hasChanges, setHasChanges] = useState(false);
   const [editingCell, setEditingCell] = useState<string | null>(null);
 
