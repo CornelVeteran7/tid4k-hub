@@ -170,7 +170,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* ===== DESKTOP SIDEBAR — persistent, minimal ===== */}
-      <aside className="hidden lg:flex lg:relative w-64 bg-sidebar text-sidebar-foreground flex-col shrink-0">
+      <aside className="hidden lg:flex lg:relative w-64 bg-sidebar text-sidebar-foreground flex-col shrink-0 relative overflow-hidden">
+        <SidebarDecoration />
         {/* Logo */}
         <div className="flex items-center px-4 py-5 border-b border-sidebar-border">
           <img src={logoWhite} alt="InfoDisplay" className="h-11" />
@@ -281,7 +282,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* ===== MOBILE BOTTOM SHEET MENU ===== */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-72 bg-sidebar text-sidebar-foreground p-0">
+        <SheetContent side="left" className="w-72 bg-sidebar text-sidebar-foreground p-0 overflow-hidden">
+          <SidebarDecoration />
           <SheetHeader className="px-4 pt-5 pb-4 border-b border-sidebar-border">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-bold shrink-0">
