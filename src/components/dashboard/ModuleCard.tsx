@@ -20,10 +20,10 @@ interface ModuleCardProps {
   onToggleVisibility?: () => void;
   dragHandleProps?: {
     draggable: boolean;
-    onDragStart: (e: React.DragEvent) => void;
-    onDragOver: (e: React.DragEvent) => void;
-    onDrop: (e: React.DragEvent) => void;
-    onDragEnd: (e: React.DragEvent) => void;
+    onDragStartCapture: (e: React.DragEvent) => void;
+    onDragOverCapture: (e: React.DragEvent) => void;
+    onDropCapture: (e: React.DragEvent) => void;
+    onDragEndCapture: (e: React.DragEvent) => void;
   };
 }
 

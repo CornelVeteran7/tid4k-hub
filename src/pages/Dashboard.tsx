@@ -461,7 +461,14 @@ export default function Dashboard() {
         <div className="space-y-3">
           {/* Module card stack */}
           <div data-tutorial="module-hub">
-            <ModuleHub visibility={visibility} searchQuery={searchQuery} />
+            <ModuleHub
+              visibility={visibility}
+              searchQuery={searchQuery}
+              editMode={editMode}
+              onToggle={handleToggle}
+              moduleOrder={moduleOrder}
+              onReorder={(order) => { setModuleOrder(order); saveModuleOrder(order); }}
+            />
           </div>
 
         </div>
