@@ -184,7 +184,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
                 <tr className="bg-primary text-primary-foreground">
                   <th className="border border-primary/30 p-2.5 text-left w-24 text-xs">Masa</th>
                   {DAYS.map((d) => (
-                    <th key={d} className="border border-primary/30 p-2.5 text-center font-medium text-xs">{d}</th>
+                    <th key={d} className={cn("border border-primary/30 p-2.5 text-center font-medium text-xs", isToday(d) && "bg-primary-foreground/15 ring-2 ring-inset ring-primary-foreground/30")}>{d}</th>
                   ))}
                 </tr>
               </thead>
@@ -198,7 +198,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
                       return (
                         <td
                           key={cellKey}
-                          className="border p-2.5 text-xs leading-relaxed cursor-pointer hover:bg-muted/30 transition-colors"
+                          className={cn("border p-2.5 text-xs leading-relaxed cursor-pointer hover:bg-muted/30 transition-colors", isToday(zi) && "bg-primary/5 border-primary/20")}
                           onDoubleClick={() => isAdmin && setEditingCell(cellKey)}
                         >
                           {editingCell === cellKey ? (
@@ -223,7 +223,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
                     {DAYS.map((zi) => {
                       const nut = menu.nutritional.find((n) => n.zi === zi);
                       return (
-                        <td key={zi} className="border p-2.5 text-center">
+                        <td key={zi} className={cn("border p-2.5 text-center", isToday(zi) && "bg-primary/5 border-primary/20")}>
                           <span className={`font-mono font-bold text-xs ${nut ? getKcalColor(nut.kcal) : ''}`}>
                             {nut?.kcal || '—'}
                           </span>
@@ -250,7 +250,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
                 <thead>
                   <tr className="bg-primary text-primary-foreground">
                     <th className="border border-primary/30 p-2 text-left text-xs">Nutrient</th>
-                    {DAYS.map((d) => <th key={d} className="border border-primary/30 p-2 text-center text-xs">{d}</th>)}
+                    {DAYS.map((d) => <th key={d} className={cn("border border-primary/30 p-2 text-center text-xs", isToday(d) && "bg-primary-foreground/15 ring-2 ring-inset ring-primary-foreground/30")}>{d}</th>)}
                   </tr>
                 </thead>
                 <tbody>
@@ -259,7 +259,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
                       <td className="border p-2 font-medium capitalize text-xs">{key === 'kcal' ? 'Calorii (kcal)' : key.charAt(0).toUpperCase() + key.slice(1) + ' (g)'}</td>
                       {DAYS.map((zi) => {
                         const nut = menu.nutritional.find((n) => n.zi === zi);
-                        return <td key={zi} className="border p-2 text-center font-mono text-xs">{nut?.[key] || '—'}</td>;
+                        return <td key={zi} className={cn("border p-2 text-center font-mono text-xs", isToday(zi) && "bg-primary/5 border-primary/20")}>{nut?.[key] || '—'}</td>;
                       })}
                     </tr>
                   ))}
