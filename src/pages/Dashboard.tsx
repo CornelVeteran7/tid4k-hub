@@ -11,45 +11,44 @@ import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility } from '@/componen
 import ConfigSidebar from '@/components/dashboard/ConfigSidebar';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
 
-/* Organic flowing background — desktop only, uses uploaded SVG with theme blue */
+/* Organic flowing background — blue contour lines, transparent between lines */
 function BackgroundShapes() {
   return (
-    <div className="hidden lg:block fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden>
-      <div
-        className="absolute animate-slow-rotate"
-        style={{
-          top: '-20%',
-          left: '-10%',
-          width: '120%',
-          height: '120%',
-          opacity: 0.07,
-          WebkitMaskImage: 'url(/images/organic-bg.svg)',
-          maskImage: 'url(/images/organic-bg.svg)',
-          WebkitMaskSize: 'cover',
-          maskSize: 'cover',
-          WebkitMaskRepeat: 'no-repeat',
-          maskRepeat: 'no-repeat',
-          backgroundColor: 'hsl(var(--primary))',
-        }}
-      />
-      <div
-        className="absolute animate-slow-rotate-reverse"
-        style={{
-          top: '10%',
-          left: '20%',
-          width: '90%',
-          height: '90%',
-          opacity: 0.04,
-          WebkitMaskImage: 'url(/images/organic-bg.svg)',
-          maskImage: 'url(/images/organic-bg.svg)',
-          WebkitMaskSize: 'contain',
-          maskSize: 'contain',
-          WebkitMaskRepeat: 'no-repeat',
-          maskRepeat: 'no-repeat',
-          backgroundColor: 'hsl(var(--primary))',
-          transform: 'scaleX(-1)',
-        }}
-      />
+    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
+      <div className="absolute -left-[22%] -top-[14%] h-[74%] w-[160%] sm:-left-[10%] sm:w-[120%] lg:-top-[20%] lg:h-[95%] lg:w-[120%] opacity-[0.13] sm:opacity-[0.11] lg:opacity-[0.08]">
+        <div
+          className="h-full w-full animate-slow-rotate [animation-duration:160s]"
+          style={{
+            backgroundColor: 'hsl(var(--primary))',
+            WebkitMaskImage: 'url(/images/organic-bg-v1.svg)',
+            maskImage: 'url(/images/organic-bg-v1.svg)',
+            WebkitMaskSize: 'contain',
+            maskSize: 'contain',
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+            WebkitMaskPosition: 'center',
+            maskPosition: 'center',
+          }}
+        />
+      </div>
+
+      <div className="absolute -right-[35%] -bottom-[24%] h-[58%] w-[140%] sm:-right-[18%] sm:h-[65%] sm:w-[110%] lg:-right-[8%] lg:-bottom-[24%] lg:h-[85%] lg:w-[82%] opacity-[0.08] lg:opacity-[0.05]">
+        <div
+          className="h-full w-full animate-slow-rotate-reverse [animation-duration:210s]"
+          style={{
+            backgroundColor: 'hsl(var(--primary))',
+            WebkitMaskImage: 'url(/images/organic-bg-v1.svg)',
+            maskImage: 'url(/images/organic-bg-v1.svg)',
+            WebkitMaskSize: 'contain',
+            maskSize: 'contain',
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+            WebkitMaskPosition: 'center',
+            maskPosition: 'center',
+            transform: 'scaleX(-1)',
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -250,10 +249,10 @@ export default function Dashboard() {
   const roles = getRoles(user.status);
 
   return (
-    <div className="min-w-0 pb-32 relative">
+    <div className="relative isolate min-w-0 pb-32">
       <BackgroundShapes />
       {/* Desktop: 2-column layout — welcome + children on left, modules on right */}
-      <div className="lg:grid lg:grid-cols-[1fr_1.2fr] lg:gap-6 lg:items-start space-y-5 lg:space-y-0">
+      <div className="relative z-10 lg:grid lg:grid-cols-[1fr_1.2fr] lg:gap-6 lg:items-start space-y-5 lg:space-y-0">
         {/* Left column: Welcome + Children */}
         <div className="space-y-5">
           {/* Compact welcome banner with stats */}
