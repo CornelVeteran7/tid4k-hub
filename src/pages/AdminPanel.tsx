@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen } from 'lucide-react';
+import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette } from 'lucide-react';
 import { getSchools } from '@/api/schools';
 import type { School as SchoolType } from '@/types';
 import SchoolsTab from '@/components/admin/SchoolsTab';
@@ -11,6 +11,7 @@ import MenuTab from '@/components/admin/MenuTab';
 import SettingsTab from '@/components/admin/SettingsTab';
 import WorkshopsTab from '@/components/admin/WorkshopsTab';
 import DocsTab from '@/components/admin/DocsTab';
+import BrandingTab from '@/components/admin/BrandingTab';
 
 const TABS = [
   { value: 'scoli', label: 'Școli', icon: School },
@@ -20,6 +21,7 @@ const TABS = [
   { value: 'ateliere', label: 'Ateliere', icon: Paintbrush },
   { value: 'setari', label: 'Setări', icon: Settings },
   { value: 'docs', label: 'Docs', icon: BookOpen },
+  { value: 'branding', label: 'Branding', icon: Palette },
 ];
 
 export default function AdminPanel() {
@@ -81,6 +83,7 @@ export default function AdminPanel() {
           <TabsContent value="ateliere"><WorkshopsTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
           <TabsContent value="setari"><SettingsTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
           <TabsContent value="docs"><DocsTab /></TabsContent>
+          <TabsContent value="branding"><BrandingTab /></TabsContent>
         </div>
       </Tabs>
     </div>
