@@ -119,7 +119,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <aside className="hidden lg:flex lg:relative w-64 bg-sidebar text-sidebar-foreground flex-col shrink-0">
         {/* Logo */}
         <div className="flex items-center px-4 py-5 border-b border-sidebar-border">
-          <img src={logoWhite} alt="InfoDisplay" className="h-9" />
+          <img src={logoWhite} alt="InfoDisplay" className="h-11" />
         </div>
 
         {/* Group selector */}
