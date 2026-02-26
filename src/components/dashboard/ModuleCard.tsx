@@ -21,7 +21,7 @@ export default function ModuleCard({ icon: Icon, title, subtitle, color, count, 
       layoutId={layoutId}
       whileTap={{ scale: 0.97 }}
       onClick={onOpen}
-      className="card-tappable rounded-xl p-4 flex flex-col gap-3 cursor-pointer shadow-md"
+      className="card-tappable rounded-xl p-4 flex flex-col gap-3 cursor-pointer shadow-md min-h-[72px] lg:min-h-[80px]"
       style={{ backgroundColor: color }}
     >
       <div className="flex items-center gap-3">

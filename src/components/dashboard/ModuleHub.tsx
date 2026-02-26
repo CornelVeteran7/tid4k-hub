@@ -37,13 +37,13 @@ export const DEFAULT_VISIBILITY: ModuleVisibility = {
 };
 
 const MODULES = [
-  { key: 'prezenta', title: 'PREZENTA', subtitle: 'Înregistrează prezența', color: '#1ABC9C', icon: ClipboardList, countLabel: '', showShare: false },
-  { key: 'imagini', title: 'IMAGINI', subtitle: 'Fotografii activitati', color: '#2ECC71', icon: Image, countLabel: 'imagini', showShare: true },
-  { key: 'documente', title: 'DOCUMENTE', subtitle: 'Fisiere PDF', color: '#3498DB', icon: FileText, countLabel: 'documente', showShare: true },
-  { key: 'povesti', title: 'POVESTI', subtitle: 'Povesti pentru copii', color: '#9B59B6', icon: BookOpen, countLabel: 'povesti', showShare: false },
-  { key: 'ateliere', title: 'ATELIERE', subtitle: 'Activitati creative pentru copii', color: '#FFC107', icon: Paintbrush, countLabel: 'ateliere', showShare: false },
-  { key: 'meniu', title: 'MENIUL SAPTAMANII', subtitle: 'Meniul zilnic pentru copii', color: '#E67E22', icon: UtensilsCrossed, countLabel: 'meniuri', showShare: false },
-  { key: 'mesaje', title: 'MESAJE', subtitle: 'Comunicare cu parintii', color: '#E91E63', icon: MessageSquare, countLabel: 'mesaje', showShare: false },
+  { key: 'prezenta', title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă', color: '#1ABC9C', icon: ClipboardList, countLabel: '', showShare: false, wide: false },
+  { key: 'imagini', title: 'IMAGINI', subtitle: 'Fotografii din activități', color: '#2ECC71', icon: Image, countLabel: 'imagini', showShare: true, wide: false },
+  { key: 'documente', title: 'DOCUMENTE', subtitle: 'Fișiere PDF partajate', color: '#3498DB', icon: FileText, countLabel: 'documente', showShare: true, wide: false },
+  { key: 'povesti', title: 'POVEȘTI', subtitle: 'Povești pentru copii', color: '#9B59B6', icon: BookOpen, countLabel: 'povești', showShare: false, wide: false },
+  { key: 'ateliere', title: 'ATELIERE', subtitle: 'Activități creative pentru copii', color: '#FFC107', icon: Paintbrush, countLabel: 'ateliere', showShare: false, wide: true },
+  { key: 'meniu', title: 'MENIUL SĂPTĂMÂNII', subtitle: 'Meniul zilnic pentru copii', color: '#E67E22', icon: UtensilsCrossed, countLabel: 'meniuri', showShare: false, wide: false },
+  { key: 'mesaje', title: 'MESAJE', subtitle: 'Comunicare cu părinții', color: '#E91E63', icon: MessageSquare, countLabel: 'mesaje', showShare: false, wide: false },
 ] as const;
 
 // Mock counts
@@ -114,6 +114,7 @@ export default function ModuleHub({ visibility, searchQuery }: ModuleHubProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
+                className={mod.wide ? 'lg:col-span-2' : ''}
               >
                 {openModule !== mod.key && (
                   <ModuleCard
