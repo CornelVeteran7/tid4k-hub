@@ -269,7 +269,19 @@ export default function Dashboard() {
               boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
             }}
           >
-            <div className="p-5">
+            {/* Card title: Rezumatul zilei */}
+            <div className="hidden lg:flex items-center justify-between px-5 pt-4 pb-2">
+              <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                Rezumatul zilei
+              </h3>
+              <span className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
+                <Clock className="h-2.5 w-2.5" />
+                Acum 5 min
+              </span>
+            </div>
+
+            <div className="p-5 lg:pt-0">
               {/* Mobile only: show name (desktop shows in header) */}
               <h1 className="text-xl font-display font-bold text-foreground truncate lg:hidden">
                 Bun venit, {user.nume_prenume.split(' ')[0]}! 👋
@@ -305,19 +317,9 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              {/* Desktop: Rezumatul zilei inline */}
+              {/* Desktop: Rezumatul zilei details */}
               <div className="hidden lg:block mt-4 pt-3 border-t border-foreground/10">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-display font-bold text-muted-foreground flex items-center gap-1.5">
-                    <CalendarDays className="h-3.5 w-3.5" />
-                    Rezumatul zilei
-                  </h3>
-                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
-                    <Clock className="h-2.5 w-2.5" />
-                    Acum 5 min
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-x-4 gap-y-1 mt-2 text-xs">
+                <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
                   <div className="flex items-center gap-1.5"><Utensils className="h-3 w-3 text-[hsl(28,80%,52%)]" /><span className="text-muted-foreground">Meniu:</span></div>
                   <span className="col-span-2 font-semibold text-foreground truncate">Supă de legume, Pui</span>
                   <div className="flex items-center gap-1.5"><BookOpen className="h-3 w-3 text-[hsl(271,47%,53%)]" /><span className="text-muted-foreground">Activitate:</span></div>
