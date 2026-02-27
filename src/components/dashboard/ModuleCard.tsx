@@ -24,6 +24,10 @@ interface ModuleCardProps {
     onDragOverCapture: (e: React.DragEvent) => void;
     onDropCapture: (e: React.DragEvent) => void;
     onDragEndCapture: (e: React.DragEvent) => void;
+    onTouchStart: (e: React.TouchEvent) => void;
+    onTouchMove: (e: React.TouchEvent) => void;
+    onTouchEnd: (e: React.TouchEvent) => void;
+    ref: (el: HTMLElement | null) => void;
   };
 }
 
@@ -43,8 +47,12 @@ export default memo(function ModuleCard({
   icon: Icon, title, subtitle, color, count, onOpen, onShare, showShare,
   layoutId, preview, editMode, visible = true, onToggleVisibility, dragHandleProps,
 }: ModuleCardProps) {
+  // Separate ref from other drag props so we can pass ref to motion.div
+  const { ref: dragRef, ...dragEventProps } = dragHandleProps || {} as any;
+
   return (
     <motion.div
+      ref={editMode && dragRef ? dragRef : undefined}
       layoutId={layoutId}
       layout="position"
       whileTap={editMode ? undefined : { scale: 0.97 }}
@@ -52,10 +60,10 @@ export default memo(function ModuleCard({
       transition={cardTransition}
       onClick={editMode ? undefined : onOpen}
       className={`card-tappable rounded-xl p-4 flex flex-col gap-3 shadow-md min-h-[72px] lg:min-h-[80px] relative transition-opacity duration-300 ${
-        editMode ? 'cursor-default' : 'cursor-pointer'
+        editMode ? 'cursor-default touch-none' : 'cursor-pointer'
       }`}
       style={{ backgroundColor: color, opacity: editMode && !visible ? 0.35 : 1 }}
-      {...(editMode ? dragHandleProps : {})}
+      {...(editMode ? dragEventProps : {})}
     >
       <div className="flex items-center gap-3">
         {/* Drag handle in edit mode */}

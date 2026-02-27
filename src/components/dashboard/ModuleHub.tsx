@@ -10,6 +10,7 @@ import ModulePanel from './ModulePanel';
 import ShareDialog from './ShareDialog';
 import { getWorkshopOfMonth, getCategoryLabel } from '@/api/workshops';
 import type { Workshop } from '@/api/workshops';
+import { useTouchReorder } from '@/hooks/useTouchReorder';
 
 const Attendance = lazy(() => import('@/pages/Attendance'));
 const Documents = lazy(() => import('@/pages/Documents'));
@@ -101,7 +102,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<Workshop | null>(null);
-  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  // dragIdx state kept only for non-edit mode (not used but harmless)
   const { config } = useModuleConfig();
 
   // Merge structural data with config
@@ -153,28 +154,11 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   const ModuleComponent = openModule ? MODULE_COMPONENTS[openModule] : null;
   const shareModData = MODULES.find(m => m.key === shareModule);
 
-  // Drag handlers for reordering
-  const makeDragProps = (idx: number) => ({
-    draggable: true,
-    onDragStartCapture: (e: React.DragEvent) => {
-      setDragIdx(idx);
-      e.dataTransfer.effectAllowed = 'move';
-    },
-    onDragOverCapture: (e: React.DragEvent) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-    },
-    onDropCapture: (e: React.DragEvent) => {
-      e.preventDefault();
-      if (dragIdx === null || dragIdx === idx) return;
-      const currentOrder = moduleOrder || MODULES.map(m => m.key);
-      const newOrder = [...currentOrder];
-      const [moved] = newOrder.splice(dragIdx, 1);
-      newOrder.splice(idx, 0, moved);
-      onReorder?.(newOrder);
-      setDragIdx(null);
-    },
-    onDragEndCapture: () => setDragIdx(null),
+  // Touch + mouse drag reordering
+  const currentOrder = useMemo(() => moduleOrder || MODULES.map(m => m.key), [moduleOrder, MODULES]);
+  const { makeDragProps } = useTouchReorder({
+    items: currentOrder,
+    onReorder: (newOrder) => onReorder?.(newOrder),
   });
 
   return (
