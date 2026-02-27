@@ -8,9 +8,14 @@ interface UseTouchReorderOptions {
 export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
+
+  // Use refs to avoid stale closure issues in touch handlers
+  const dragIdxRef = useRef<number | null>(null);
+  const overIdxRef = useRef<number | null>(null);
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+
   const cardRefs = useRef<Map<number, HTMLElement>>(new Map());
-  const touchStartY = useRef(0);
-  const isDragging = useRef(false);
 
   const registerRef = useCallback((idx: number, el: HTMLElement | null) => {
     if (el) cardRefs.current.set(idx, el);
@@ -26,41 +31,43 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
   }, []);
 
   const handleTouchStart = useCallback((idx: number) => (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-    isDragging.current = false;
+    dragIdxRef.current = idx;
+    overIdxRef.current = null;
     setDragIdx(idx);
     setOverIdx(null);
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (dragIdx === null) return;
-    // Prevent scrolling while dragging
-    isDragging.current = true;
+    if (dragIdxRef.current === null) return;
     e.preventDefault();
     const touch = e.touches[0];
     const hitIdx = getIdxAtPoint(touch.clientY);
-    if (hitIdx !== null && hitIdx !== overIdx) {
+    if (hitIdx !== null && hitIdx !== overIdxRef.current) {
+      overIdxRef.current = hitIdx;
       setOverIdx(hitIdx);
     }
-  }, [dragIdx, overIdx, getIdxAtPoint]);
+  }, [getIdxAtPoint]);
 
   const handleTouchEnd = useCallback(() => {
-    if (dragIdx !== null && overIdx !== null && dragIdx !== overIdx) {
-      const newOrder = [...items];
-      const [moved] = newOrder.splice(dragIdx, 1);
-      newOrder.splice(overIdx, 0, moved);
+    const from = dragIdxRef.current;
+    const to = overIdxRef.current;
+    if (from !== null && to !== null && from !== to) {
+      const newOrder = [...itemsRef.current];
+      const [moved] = newOrder.splice(from, 1);
+      newOrder.splice(to, 0, moved);
       onReorder(newOrder);
     }
+    dragIdxRef.current = null;
+    overIdxRef.current = null;
     setDragIdx(null);
     setOverIdx(null);
-    isDragging.current = false;
-  }, [dragIdx, overIdx, items, onReorder]);
+  }, [onReorder]);
 
-  // Combined drag props (HTML5 + touch)
   const makeDragProps = useCallback((idx: number) => ({
     // HTML5 drag (desktop)
     draggable: true,
     onDragStartCapture: (e: React.DragEvent) => {
+      dragIdxRef.current = idx;
       setDragIdx(idx);
       e.dataTransfer.effectAllowed = 'move';
     },
@@ -70,20 +77,25 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
     },
     onDropCapture: (e: React.DragEvent) => {
       e.preventDefault();
-      if (dragIdx === null || dragIdx === idx) return;
-      const newOrder = [...items];
-      const [moved] = newOrder.splice(dragIdx, 1);
+      const from = dragIdxRef.current;
+      if (from === null || from === idx) return;
+      const newOrder = [...itemsRef.current];
+      const [moved] = newOrder.splice(from, 1);
       newOrder.splice(idx, 0, moved);
       onReorder(newOrder);
+      dragIdxRef.current = null;
       setDragIdx(null);
     },
-    onDragEndCapture: () => setDragIdx(null),
+    onDragEndCapture: () => {
+      dragIdxRef.current = null;
+      setDragIdx(null);
+    },
     // Touch drag (mobile)
     onTouchStart: handleTouchStart(idx),
     onTouchMove: handleTouchMove,
     onTouchEnd: handleTouchEnd,
     ref: (el: HTMLElement | null) => registerRef(idx, el),
-  }), [dragIdx, items, onReorder, handleTouchStart, handleTouchMove, handleTouchEnd, registerRef]);
+  }), [onReorder, handleTouchStart, handleTouchMove, handleTouchEnd, registerRef]);
 
   return { makeDragProps, dragIdx, overIdx };
 }
