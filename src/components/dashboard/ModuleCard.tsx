@@ -25,7 +25,6 @@ interface ModuleCardProps {
     onDropCapture: (e: React.DragEvent) => void;
     onDragEndCapture: (e: React.DragEvent) => void;
     onTouchStart: (e: React.TouchEvent) => void;
-    onTouchEnd: (e: React.TouchEvent) => void;
     ref: (el: HTMLElement | null) => void;
   };
 }

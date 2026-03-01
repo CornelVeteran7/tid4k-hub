@@ -264,6 +264,14 @@ html, body {
   }
 }
 
+/* Reorder dragging — prevent text selection & touch callout globally */
+.reorder-dragging,
+.reorder-dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
 /* Print styles for attendance */
 @media print {
   body * {
