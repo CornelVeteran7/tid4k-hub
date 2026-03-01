@@ -49,7 +49,7 @@ export default memo(function ModulePanel({ isOpen, onClose, title, color, layout
           <Button
             variant="ghost"
             size="icon"
-            className="text-white bg-black/20 hover:bg-black/40 h-9 w-9 rounded-full backdrop-blur-sm"
+            className="text-white bg-accent hover:bg-accent/80 h-9 w-9 rounded-full"
             onClick={onClose}
           >
             <X className="h-5 w-5" strokeWidth={2.5} />
