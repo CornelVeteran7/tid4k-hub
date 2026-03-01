@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 
 interface UseTouchReorderOptions {
   items: string[];
@@ -9,7 +9,6 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
 
-  // Use refs to avoid stale closure issues in touch handlers
   const dragIdxRef = useRef<number | null>(null);
   const overIdxRef = useRef<number | null>(null);
   const itemsRef = useRef(items);
@@ -22,13 +21,38 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
     else cardRefs.current.delete(idx);
   }, []);
 
-  const getIdxAtPoint = useCallback((y: number): number | null => {
+  const getIdxAtPoint = useCallback((x: number, y: number): number | null => {
     for (const [idx, el] of cardRefs.current.entries()) {
       const rect = el.getBoundingClientRect();
-      if (y >= rect.top && y <= rect.bottom) return idx;
+      if (y >= rect.top && y <= rect.bottom && x >= rect.left && x <= rect.right) return idx;
     }
     return null;
   }, []);
+
+  // Native touchmove handler attached with { passive: false } so preventDefault works
+  const touchMoveHandler = useCallback((e: TouchEvent) => {
+    if (dragIdxRef.current === null) return;
+    e.preventDefault(); // This now works because listener is non-passive
+    const touch = e.touches[0];
+    const hitIdx = getIdxAtPoint(touch.clientX, touch.clientY);
+    if (hitIdx !== null && hitIdx !== overIdxRef.current) {
+      overIdxRef.current = hitIdx;
+      setOverIdx(hitIdx);
+    }
+  }, [getIdxAtPoint]);
+
+  // Attach/detach native touchmove listener on all registered elements
+  useEffect(() => {
+    const elements = Array.from(cardRefs.current.values());
+    elements.forEach(el => {
+      el.addEventListener('touchmove', touchMoveHandler, { passive: false });
+    });
+    return () => {
+      elements.forEach(el => {
+        el.removeEventListener('touchmove', touchMoveHandler);
+      });
+    };
+  }, [touchMoveHandler, dragIdx]); // re-attach when dragIdx changes (elements may re-render)
 
   const handleTouchStart = useCallback((idx: number) => (e: React.TouchEvent) => {
     dragIdxRef.current = idx;
@@ -36,17 +60,6 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
     setDragIdx(idx);
     setOverIdx(null);
   }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (dragIdxRef.current === null) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const hitIdx = getIdxAtPoint(touch.clientY);
-    if (hitIdx !== null && hitIdx !== overIdxRef.current) {
-      overIdxRef.current = hitIdx;
-      setOverIdx(hitIdx);
-    }
-  }, [getIdxAtPoint]);
 
   const handleTouchEnd = useCallback(() => {
     const from = dragIdxRef.current;
@@ -90,12 +103,11 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
       dragIdxRef.current = null;
       setDragIdx(null);
     },
-    // Touch drag (mobile)
+    // Touch drag (mobile) — only start/end via React; move is native
     onTouchStart: handleTouchStart(idx),
-    onTouchMove: handleTouchMove,
     onTouchEnd: handleTouchEnd,
     ref: (el: HTMLElement | null) => registerRef(idx, el),
-  }), [onReorder, handleTouchStart, handleTouchMove, handleTouchEnd, registerRef]);
+  }), [onReorder, handleTouchStart, handleTouchEnd, registerRef]);
 
   return { makeDragProps, dragIdx, overIdx };
 }
