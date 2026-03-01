@@ -45,7 +45,7 @@ function WaveDecoration() {
 
 /* Vertical separator between ticker items */
 const Separator = () => (
-  <span className="inline-block w-px h-3.5 bg-primary-foreground/30 mx-5 align-middle" />
+  <span className="inline-block w-px h-3.5 bg-accent-foreground/30 mx-5 align-middle" />
 );
 
 export default memo(function AnnouncementsTicker() {
@@ -162,13 +162,13 @@ export default memo(function AnnouncementsTicker() {
         <div className="absolute inset-0 bg-accent/90 backdrop-blur-md" />
 
         {/* Megaphone icon */}
-        <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 h-10 border-r border-primary-foreground/15">
-          <Megaphone className="h-4 w-4 text-primary-foreground" />
+        <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 h-10 border-r border-accent-foreground/15">
+          <Megaphone className="h-4 w-4 text-accent-foreground" />
         </div>
 
         {/* Scrolling content */}
         <div className="relative z-10 flex-1 overflow-hidden">
-          <div className="animate-marquee whitespace-nowrap text-primary-foreground text-[13px]">
+          <div className="animate-marquee whitespace-nowrap text-accent-foreground text-[13px]">
             {fullContent}
           </div>
         </div>
