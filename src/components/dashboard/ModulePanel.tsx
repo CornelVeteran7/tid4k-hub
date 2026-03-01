@@ -9,6 +9,7 @@ interface ModulePanelProps {
   onClose: () => void;
   title: string;
   color: string;
+  textColor?: string;
   layoutId?: string;
   children: ReactNode;
 }

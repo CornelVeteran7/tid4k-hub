@@ -8,6 +8,7 @@ interface ModuleCardProps {
   title: string;
   subtitle: string;
   color: string;
+  textColor?: string;
   count?: number;
   countLabel?: string;
   onOpen?: () => void;

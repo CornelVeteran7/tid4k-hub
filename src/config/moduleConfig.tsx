@@ -4,6 +4,7 @@ export type ModuleKey = 'prezenta' | 'imagini' | 'documente' | 'povesti' | 'atel
 
 export interface ModuleSettings {
   color: string;
+  textColor?: string;
   title: string;
   subtitle: string;
 }
@@ -11,11 +12,11 @@ export interface ModuleSettings {
 export type ModuleConfig = Record<ModuleKey, ModuleSettings>;
 
 export const DEFAULT_MODULE_CONFIG: ModuleConfig = {
-  prezenta: { color: '#E91E63', title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă' },
+  prezenta: { color: '#E8829A', title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă' },
   imagini: { color: '#2ECC71', title: 'IMAGINI', subtitle: 'Fotografii din activități' },
   documente: { color: '#3498DB', title: 'DOCUMENTE', subtitle: 'Fișiere PDF partajate' },
   povesti: { color: '#9B59B6', title: 'POVEȘTI', subtitle: 'Povești pentru copii' },
-  ateliere: { color: '#FFC107', title: 'ATELIERE', subtitle: 'Activități creative pentru copii' },
+  ateliere: { color: '#FFC107', textColor: '#1a1a1a', title: 'ATELIERE', subtitle: 'Activități creative pentru copii' },
   meniu: { color: '#FF8C42', title: 'MENIUL SĂPTĂMÂNII', subtitle: 'Meniul zilnic pentru copii' },
   mesaje: { color: '#a19afe', title: 'MESAJE', subtitle: 'Comunicare cu părinții' },
 };
