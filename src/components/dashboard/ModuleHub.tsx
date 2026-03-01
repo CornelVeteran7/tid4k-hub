@@ -112,6 +112,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
       title: config[m.key].title,
       subtitle: config[m.key].subtitle,
       color: config[m.key].color,
+      textColor: config[m.key].textColor,
     })),
     [config]
   );
@@ -181,7 +182,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                     title={mod.title}
                     subtitle={mod.subtitle}
                     color={mod.color}
-                    count={MOCK_COUNTS[mod.key]}
+                    textColor={mod.textColor}
                     countLabel={mod.countLabel}
                     showShare={mod.showShare}
                     onShare={() => setShareModule(mod.key)}
@@ -223,6 +224,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
             onClose={() => setOpenModule(null)}
             title={openMod.title}
             color={openMod.color}
+            textColor={openMod.textColor}
             layoutId={`module-${openMod.key}`}
           >
             <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
