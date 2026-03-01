@@ -281,20 +281,20 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
 
       {/* ===== MOBILE BOTTOM SHEET MENU ===== */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-72 bg-accent/90 text-accent-foreground p-0 overflow-hidden">
+        <SheetContent side="left" className="w-72 bg-sidebar text-sidebar-foreground p-0 overflow-hidden">
           <SidebarDecoration />
-          <SheetHeader className="px-4 pt-5 pb-4 border-b border-white/15">
+          <SheetHeader className="px-4 pt-5 pb-4 border-b border-sidebar-border">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold text-white shrink-0">
+              <div className="h-10 w-10 rounded-full bg-sidebar-accent flex items-center justify-center text-sm font-bold shrink-0">
                 {user.nume_prenume.split(' ').map((n) => n[0]).join('')}
               </div>
               <div className="min-w-0">
-                <SheetTitle className="text-sm font-semibold text-white truncate text-left">
+                <SheetTitle className="text-sm font-semibold text-sidebar-foreground truncate text-left">
                   {user.nume_prenume}
                 </SheetTitle>
                 <div className="flex flex-wrap gap-1 mt-0.5">
                   {userRoles.slice(0, 2).map((r) =>
-                  <span key={r} className="text-[10px] px-1.5 py-0.5 rounded text-white bg-white/20">
+                  <span key={r} className="text-[10px] px-1.5 py-0.5 rounded text-sidebar-accent-foreground bg-destructive">
                       {getRoleLabel(r)}
                     </span>
                   )}
@@ -307,7 +307,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
             {/* Configurare module */}
             <button
               onClick={handleOpenConfigSidebar}
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 transition-colors">
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors">
 
               <SlidersHorizontal className="h-5 w-5 shrink-0" />
               <span>Configurare module</span>
@@ -320,8 +320,8 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
               onClick={() => {navigate(item.path);setMobileMenuOpen(false);}}
               className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
               location.pathname === item.path ?
-              'bg-white/20 text-white' :
-              'text-white/80 hover:bg-white/10'}`
+              'bg-sidebar-accent text-sidebar-accent-foreground' :
+              'text-sidebar-foreground/80 hover:bg-sidebar-accent'}`
               }>
 
                 <item.icon className="h-5 w-5 shrink-0" />
@@ -334,8 +334,8 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
               onClick={() => {navigate('/profil');setMobileMenuOpen(false);}}
               className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
               location.pathname === '/profil' ?
-              'bg-white/20 text-white' :
-              'text-white/80 hover:bg-white/10'}`
+              'bg-sidebar-accent text-sidebar-accent-foreground' :
+              'text-sidebar-foreground/80 hover:bg-sidebar-accent'}`
               }>
 
               <User className="h-5 w-5 shrink-0" />
@@ -345,7 +345,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
             {/* Tutorial */}
             <button
               onClick={() => {window.dispatchEvent(new CustomEvent('restart-tutorial'));setMobileMenuOpen(false);}}
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 transition-colors">
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors">
 
               <GraduationCap className="h-5 w-5 shrink-0" />
               <span>Tutorial</span>
@@ -354,9 +354,9 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
             {/* Admin section */}
             {visibleAdmin.length > 0 &&
             <>
-                <Separator className="my-2 bg-white/15" />
+                <Separator className="my-2 bg-sidebar-border" />
                 <div className="px-4 py-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-white/50">Admin</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Admin</span>
                 </div>
                 {visibleAdmin.map((item) =>
               <button
@@ -364,8 +364,8 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
                 onClick={() => {navigate(item.path);setMobileMenuOpen(false);}}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
                 location.pathname === item.path ?
-                'bg-white/20 text-white' :
-                'text-white/80 hover:bg-white/10'}`
+                'bg-sidebar-accent text-sidebar-accent-foreground' :
+                'text-sidebar-foreground/80 hover:bg-sidebar-accent'}`
                 }>
 
                     <item.icon className="h-5 w-5 shrink-0" />
@@ -378,15 +378,15 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
             {/* Inky exclusive */}
             {userIsInky &&
             <>
-                <Separator className="my-2 bg-white/15" />
+                <Separator className="my-2 bg-sidebar-border" />
                 <div className="px-4 py-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-white/50">Superuser</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Superuser</span>
                 </div>
                 {INKY_ITEMS.map((item) =>
               <button
                 key={item.path}
                 onClick={() => {navigate(item.path);setMobileMenuOpen(false);}}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/10 transition-colors">
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors">
 
                     <item.icon className="h-5 w-5 shrink-0" />
                     <span>{item.label}</span>
@@ -397,7 +397,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
           </div>
 
           {/* Logout */}
-          <div className="border-t border-white/15 p-3">
+          <div className="border-t border-sidebar-border p-3">
             <button
               onClick={() => {logout();setMobileMenuOpen(false);}}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
