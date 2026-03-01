@@ -48,7 +48,6 @@ export default memo(function ModuleCard({
 }: ModuleCardProps) {
   const tc = textColor || '#ffffff';
   const tcMuted = textColor ? `${textColor}99` : 'rgba(255,255,255,0.6)';
-}: ModuleCardProps) {
   // Separate ref from other drag props so we can pass ref to motion.div
   const { ref: dragRef, ...dragEventProps } = dragHandleProps || {} as any;
 
