@@ -50,14 +50,14 @@
     --gradient-warm: linear-gradient(135deg, hsl(37 90% 51% / 0.15), hsl(1 66% 46% / 0.08));
     --gradient-cool: linear-gradient(135deg, hsl(200 42% 21% / 0.08), hsl(145 63% 42% / 0.06));
 
-    --sidebar-background: 200 45% 16%;
-    --sidebar-foreground: 200 10% 92%;
+    --sidebar-background: 210 80% 32%;
+    --sidebar-foreground: 210 20% 95%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 200 45% 16%;
-    --sidebar-accent: 200 38% 22%;
+    --sidebar-primary-foreground: 210 80% 32%;
+    --sidebar-accent: 210 75% 38%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 200 32% 24%;
-    --sidebar-ring: 200 42% 50%;
+    --sidebar-border: 210 70% 40%;
+    --sidebar-ring: 210 80% 50%;
   }
 
   .dark {
