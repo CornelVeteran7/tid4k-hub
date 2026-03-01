@@ -11,7 +11,7 @@ export interface ModuleSettings {
 export type ModuleConfig = Record<ModuleKey, ModuleSettings>;
 
 export const DEFAULT_MODULE_CONFIG: ModuleConfig = {
-  prezenta: { color: '#FF69B4', title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă' },
+  prezenta: { color: '#a19afe', title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă' },
   imagini: { color: '#2ECC71', title: 'IMAGINI', subtitle: 'Fotografii din activități' },
   documente: { color: '#3498DB', title: 'DOCUMENTE', subtitle: 'Fișiere PDF partajate' },
   povesti: { color: '#9B59B6', title: 'POVEȘTI', subtitle: 'Povești pentru copii' },
