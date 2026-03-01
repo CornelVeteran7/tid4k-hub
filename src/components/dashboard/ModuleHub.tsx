@@ -112,6 +112,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
       title: config[m.key].title,
       subtitle: config[m.key].subtitle,
       color: config[m.key].color,
+      textColor: config[m.key].textColor,
     })),
     [config]
   );
@@ -181,6 +182,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                     title={mod.title}
                     subtitle={mod.subtitle}
                     color={mod.color}
+                    textColor={mod.textColor}
                     count={MOCK_COUNTS[mod.key]}
                     countLabel={mod.countLabel}
                     showShare={mod.showShare}
@@ -192,9 +194,9 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                     onToggleVisibility={() => onToggle?.(mod.key as keyof ModuleVisibility)}
                     dragHandleProps={editMode ? makeDragProps(i) : undefined}
                     preview={mod.key === 'ateliere' && workshopOfMonth ? (
-                      <div className="bg-white/15 rounded-lg px-3 py-2 mt-1">
-                        <p className="text-sm font-semibold text-white">{workshopOfMonth.titlu}</p>
-                        <p className="text-xs text-white/80">{getCategoryLabel(workshopOfMonth.categorie)} · {new Date(workshopOfMonth.luna + '-01').toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}</p>
+                      <div className="rounded-lg px-3 py-2 mt-1" style={{ backgroundColor: mod.textColor ? `${mod.textColor}15` : 'rgba(255,255,255,0.15)' }}>
+                        <p className="text-sm font-semibold" style={{ color: mod.textColor || '#ffffff' }}>{workshopOfMonth.titlu}</p>
+                        <p className="text-xs" style={{ color: mod.textColor ? `${mod.textColor}cc` : 'rgba(255,255,255,0.8)' }}>{getCategoryLabel(workshopOfMonth.categorie)} · {new Date(workshopOfMonth.luna + '-01').toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}</p>
                       </div>
                     ) : undefined}
                   />
@@ -223,6 +225,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
             onClose={() => setOpenModule(null)}
             title={openMod.title}
             color={openMod.color}
+            textColor={openMod.textColor}
             layoutId={`module-${openMod.key}`}
           >
             <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>

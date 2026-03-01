@@ -8,6 +8,7 @@ interface ModuleCardProps {
   title: string;
   subtitle: string;
   color: string;
+  textColor?: string;
   count?: number;
   countLabel?: string;
   onOpen?: () => void;
@@ -42,9 +43,11 @@ const wiggleAnimation = {
 };
 
 export default memo(function ModuleCard({
-  icon: Icon, title, subtitle, color, count, onOpen, onShare, showShare,
+  icon: Icon, title, subtitle, color, textColor, count, onOpen, onShare, showShare,
   layoutId, preview, editMode, visible = true, onToggleVisibility, dragHandleProps,
 }: ModuleCardProps) {
+  const tc = textColor || '#ffffff';
+  const tcMuted = textColor ? `${textColor}99` : 'rgba(255,255,255,0.6)';
   // Separate ref from other drag props so we can pass ref to motion.div
   const { ref: dragRef, ...dragEventProps } = dragHandleProps || {} as any;
 
@@ -67,19 +70,19 @@ export default memo(function ModuleCard({
         {/* Drag handle in edit mode */}
         {editMode && (
           <div className="w-6 flex items-center justify-center shrink-0 cursor-grab active:cursor-grabbing">
-            <GripVertical className="h-5 w-5 text-white/60" />
+            <GripVertical className="h-5 w-5" style={{ color: tcMuted }} />
           </div>
         )}
 
         {/* Icon circle */}
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-white/20">
-          <Icon className="h-6 w-6 text-white" />
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: textColor ? `${textColor}20` : 'rgba(255,255,255,0.2)' }}>
+          <Icon className="h-6 w-6" style={{ color: tc }} />
         </div>
 
         {/* Text */}
         <div className="flex-1 min-w-0">
-          <p className="font-display font-bold text-sm text-white tracking-wide uppercase">{title}</p>
-          <p className="font-display text-sm font-semibold text-white/90 hidden lg:block">{subtitle}</p>
+          <p className="font-display font-bold text-sm tracking-wide uppercase" style={{ color: tc }}>{title}</p>
+          <p className="font-display text-sm font-semibold hidden lg:block" style={{ color: textColor ? `${textColor}e6` : 'rgba(255,255,255,0.9)' }}>{subtitle}</p>
         </div>
 
         {/* Edit mode: toggle switch */}
@@ -97,19 +100,20 @@ export default memo(function ModuleCard({
             {showShare && (
               <button
                 onClick={(e) => { e.stopPropagation(); onShare?.(); }}
-                className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                style={{ backgroundColor: textColor ? `${textColor}20` : 'rgba(255,255,255,0.2)' }}
               >
-                <Send className="h-4 w-4 text-white" />
+                <Send className="h-4 w-4" style={{ color: tc }} />
               </button>
             )}
 
             {count !== undefined && (
-              <span className="text-xs font-bold px-2 py-1 rounded-full bg-white/25 text-white whitespace-nowrap">
+              <span className="text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: textColor ? `${textColor}30` : 'rgba(255,255,255,0.25)', color: tc }}>
                 {count}
               </span>
             )}
 
-            <ChevronDown className="h-5 w-5 text-white/60" />
+            <ChevronDown className="h-5 w-5" style={{ color: tcMuted }} />
           </div>
         )}
       </div>
