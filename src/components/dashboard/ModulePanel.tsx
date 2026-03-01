@@ -17,7 +17,7 @@ interface ModulePanelProps {
 const panelSpring = { type: 'spring', damping: 30, stiffness: 280, mass: 0.9 } as const;
 const scrimTransition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] } as const;
 
-export default memo(function ModulePanel({ isOpen, onClose, title, color, layoutId, children }: ModulePanelProps) {
+export default memo(function ModulePanel({ isOpen, onClose, title, color, textColor, layoutId, children }: ModulePanelProps) {
   if (!isOpen) return null;
 
   return (
@@ -46,7 +46,7 @@ export default memo(function ModulePanel({ isOpen, onClose, title, color, layout
       >
         {/* Colored header bar */}
         <div className="flex items-center justify-between px-4 py-3 shrink-0">
-          <h2 className="text-white font-display font-bold text-base uppercase tracking-wide">{title}</h2>
+          <h2 className="font-display font-bold text-base uppercase tracking-wide" style={{ color: textColor || '#ffffff' }}>{title}</h2>
           <Button
             variant="ghost"
             size="icon"
