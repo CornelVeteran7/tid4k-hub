@@ -26,17 +26,17 @@ function WaveDecoration() {
         {/* Back wave — matches bar at lower opacity for depth */}
         <path
           d="M0,16 C120,6 240,2 360,8 C480,14 540,18 720,12 C900,6 1020,2 1140,6 C1260,10 1380,16 1440,12 L1440,22 L0,22 Z"
-          className="fill-primary opacity-50"
+          className="fill-accent opacity-50"
         />
         {/* Middle wave */}
         <path
           d="M0,18 C160,10 280,6 420,12 C560,18 640,20 800,14 C960,8 1080,6 1200,10 C1320,14 1400,18 1440,16 L1440,22 L0,22 Z"
-          className="fill-primary opacity-70"
+          className="fill-accent opacity-70"
         />
         {/* Front wave — same opacity as bar for seamless blend */}
         <path
           d="M0,20 C200,14 320,10 480,16 C640,20 720,22 880,18 C1040,14 1160,10 1280,14 C1360,16 1420,20 1440,18 L1440,22 L0,22 Z"
-          className="fill-primary opacity-90"
+          className="fill-accent opacity-90"
         />
       </svg>
     </div>
@@ -45,7 +45,7 @@ function WaveDecoration() {
 
 /* Vertical separator between ticker items */
 const Separator = () => (
-  <span className="inline-block w-px h-3.5 bg-primary-foreground/30 mx-5 align-middle" />
+  <span className="inline-block w-px h-3.5 bg-accent-foreground/30 mx-5 align-middle" />
 );
 
 export default memo(function AnnouncementsTicker() {
@@ -159,16 +159,16 @@ export default memo(function AnnouncementsTicker() {
 
       {/* Main ticker bar */}
       <div className="relative h-10 flex items-center">
-        <div className="absolute inset-0 bg-primary/90 backdrop-blur-md" />
+        <div className="absolute inset-0 bg-accent/90 backdrop-blur-md" />
 
         {/* Megaphone icon */}
-        <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 h-10 border-r border-primary-foreground/15">
-          <Megaphone className="h-4 w-4 text-primary-foreground" />
+        <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 h-10 border-r border-accent-foreground/15">
+          <Megaphone className="h-4 w-4 text-accent-foreground" />
         </div>
 
         {/* Scrolling content */}
         <div className="relative z-10 flex-1 overflow-hidden">
-          <div className="animate-marquee whitespace-nowrap text-primary-foreground text-[13px]">
+          <div className="animate-marquee whitespace-nowrap text-accent-foreground text-[13px]">
             {fullContent}
           </div>
         </div>
