@@ -50,7 +50,8 @@ export default memo(function ModulePanel({ isOpen, onClose, title, color, textCo
           <Button
             variant="ghost"
             size="icon"
-            className="text-white bg-accent hover:bg-accent/80 h-9 w-9 rounded-full"
+            className="h-9 w-9 rounded-full"
+            style={{ color: textColor || '#ffffff', backgroundColor: textColor ? `${textColor}20` : 'rgba(255,255,255,0.2)' }}
             onClick={onClose}
           >
             <X className="h-5 w-5" strokeWidth={2.5} />
