@@ -168,7 +168,7 @@ export default memo(function AnnouncementsTicker() {
 
         {/* Scrolling content */}
         <div className="relative z-10 flex-1 overflow-hidden">
-          <div className="animate-marquee whitespace-nowrap text-accent-foreground text-[13px]">
+          <div className="animate-marquee whitespace-nowrap text-accent-foreground text-[13px] font-mono tracking-wider font-light">
             {fullContent}
           </div>
         </div>
