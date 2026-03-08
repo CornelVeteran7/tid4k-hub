@@ -24,6 +24,9 @@ const CATEGORIES = [
 ];
 
 const AGE_COLORS: Record<string, string> = {
+  '3-4': 'bg-success/10 text-success',
+  '4-5': 'bg-accent/10 text-accent',
+  '5-6': 'bg-warning/10 text-warning',
   '3-5': 'bg-success/10 text-success',
   '5-7': 'bg-accent/10 text-accent',
   '7-10': 'bg-warning/10 text-warning',
