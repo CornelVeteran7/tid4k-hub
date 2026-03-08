@@ -155,6 +155,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const isHome = location.pathname === '/';
   const verticalType = (user?.vertical_type || 'kids') as VerticalType;
   const verticalDef = VERTICAL_DEFINITIONS[verticalType];
+  const { activeModules } = useActiveModules(user.organization_id, verticalType);
 
   const showGroupSelector =
   areRol(userStatus, 'director') ||
