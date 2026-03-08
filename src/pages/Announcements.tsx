@@ -48,10 +48,24 @@ export default function Announcements() {
     return true;
   });
 
+  const handleMarkRead = async (ann: Announcement) => {
+    if (ann.citit) return;
+    try {
+      await markAsRead(ann.id);
+      setAnnouncements((prev) =>
+        prev.map((a) => a.id === ann.id ? { ...a, citit: true } : a)
+      );
+      toast.success('Marcat ca citit');
+    } catch {
+      toast.error('Eroare la marcarea ca citit');
+    }
+  };
+
   const handleCreate = async () => {
     const ann = await createAnnouncement({
       titlu: newTitle, continut: newContent, prioritate: newPriority,
       autor: user?.nume_prenume || '', target: currentGroup?.id || 'scoala',
+      ...(newExpiry ? { data_expirare: newExpiry } as any : {}),
     });
     setAnnouncements((prev) => [ann, ...prev]);
     setCreateOpen(false);
