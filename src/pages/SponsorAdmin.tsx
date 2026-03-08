@@ -156,6 +156,13 @@ export default function SponsorAdmin() {
           onSave={handleSaveCampaign}
         />
       )}
+
+      {/* Sponsor Dialog */}
+      <SponsorDialog
+        open={sponsorDialogOpen}
+        onOpenChange={setSponsorDialogOpen}
+        onSaved={(newSponsor) => setSponsors(prev => [...prev, newSponsor])}
+      />
     </div>
   );
 }

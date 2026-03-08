@@ -277,6 +277,13 @@ export default function SponsorsTab() {
           }
         }} />
       )}
+
+      {/* Sponsor Dialog */}
+      <SponsorDialog
+        open={sponsorDialogOpen}
+        onOpenChange={setSponsorDialogOpen}
+        onSaved={(newSponsor) => setSponsors(prev => [...prev, newSponsor])}
+      />
     </div>
   );
 }
