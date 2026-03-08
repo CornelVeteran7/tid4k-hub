@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award } from
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award, Package, ShieldCheck, Newspaper, Theater, HardHat } from
 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
@@ -75,9 +75,14 @@ function SidebarDecoration() {
 }
 
 // Secondary nav — items NOT on the dashboard
-const SECONDARY_NAV = [
+const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; moduleKey?: string; verticals?: string[] }[] = [
 { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'orar' },
 { path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'anunturi' },
+{ path: '/santiere', label: 'Șantiere', icon: HardHat, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },
+{ path: '/inventar', label: 'Inventar QR', icon: Package, roles: ['profesor', 'director', 'administrator'], verticals: ['workshops', 'construction', 'kids'] },
+{ path: '/ssm', label: 'SSM', icon: ShieldCheck, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },
+{ path: '/revista', label: 'Revista Școlii', icon: Newspaper, roles: ['profesor', 'parinte', 'director', 'administrator'], verticals: ['schools'] },
+{ path: '/supratitrare', label: 'Supratitrare', icon: Theater, roles: ['profesor', 'director', 'administrator'], verticals: ['culture'] },
 ];
 
 
@@ -154,7 +159,12 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const canSee = (roles: string[]) =>
   roles.some((role) => areRol(userStatus, role) || userIsInky);
 
-  const visibleSecondary = SECONDARY_NAV.filter((i) => canSee(i.roles) && verticalDef.defaultModules.includes(i.moduleKey));
+  const visibleSecondary = SECONDARY_NAV.filter((i) => {
+    if (!canSee(i.roles)) return false;
+    if (i.verticals) return i.verticals.includes(verticalType);
+    if (i.moduleKey) return verticalDef.defaultModules.includes(i.moduleKey);
+    return true;
+  });
   const visibleAdmin = ADMIN_NAV.filter((i) => canSee(i.roles));
 
   const navLinkClass = "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors";

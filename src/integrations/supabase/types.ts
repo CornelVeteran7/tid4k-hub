@@ -947,6 +947,166 @@ export type Database = {
           },
         ]
       }
+      inventory_items: {
+        Row: {
+          cantitate: number
+          categorie: string
+          cod_qr: string | null
+          created_at: string
+          descriere: string | null
+          id: string
+          locatie: string | null
+          nume: string
+          organization_id: string | null
+          pret_unitar: number | null
+          unitate: string
+          updated_at: string | null
+        }
+        Insert: {
+          cantitate?: number
+          categorie?: string
+          cod_qr?: string | null
+          created_at?: string
+          descriere?: string | null
+          id?: string
+          locatie?: string | null
+          nume: string
+          organization_id?: string | null
+          pret_unitar?: number | null
+          unitate?: string
+          updated_at?: string | null
+        }
+        Update: {
+          cantitate?: number
+          categorie?: string
+          cod_qr?: string | null
+          created_at?: string
+          descriere?: string | null
+          id?: string
+          locatie?: string | null
+          nume?: string
+          organization_id?: string | null
+          pret_unitar?: number | null
+          unitate?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_movements: {
+        Row: {
+          cantitate: number
+          created_at: string
+          efectuat_de: string | null
+          id: string
+          item_id: string
+          motiv: string | null
+          organization_id: string | null
+          tip: string
+        }
+        Insert: {
+          cantitate?: number
+          created_at?: string
+          efectuat_de?: string | null
+          id?: string
+          item_id: string
+          motiv?: string | null
+          organization_id?: string | null
+          tip?: string
+        }
+        Update: {
+          cantitate?: number
+          created_at?: string
+          efectuat_de?: string | null
+          id?: string
+          item_id?: string
+          motiv?: string | null
+          organization_id?: string | null
+          tip?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      magazine_articles: {
+        Row: {
+          autor_id: string | null
+          autor_nume: string | null
+          categorie: string
+          continut: string
+          created_at: string
+          id: string
+          organization_id: string | null
+          photos: string[] | null
+          published_at: string | null
+          reviewer_comment: string | null
+          reviewer_id: string | null
+          status: string
+          titlu: string
+          updated_at: string | null
+        }
+        Insert: {
+          autor_id?: string | null
+          autor_nume?: string | null
+          categorie?: string
+          continut?: string
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          photos?: string[] | null
+          published_at?: string | null
+          reviewer_comment?: string | null
+          reviewer_id?: string | null
+          status?: string
+          titlu: string
+          updated_at?: string | null
+        }
+        Update: {
+          autor_id?: string | null
+          autor_nume?: string | null
+          categorie?: string
+          continut?: string
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          photos?: string[] | null
+          published_at?: string | null
+          reviewer_comment?: string | null
+          reviewer_id?: string | null
+          status?: string
+          titlu?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "magazine_articles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           continut: string
@@ -1697,6 +1857,63 @@ export type Database = {
           },
         ]
       }
+      ssm_checklists: {
+        Row: {
+          completat_de: string | null
+          completat_de_id: string | null
+          completed_at: string | null
+          created_at: string
+          data: string
+          id: string
+          items: Json
+          organization_id: string | null
+          semnatura_data: string | null
+          status: string
+          template_id: string | null
+        }
+        Insert: {
+          completat_de?: string | null
+          completat_de_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          items?: Json
+          organization_id?: string | null
+          semnatura_data?: string | null
+          status?: string
+          template_id?: string | null
+        }
+        Update: {
+          completat_de?: string | null
+          completat_de_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          items?: Json
+          organization_id?: string | null
+          semnatura_data?: string | null
+          status?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ssm_checklists_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ssm_checklists_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "ssm_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ssm_reminders: {
         Row: {
           activ: boolean | null
@@ -1728,6 +1945,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ssm_reminders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ssm_templates: {
+        Row: {
+          created_at: string
+          id: string
+          items: Json
+          nume: string
+          organization_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          items?: Json
+          nume: string
+          organization_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          items?: Json
+          nume?: string
+          organization_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ssm_templates_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1808,6 +2057,85 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surtitle_blocks: {
+        Row: {
+          created_at: string
+          id: string
+          nota_operator: string | null
+          sequence_nr: number
+          show_id: string
+          text_en: string | null
+          text_fr: string | null
+          text_ro: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nota_operator?: string | null
+          sequence_nr?: number
+          show_id: string
+          text_en?: string | null
+          text_fr?: string | null
+          text_ro?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nota_operator?: string | null
+          sequence_nr?: number
+          show_id?: string
+          text_en?: string | null
+          text_fr?: string | null
+          text_ro?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surtitle_blocks_show_id_fkey"
+            columns: ["show_id"]
+            isOneToOne: false
+            referencedRelation: "surtitle_shows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surtitle_shows: {
+        Row: {
+          created_at: string
+          current_block: number | null
+          data_spectacol: string
+          id: string
+          organization_id: string | null
+          status: string
+          titlu: string
+        }
+        Insert: {
+          created_at?: string
+          current_block?: number | null
+          data_spectacol?: string
+          id?: string
+          organization_id?: string | null
+          status?: string
+          titlu: string
+        }
+        Update: {
+          created_at?: string
+          current_block?: number | null
+          data_spectacol?: string
+          id?: string
+          organization_id?: string | null
+          status?: string
+          titlu?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surtitle_shows_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

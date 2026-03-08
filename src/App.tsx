@@ -28,6 +28,10 @@ import SocialMediaFacebook from "./pages/SocialMediaFacebook";
 import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
 import ConstructionDashboard from "./pages/ConstructionDashboard";
 import ConstructionWorker from "./pages/ConstructionWorker";
+import InventoryPage from "./pages/Inventory";
+import SSMPage from "./pages/SSM";
+import MagazinePage from "./pages/Magazine";
+import SurtitlesPage from "./pages/Surtitles";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
@@ -76,6 +80,10 @@ function ProtectedRoutes() {
             <Route path="/profil" element={<MyProfile />} />
             <Route path="/santiere" element={<ConstructionDashboard />} />
             <Route path="/santiere/worker" element={<ConstructionWorker />} />
+            <Route path="/inventar" element={<InventoryPage />} />
+            <Route path="/ssm" element={<SSMPage />} />
+            <Route path="/revista" element={<MagazinePage />} />
+            <Route path="/supratitrare" element={<SurtitlesPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
