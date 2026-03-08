@@ -88,6 +88,7 @@ function ProtectedRoutes() {
             <Route path="/revista" element={<MagazinePage />} />
             <Route path="/supratitrare" element={<SurtitlesPage />} />
             <Route path="/video" element={<VideoGenerationPage />} />
+            <Route path="/coada" element={<QueueAdmin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
