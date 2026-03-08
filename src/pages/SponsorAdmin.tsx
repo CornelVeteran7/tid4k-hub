@@ -44,6 +44,7 @@ export default function SponsorAdmin() {
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
   const [stats, setStats] = useState<SponsorStats | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [sponsorDialogOpen, setSponsorDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Partial<SponsorCampaign> | undefined>();
   const { openLink } = useExternalLink();
 
