@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcement_reads: {
+        Row: {
+          announcement_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reads_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          ascuns_banda: boolean | null
+          autor_id: string | null
+          autor_nume: string | null
+          continut: string
+          created_at: string | null
+          id: string
+          pozitie_banda: number | null
+          prioritate: string | null
+          target: string | null
+          titlu: string
+        }
+        Insert: {
+          ascuns_banda?: boolean | null
+          autor_id?: string | null
+          autor_nume?: string | null
+          continut: string
+          created_at?: string | null
+          id?: string
+          pozitie_banda?: number | null
+          prioritate?: string | null
+          target?: string | null
+          titlu: string
+        }
+        Update: {
+          ascuns_banda?: boolean | null
+          autor_id?: string | null
+          autor_nume?: string | null
+          continut?: string
+          created_at?: string | null
+          id?: string
+          pozitie_banda?: number | null
+          prioritate?: string | null
+          target?: string | null
+          titlu?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance: {
         Row: {
           child_id: string
@@ -53,6 +136,76 @@ export type Database = {
           {
             foreignKeyName: "attendance_marked_by_fkey"
             columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cancelarie_activities: {
+        Row: {
+          created_at: string | null
+          data: string
+          descriere: string
+          id: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data: string
+          descriere: string
+          id?: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: string
+          descriere?: string
+          id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cancelarie_activities_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "cancelarie_teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cancelarie_teachers: {
+        Row: {
+          absent_dates: string[] | null
+          avatar_url: string | null
+          created_at: string | null
+          id: string
+          nume: string
+          profile_id: string | null
+          qr_data: string | null
+        }
+        Insert: {
+          absent_dates?: string[] | null
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          nume: string
+          profile_id?: string | null
+          qr_data?: string | null
+        }
+        Update: {
+          absent_dates?: string[] | null
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          nume?: string
+          profile_id?: string | null
+          qr_data?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cancelarie_teachers_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -101,6 +254,105 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string | null
+          grupa: string | null
+          id: string
+          participant_1: string
+          participant_2: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          grupa?: string | null
+          id?: string
+          participant_1: string
+          participant_2: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          grupa?: string | null
+          id?: string
+          participant_1?: string
+          participant_2?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_participant_1_fkey"
+            columns: ["participant_1"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_participant_2_fkey"
+            columns: ["participant_2"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          categorie: string | null
+          created_at: string | null
+          group_id: string | null
+          id: string
+          marime: number | null
+          nume_fisier: string
+          thumbnail_url: string | null
+          tip_fisier: string | null
+          uploadat_de_id: string | null
+          uploadat_de_nume: string | null
+          url: string
+        }
+        Insert: {
+          categorie?: string | null
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          marime?: number | null
+          nume_fisier: string
+          thumbnail_url?: string | null
+          tip_fisier?: string | null
+          uploadat_de_id?: string | null
+          uploadat_de_nume?: string | null
+          url: string
+        }
+        Update: {
+          categorie?: string | null
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          marime?: number | null
+          nume_fisier?: string
+          thumbnail_url?: string | null
+          tip_fisier?: string | null
+          uploadat_de_id?: string | null
+          uploadat_de_nume?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_uploadat_de_id_fkey"
+            columns: ["uploadat_de_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
           created_at: string | null
@@ -136,6 +388,141 @@ export type Database = {
           },
         ]
       }
+      menu_items: {
+        Row: {
+          continut: string
+          created_at: string | null
+          emoji: string | null
+          id: string
+          masa: string
+          saptamana: string
+          zi: string
+        }
+        Insert: {
+          continut: string
+          created_at?: string | null
+          emoji?: string | null
+          id?: string
+          masa: string
+          saptamana: string
+          zi: string
+        }
+        Update: {
+          continut?: string
+          created_at?: string | null
+          emoji?: string | null
+          id?: string
+          masa?: string
+          saptamana?: string
+          zi?: string
+        }
+        Relationships: []
+      }
+      menu_metadata: {
+        Row: {
+          alergeni: string[] | null
+          created_at: string | null
+          id: string
+          saptamana: string
+          semnatura_administrator: string | null
+          semnatura_asistent: string | null
+          semnatura_director: string | null
+        }
+        Insert: {
+          alergeni?: string[] | null
+          created_at?: string | null
+          id?: string
+          saptamana: string
+          semnatura_administrator?: string | null
+          semnatura_asistent?: string | null
+          semnatura_director?: string | null
+        }
+        Update: {
+          alergeni?: string[] | null
+          created_at?: string | null
+          id?: string
+          saptamana?: string
+          semnatura_administrator?: string | null
+          semnatura_asistent?: string | null
+          semnatura_director?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          citit: boolean | null
+          conversation_id: string
+          created_at: string | null
+          id: string
+          mesaj: string
+          sender_id: string
+        }
+        Insert: {
+          citit?: boolean | null
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          mesaj: string
+          sender_id: string
+        }
+        Update: {
+          citit?: boolean | null
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          mesaj?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nutritional_data: {
+        Row: {
+          carbohidrati: number | null
+          fibre: number | null
+          grasimi: number | null
+          id: string
+          kcal: number | null
+          proteine: number | null
+          saptamana: string
+          zi: string
+        }
+        Insert: {
+          carbohidrati?: number | null
+          fibre?: number | null
+          grasimi?: number | null
+          id?: string
+          kcal?: number | null
+          proteine?: number | null
+          saptamana: string
+          zi: string
+        }
+        Update: {
+          carbohidrati?: number | null
+          fibre?: number | null
+          grasimi?: number | null
+          id?: string
+          kcal?: number | null
+          proteine?: number | null
+          saptamana?: string
+          zi?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -165,6 +552,47 @@ export type Database = {
           telefon?: string | null
         }
         Relationships: []
+      }
+      schedule: {
+        Row: {
+          created_at: string | null
+          culoare: string | null
+          group_id: string | null
+          id: string
+          materie: string
+          ora: string
+          profesor: string | null
+          zi: string
+        }
+        Insert: {
+          created_at?: string | null
+          culoare?: string | null
+          group_id?: string | null
+          id?: string
+          materie: string
+          ora: string
+          profesor?: string | null
+          zi: string
+        }
+        Update: {
+          created_at?: string | null
+          culoare?: string | null
+          group_id?: string | null
+          id?: string
+          materie?: string
+          ora?: string
+          profesor?: string | null
+          zi?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       schools: {
         Row: {
@@ -204,6 +632,72 @@ export type Database = {
           tip?: string | null
         }
         Relationships: []
+      }
+      stories: {
+        Row: {
+          audio_url: string | null
+          categorie: string | null
+          continut: string
+          created_at: string | null
+          id: string
+          thumbnail: string | null
+          titlu: string
+          varsta: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          categorie?: string | null
+          continut: string
+          created_at?: string | null
+          id?: string
+          thumbnail?: string | null
+          titlu: string
+          varsta?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          categorie?: string | null
+          continut?: string
+          created_at?: string | null
+          id?: string
+          thumbnail?: string | null
+          titlu?: string
+          varsta?: string | null
+        }
+        Relationships: []
+      }
+      story_favorites: {
+        Row: {
+          id: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_favorites_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_groups: {
         Row: {
@@ -253,6 +747,54 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      workshops: {
+        Row: {
+          categorie: string | null
+          created_at: string | null
+          data_publicare: string | null
+          descriere: string | null
+          durata_minute: number | null
+          id: string
+          imagine_url: string | null
+          instructor: string | null
+          luna: string
+          materiale: string[] | null
+          publicat: boolean | null
+          scoli_target: string[] | null
+          titlu: string
+        }
+        Insert: {
+          categorie?: string | null
+          created_at?: string | null
+          data_publicare?: string | null
+          descriere?: string | null
+          durata_minute?: number | null
+          id?: string
+          imagine_url?: string | null
+          instructor?: string | null
+          luna: string
+          materiale?: string[] | null
+          publicat?: boolean | null
+          scoli_target?: string[] | null
+          titlu: string
+        }
+        Update: {
+          categorie?: string | null
+          created_at?: string | null
+          data_publicare?: string | null
+          descriere?: string | null
+          durata_minute?: number | null
+          id?: string
+          imagine_url?: string | null
+          instructor?: string | null
+          luna?: string
+          materiale?: string[] | null
+          publicat?: boolean | null
+          scoli_target?: string[] | null
+          titlu?: string
         }
         Relationships: []
       }
