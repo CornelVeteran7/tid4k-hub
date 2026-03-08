@@ -1,29 +1,44 @@
-import { USE_MOCK, apiFetch } from './config';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface WhatsappMapping {
-  id: number;
+  id: string;
   grupa: string;
   whatsapp_group: string;
   consent: boolean;
   sync_type: 'bidirectional' | 'one-way';
 }
 
-const mockMappings: WhatsappMapping[] = [
-  { id: 1, grupa: 'grupa_mare', whatsapp_group: 'Grupa Mare - Padinti', consent: true, sync_type: 'bidirectional' },
-  { id: 2, grupa: 'clasa_1a', whatsapp_group: 'Clasa I-A Comunicare', consent: true, sync_type: 'one-way' },
-];
-
 export async function getWhatsappMappings(): Promise<WhatsappMapping[]> {
-  if (USE_MOCK) return mockMappings;
-  return apiFetch<WhatsappMapping[]>('/whatsapp.php?action=mappings');
+  const { data, error } = await supabase.from('whatsapp_mappings').select('*');
+  if (error) throw error;
+  return (data || []).map(m => ({
+    id: m.id,
+    grupa: m.grupa,
+    whatsapp_group: m.whatsapp_group,
+    consent: m.consent ?? true,
+    sync_type: m.sync_type as 'bidirectional' | 'one-way',
+  }));
 }
 
 export async function createMapping(mapping: Partial<WhatsappMapping>): Promise<WhatsappMapping> {
-  if (USE_MOCK) return { ...mapping, id: Date.now() } as WhatsappMapping;
-  return apiFetch<WhatsappMapping>('/whatsapp.php?action=create', { method: 'POST', body: JSON.stringify(mapping) });
+  const { data, error } = await supabase.from('whatsapp_mappings').insert({
+    grupa: mapping.grupa || '',
+    whatsapp_group: mapping.whatsapp_group || '',
+    consent: mapping.consent ?? true,
+    sync_type: mapping.sync_type || 'bidirectional',
+  }).select().single();
+
+  if (error) throw error;
+  return {
+    id: data.id,
+    grupa: data.grupa,
+    whatsapp_group: data.whatsapp_group,
+    consent: data.consent ?? true,
+    sync_type: data.sync_type as 'bidirectional' | 'one-way',
+  };
 }
 
 export async function syncStatus(): Promise<{ status: string; last_sync: string }> {
-  if (USE_MOCK) return { status: 'activ', last_sync: '2026-02-23T10:00:00' };
-  return apiFetch('/whatsapp.php?action=status');
+  // Would need real sync tracking
+  return { status: 'activ', last_sync: new Date().toISOString() };
 }

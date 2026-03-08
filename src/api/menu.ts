@@ -1,52 +1,88 @@
-import { USE_MOCK, apiFetch } from './config';
+import { supabase } from '@/integrations/supabase/client';
 import type { WeeklyMenu, NutritionalData } from '@/types';
 
-const mockMenu: WeeklyMenu = {
-  saptamana: '2026-W09',
-  items: [
-    { masa: 'mic_dejun', zi: 'Luni', continut: 'Lapte cu cereale 🥣, pâine cu unt 🧈', emoji: '🥣🧈' },
-    { masa: 'gustare_1', zi: 'Luni', continut: 'Măr 🍎', emoji: '🍎' },
-    { masa: 'pranz', zi: 'Luni', continut: 'Supă de legume 🥕, piept de pui cu piure 🍗', emoji: '🥕🍗' },
-    { masa: 'gustare_2', zi: 'Luni', continut: 'Biscuiți cu lapte 🍪', emoji: '🍪' },
-    { masa: 'mic_dejun', zi: 'Marți', continut: 'Omletă cu brânză 🧀, pâine 🍞', emoji: '🧀🍞' },
-    { masa: 'gustare_1', zi: 'Marți', continut: 'Banană 🍌', emoji: '🍌' },
-    { masa: 'pranz', zi: 'Marți', continut: 'Ciorbă de perișoare, paste cu sos 🍝', emoji: '🍝' },
-    { masa: 'gustare_2', zi: 'Marți', continut: 'Iaurt cu fructe 🫐', emoji: '🫐' },
-    { masa: 'mic_dejun', zi: 'Miercuri', continut: 'Sandviș cu șuncă 🥪', emoji: '🥪' },
-    { masa: 'gustare_1', zi: 'Miercuri', continut: 'Portocală 🍊', emoji: '🍊' },
-    { masa: 'pranz', zi: 'Miercuri', continut: 'Supă cremă de dovlecel, chiftele cu orez 🍚', emoji: '🍚' },
-    { masa: 'gustare_2', zi: 'Miercuri', continut: 'Compot de mere 🍏', emoji: '🍏' },
-    { masa: 'mic_dejun', zi: 'Joi', continut: 'Clătite cu gem 🫓', emoji: '🫓' },
-    { masa: 'gustare_1', zi: 'Joi', continut: 'Pere 🍐', emoji: '🍐' },
-    { masa: 'pranz', zi: 'Joi', continut: 'Ciorbă de legume, ficăței cu piure 🥔', emoji: '🥔' },
-    { masa: 'gustare_2', zi: 'Joi', continut: 'Covrigei 🥨', emoji: '🥨' },
-    { masa: 'mic_dejun', zi: 'Vineri', continut: 'Muesli cu lapte 🥛', emoji: '🥛' },
-    { masa: 'gustare_1', zi: 'Vineri', continut: 'Struguri 🍇', emoji: '🍇' },
-    { masa: 'pranz', zi: 'Vineri', continut: 'Supă de pui, pește cu legume 🐟', emoji: '🐟' },
-    { masa: 'gustare_2', zi: 'Vineri', continut: 'Prăjitură cu mere 🍰', emoji: '🍰' },
-  ],
-  nutritional: [
-    { zi: 'Luni', kcal: 1450, carbohidrati: 180, proteine: 55, grasimi: 52, fibre: 18 },
-    { zi: 'Marți', kcal: 1520, carbohidrati: 195, proteine: 58, grasimi: 48, fibre: 20 },
-    { zi: 'Miercuri', kcal: 1380, carbohidrati: 170, proteine: 52, grasimi: 50, fibre: 22 },
-    { zi: 'Joi', kcal: 1600, carbohidrati: 200, proteine: 60, grasimi: 55, fibre: 16 },
-    { zi: 'Vineri', kcal: 1490, carbohidrati: 185, proteine: 62, grasimi: 45, fibre: 24 },
-  ],
-  alergeni: ['Gluten', 'Lapte', 'Ouă', 'Pește', 'Soia'],
-  semnaturi: { director: 'Dir. Popescu', asistent_medical: 'Dr. Ionescu', administrator: 'Admin. Georgescu' },
-};
-
 export async function getMenu(saptamana: string): Promise<WeeklyMenu> {
-  if (USE_MOCK) return { ...mockMenu, saptamana };
-  return apiFetch<WeeklyMenu>(`/meniu.php?action=get&saptamana=${saptamana}`);
+  const { data: items } = await supabase
+    .from('menu_items')
+    .select('*')
+    .eq('saptamana', saptamana);
+
+  const { data: nutritional } = await supabase
+    .from('nutritional_data')
+    .select('*')
+    .eq('saptamana', saptamana);
+
+  const { data: meta } = await supabase
+    .from('menu_metadata')
+    .select('*')
+    .eq('saptamana', saptamana)
+    .single();
+
+  return {
+    saptamana,
+    items: (items || []).map(i => ({
+      masa: i.masa as any,
+      zi: i.zi,
+      continut: i.continut,
+      emoji: i.emoji || undefined,
+    })),
+    nutritional: (nutritional || []).map(n => ({
+      zi: n.zi,
+      kcal: n.kcal || 0,
+      carbohidrati: n.carbohidrati || 0,
+      proteine: n.proteine || 0,
+      grasimi: n.grasimi || 0,
+      fibre: n.fibre || 0,
+    })),
+    alergeni: meta?.alergeni || [],
+    semnaturi: {
+      director: meta?.semnatura_director || '',
+      asistent_medical: meta?.semnatura_asistent || '',
+      administrator: meta?.semnatura_administrator || '',
+    },
+  };
 }
 
 export async function saveMenu(menu: WeeklyMenu): Promise<void> {
-  if (USE_MOCK) return;
-  await apiFetch('/meniu.php?action=save', { method: 'POST', body: JSON.stringify(menu) });
+  // Delete existing items for this week
+  await supabase.from('menu_items').delete().eq('saptamana', menu.saptamana);
+  await supabase.from('nutritional_data').delete().eq('saptamana', menu.saptamana);
+
+  // Insert new items
+  if (menu.items.length > 0) {
+    await supabase.from('menu_items').insert(
+      menu.items.map(i => ({ saptamana: menu.saptamana, masa: i.masa, zi: i.zi, continut: i.continut, emoji: i.emoji || '' }))
+    );
+  }
+
+  if (menu.nutritional.length > 0) {
+    await supabase.from('nutritional_data').insert(
+      menu.nutritional.map(n => ({ saptamana: menu.saptamana, ...n }))
+    );
+  }
+
+  // Upsert metadata
+  await supabase.from('menu_metadata').upsert({
+    saptamana: menu.saptamana,
+    alergeni: menu.alergeni,
+    semnatura_director: menu.semnaturi.director,
+    semnatura_asistent: menu.semnaturi.asistent_medical,
+    semnatura_administrator: menu.semnaturi.administrator,
+  }, { onConflict: 'saptamana' });
 }
 
 export async function getNutritionalData(saptamana: string): Promise<NutritionalData[]> {
-  if (USE_MOCK) return mockMenu.nutritional;
-  return apiFetch<NutritionalData[]>(`/meniu.php?action=nutritional&saptamana=${saptamana}`);
+  const { data } = await supabase
+    .from('nutritional_data')
+    .select('*')
+    .eq('saptamana', saptamana);
+
+  return (data || []).map(n => ({
+    zi: n.zi,
+    kcal: n.kcal || 0,
+    carbohidrati: n.carbohidrati || 0,
+    proteine: n.proteine || 0,
+    grasimi: n.grasimi || 0,
+    fibre: n.fibre || 0,
+  }));
 }

@@ -1,40 +1,87 @@
-import { USE_MOCK, apiFetch } from './config';
+import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@/types';
 
-const mockUsers: User[] = [
-  { id_utilizator: 1, nume_prenume: 'Maria Popescu', telefon: '0721234567', email: 'maria@scoala.ro', status: 'profesor,director', grupe: ['grupa_mare', 'clasa_1a'] },
-  { id_utilizator: 2, nume_prenume: 'Ion Ionescu', telefon: '0732345678', email: 'ion@scoala.ro', status: 'parinte', grupe: ['grupa_mare'] },
-  { id_utilizator: 3, nume_prenume: 'Ana Dumitrescu', telefon: '0743456789', email: 'ana@scoala.ro', status: 'profesor', grupe: ['grupa_mica'] },
-  { id_utilizator: 4, nume_prenume: 'Vasile Georgescu', telefon: '0754567890', email: 'vasile@scoala.ro', status: 'administrator', grupe: [] },
-  { id_utilizator: 5, nume_prenume: 'Elena Stanescu', telefon: '0765678901', email: 'elena@scoala.ro', status: 'secretara', grupe: [] },
-  { id_utilizator: 6, nume_prenume: 'Andrei Parinte', telefon: '0776789012', email: 'andrei@email.ro', status: 'parinte', grupe: ['grupa_mare'] },
-];
-
 export async function getUsers(): Promise<User[]> {
-  if (USE_MOCK) return mockUsers;
-  return apiFetch<User[]>('/utilizatori.php?action=list');
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('nume_prenume');
+
+  if (error) throw error;
+
+  // Fetch roles and groups separately
+  const userIds = (profiles || []).map(p => p.id);
+  
+  const { data: allRoles } = await supabase
+    .from('user_roles')
+    .select('user_id, role')
+    .in('user_id', userIds);
+
+  const { data: allUserGroups } = await supabase
+    .from('user_groups')
+    .select('user_id, groups(slug)')
+    .in('user_id', userIds);
+
+  const rolesMap = new Map<string, string[]>();
+  (allRoles || []).forEach(r => {
+    const arr = rolesMap.get(r.user_id) || [];
+    arr.push(r.role);
+    rolesMap.set(r.user_id, arr);
+  });
+
+  const groupsMap = new Map<string, string[]>();
+  (allUserGroups || []).forEach((ug: any) => {
+    const arr = groupsMap.get(ug.user_id) || [];
+    if (ug.groups?.slug) arr.push(ug.groups.slug);
+    groupsMap.set(ug.user_id, arr);
+  });
+
+  return (profiles || []).map(p => ({
+    id: p.id,
+    nume_prenume: p.nume_prenume || '',
+    telefon: p.telefon || '',
+    email: p.email || '',
+    status: (rolesMap.get(p.id) || ['parinte']).join(','),
+    grupe: groupsMap.get(p.id) || [],
+  }));
 }
 
-export async function getUser(id: number): Promise<User> {
-  if (USE_MOCK) return mockUsers.find((u) => u.id_utilizator === id)!;
-  return apiFetch<User>(`/utilizatori.php?action=get&id=${id}`);
+export async function getUser(id: string): Promise<User> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) throw error;
+
+  const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', id);
+  const { data: userGroups } = await supabase.from('user_groups').select('groups(slug)').eq('user_id', id);
+
+  return {
+    id: data.id,
+    nume_prenume: data.nume_prenume || '',
+    telefon: data.telefon || '',
+    email: data.email || '',
+    status: (roles || []).map((r: any) => r.role).join(',') || 'parinte',
+    grupe: (userGroups || []).map((ug: any) => ug.groups?.slug).filter(Boolean),
+  };
 }
 
 export async function createUser(user: Partial<User>): Promise<User> {
-  if (USE_MOCK) {
-    const newUser = { ...user, id_utilizator: Date.now() } as User;
-    mockUsers.push(newUser);
-    return newUser;
-  }
-  return apiFetch<User>('/utilizatori.php?action=create', { method: 'POST', body: JSON.stringify(user) });
+  throw new Error('User creation requires admin privileges. Use Supabase Dashboard.');
 }
 
 export async function updateUser(user: Partial<User>): Promise<User> {
-  if (USE_MOCK) return user as User;
-  return apiFetch<User>('/utilizatori.php?action=update', { method: 'POST', body: JSON.stringify(user) });
+  if (!user.id) throw new Error('User ID required');
+  await supabase.from('profiles').update({
+    nume_prenume: user.nume_prenume,
+    telefon: user.telefon,
+    email: user.email,
+  }).eq('id', user.id);
+  return user as User;
 }
 
-export async function deleteUser(id: number): Promise<void> {
-  if (USE_MOCK) return;
-  await apiFetch(`/utilizatori.php?action=delete&id=${id}`, { method: 'POST' });
+export async function deleteUser(id: string): Promise<void> {
+  throw new Error('User deletion requires admin privileges. Use Supabase Dashboard.');
 }

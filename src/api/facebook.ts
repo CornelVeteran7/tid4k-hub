@@ -1,4 +1,4 @@
-import { USE_MOCK, apiFetch } from './config';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface FacebookSettings {
   page_id: string;
@@ -7,28 +7,47 @@ export interface FacebookSettings {
 }
 
 export interface FacebookPost {
-  id: number;
+  id: string;
   content: string;
   posted_at: string;
   status: 'posted' | 'scheduled' | 'failed';
 }
 
 export async function getFacebookSettings(): Promise<FacebookSettings> {
-  if (USE_MOCK) return { page_id: '123456789', token_status: 'activ', posting_format: 'text+image' };
-  return apiFetch<FacebookSettings>('/facebook.php?action=settings');
+  const { data } = await supabase.from('facebook_settings').select('*').limit(1).single();
+  return {
+    page_id: data?.page_id || '',
+    token_status: (data?.token_status as 'activ' | 'expirat') || 'activ',
+    posting_format: data?.posting_format || 'text+image',
+  };
 }
 
 export async function postToFacebook(content: string, imageUrl?: string): Promise<FacebookPost> {
-  if (USE_MOCK) return { id: Date.now(), content, posted_at: new Date().toISOString(), status: 'posted' };
-  return apiFetch<FacebookPost>('/facebook.php?action=post', { method: 'POST', body: JSON.stringify({ content, imageUrl }) });
+  const { data, error } = await supabase.from('facebook_posts').insert({
+    content,
+    status: 'posted',
+  }).select().single();
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    content: data.content,
+    posted_at: data.posted_at || data.created_at,
+    status: data.status as FacebookPost['status'],
+  };
 }
 
 export async function getPostLog(): Promise<FacebookPost[]> {
-  if (USE_MOCK) {
-    return [
-      { id: 1, content: 'Activitate de pictură - Grupa Mare', posted_at: '2026-02-23T09:30:00', status: 'posted' },
-      { id: 2, content: 'Excursie planificată pentru luna martie', posted_at: '2026-02-22T14:00:00', status: 'posted' },
-    ];
-  }
-  return apiFetch<FacebookPost[]>('/facebook.php?action=log');
+  const { data } = await supabase
+    .from('facebook_posts')
+    .select('*')
+    .order('posted_at', { ascending: false });
+
+  return (data || []).map(p => ({
+    id: p.id,
+    content: p.content,
+    posted_at: p.posted_at || p.created_at,
+    status: p.status as FacebookPost['status'],
+  }));
 }

@@ -14,16 +14,1233 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      announcement_reads: {
+        Row: {
+          announcement_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reads_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          ascuns_banda: boolean | null
+          autor_id: string | null
+          autor_nume: string | null
+          continut: string
+          created_at: string | null
+          id: string
+          pozitie_banda: number | null
+          prioritate: string | null
+          target: string | null
+          titlu: string
+        }
+        Insert: {
+          ascuns_banda?: boolean | null
+          autor_id?: string | null
+          autor_nume?: string | null
+          continut: string
+          created_at?: string | null
+          id?: string
+          pozitie_banda?: number | null
+          prioritate?: string | null
+          target?: string | null
+          titlu: string
+        }
+        Update: {
+          ascuns_banda?: boolean | null
+          autor_id?: string | null
+          autor_nume?: string | null
+          continut?: string
+          created_at?: string | null
+          id?: string
+          pozitie_banda?: number | null
+          prioritate?: string | null
+          target?: string | null
+          titlu?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance: {
+        Row: {
+          child_id: string
+          created_at: string | null
+          data: string
+          id: string
+          marked_by: string | null
+          observatii: string | null
+          prezent: boolean | null
+        }
+        Insert: {
+          child_id: string
+          created_at?: string | null
+          data: string
+          id?: string
+          marked_by?: string | null
+          observatii?: string | null
+          prezent?: boolean | null
+        }
+        Update: {
+          child_id?: string
+          created_at?: string | null
+          data?: string
+          id?: string
+          marked_by?: string | null
+          observatii?: string | null
+          prezent?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cancelarie_activities: {
+        Row: {
+          created_at: string | null
+          data: string
+          descriere: string
+          id: string
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data: string
+          descriere: string
+          id?: string
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: string
+          descriere?: string
+          id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cancelarie_activities_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "cancelarie_teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cancelarie_teachers: {
+        Row: {
+          absent_dates: string[] | null
+          avatar_url: string | null
+          created_at: string | null
+          id: string
+          nume: string
+          profile_id: string | null
+          qr_data: string | null
+        }
+        Insert: {
+          absent_dates?: string[] | null
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          nume: string
+          profile_id?: string | null
+          qr_data?: string | null
+        }
+        Update: {
+          absent_dates?: string[] | null
+          avatar_url?: string | null
+          created_at?: string | null
+          id?: string
+          nume?: string
+          profile_id?: string | null
+          qr_data?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cancelarie_teachers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          created_at: string | null
+          data_nasterii: string | null
+          group_id: string | null
+          id: string
+          nume_prenume: string
+          parinte_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_nasterii?: string | null
+          group_id?: string | null
+          id?: string
+          nume_prenume: string
+          parinte_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_nasterii?: string | null
+          group_id?: string | null
+          id?: string
+          nume_prenume?: string
+          parinte_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "children_parinte_id_fkey"
+            columns: ["parinte_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string | null
+          grupa: string | null
+          id: string
+          participant_1: string
+          participant_2: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          grupa?: string | null
+          id?: string
+          participant_1: string
+          participant_2: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          grupa?: string | null
+          id?: string
+          participant_1?: string
+          participant_2?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_participant_1_fkey"
+            columns: ["participant_1"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_participant_2_fkey"
+            columns: ["participant_2"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          categorie: string | null
+          created_at: string | null
+          group_id: string | null
+          id: string
+          marime: number | null
+          nume_fisier: string
+          thumbnail_url: string | null
+          tip_fisier: string | null
+          uploadat_de_id: string | null
+          uploadat_de_nume: string | null
+          url: string
+        }
+        Insert: {
+          categorie?: string | null
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          marime?: number | null
+          nume_fisier: string
+          thumbnail_url?: string | null
+          tip_fisier?: string | null
+          uploadat_de_id?: string | null
+          uploadat_de_nume?: string | null
+          url: string
+        }
+        Update: {
+          categorie?: string | null
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          marime?: number | null
+          nume_fisier?: string
+          thumbnail_url?: string | null
+          tip_fisier?: string | null
+          uploadat_de_id?: string | null
+          uploadat_de_nume?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_uploadat_de_id_fkey"
+            columns: ["uploadat_de_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_posts: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          posted_at: string | null
+          status: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          posted_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          posted_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      facebook_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          page_id: string | null
+          posting_format: string | null
+          token_status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          page_id?: string | null
+          posting_format?: string | null
+          token_status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          page_id?: string | null
+          posting_format?: string | null
+          token_status?: string | null
+        }
+        Relationships: []
+      }
+      groups: {
+        Row: {
+          created_at: string | null
+          id: string
+          nume: string
+          school_id: string | null
+          slug: string
+          tip: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nume: string
+          school_id?: string | null
+          slug: string
+          tip?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nume?: string
+          school_id?: string | null
+          slug?: string
+          tip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "groups_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      infodisplay_panels: {
+        Row: {
+          continut: string
+          created_at: string | null
+          durata: number | null
+          id: string
+          ordine: number | null
+          tip: string
+        }
+        Insert: {
+          continut: string
+          created_at?: string | null
+          durata?: number | null
+          id?: string
+          ordine?: number | null
+          tip: string
+        }
+        Update: {
+          continut?: string
+          created_at?: string | null
+          durata?: number | null
+          id?: string
+          ordine?: number | null
+          tip?: string
+        }
+        Relationships: []
+      }
+      infodisplay_qr: {
+        Row: {
+          created_at: string | null
+          id: string
+          label: string
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          label: string
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          label?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      infodisplay_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          transition: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          transition?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          transition?: string | null
+        }
+        Relationships: []
+      }
+      infodisplay_ticker: {
+        Row: {
+          created_at: string | null
+          id: string
+          mesaj: string
+          ordine: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mesaj: string
+          ordine?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mesaj?: string
+          ordine?: number | null
+        }
+        Relationships: []
+      }
+      menu_items: {
+        Row: {
+          continut: string
+          created_at: string | null
+          emoji: string | null
+          id: string
+          masa: string
+          saptamana: string
+          zi: string
+        }
+        Insert: {
+          continut: string
+          created_at?: string | null
+          emoji?: string | null
+          id?: string
+          masa: string
+          saptamana: string
+          zi: string
+        }
+        Update: {
+          continut?: string
+          created_at?: string | null
+          emoji?: string | null
+          id?: string
+          masa?: string
+          saptamana?: string
+          zi?: string
+        }
+        Relationships: []
+      }
+      menu_metadata: {
+        Row: {
+          alergeni: string[] | null
+          created_at: string | null
+          id: string
+          saptamana: string
+          semnatura_administrator: string | null
+          semnatura_asistent: string | null
+          semnatura_director: string | null
+        }
+        Insert: {
+          alergeni?: string[] | null
+          created_at?: string | null
+          id?: string
+          saptamana: string
+          semnatura_administrator?: string | null
+          semnatura_asistent?: string | null
+          semnatura_director?: string | null
+        }
+        Update: {
+          alergeni?: string[] | null
+          created_at?: string | null
+          id?: string
+          saptamana?: string
+          semnatura_administrator?: string | null
+          semnatura_asistent?: string | null
+          semnatura_director?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          citit: boolean | null
+          conversation_id: string
+          created_at: string | null
+          id: string
+          mesaj: string
+          sender_id: string
+        }
+        Insert: {
+          citit?: boolean | null
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          mesaj: string
+          sender_id: string
+        }
+        Update: {
+          citit?: boolean | null
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          mesaj?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nutritional_data: {
+        Row: {
+          carbohidrati: number | null
+          fibre: number | null
+          grasimi: number | null
+          id: string
+          kcal: number | null
+          proteine: number | null
+          saptamana: string
+          zi: string
+        }
+        Insert: {
+          carbohidrati?: number | null
+          fibre?: number | null
+          grasimi?: number | null
+          id?: string
+          kcal?: number | null
+          proteine?: number | null
+          saptamana: string
+          zi: string
+        }
+        Update: {
+          carbohidrati?: number | null
+          fibre?: number | null
+          grasimi?: number | null
+          id?: string
+          kcal?: number | null
+          proteine?: number | null
+          saptamana?: string
+          zi?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          nume_prenume: string
+          status: string | null
+          telefon: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id: string
+          nume_prenume?: string
+          status?: string | null
+          telefon?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nume_prenume?: string
+          status?: string | null
+          telefon?: string | null
+        }
+        Relationships: []
+      }
+      schedule: {
+        Row: {
+          created_at: string | null
+          culoare: string | null
+          group_id: string | null
+          id: string
+          materie: string
+          ora: string
+          profesor: string | null
+          zi: string
+        }
+        Insert: {
+          created_at?: string | null
+          culoare?: string | null
+          group_id?: string | null
+          id?: string
+          materie: string
+          ora: string
+          profesor?: string | null
+          zi: string
+        }
+        Update: {
+          created_at?: string | null
+          culoare?: string | null
+          group_id?: string | null
+          id?: string
+          materie?: string
+          ora?: string
+          profesor?: string | null
+          zi?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schools: {
+        Row: {
+          activ: boolean | null
+          adresa: string | null
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          nr_copii: number | null
+          nr_profesori: number | null
+          nume: string
+          sponsori_activi: string[] | null
+          tip: string | null
+        }
+        Insert: {
+          activ?: boolean | null
+          adresa?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          nr_copii?: number | null
+          nr_profesori?: number | null
+          nume: string
+          sponsori_activi?: string[] | null
+          tip?: string | null
+        }
+        Update: {
+          activ?: boolean | null
+          adresa?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          nr_copii?: number | null
+          nr_profesori?: number | null
+          nume?: string
+          sponsori_activi?: string[] | null
+          tip?: string | null
+        }
+        Relationships: []
+      }
+      sponsor_campaigns: {
+        Row: {
+          afisari: number | null
+          clickuri: number | null
+          created_at: string | null
+          cta_text: string | null
+          ctr: number | null
+          data_end_campanie: string | null
+          data_start_campanie: string | null
+          descriere: string | null
+          documente_atasate: string[] | null
+          id: string
+          link_url: string | null
+          prioritate: number | null
+          scoli_target: string[] | null
+          sponsor_id: string
+          status: string | null
+          stil_card: Json | null
+          stil_inky: Json | null
+          stil_ticker: Json | null
+          tip: string
+          titlu: string
+        }
+        Insert: {
+          afisari?: number | null
+          clickuri?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          ctr?: number | null
+          data_end_campanie?: string | null
+          data_start_campanie?: string | null
+          descriere?: string | null
+          documente_atasate?: string[] | null
+          id?: string
+          link_url?: string | null
+          prioritate?: number | null
+          scoli_target?: string[] | null
+          sponsor_id: string
+          status?: string | null
+          stil_card?: Json | null
+          stil_inky?: Json | null
+          stil_ticker?: Json | null
+          tip: string
+          titlu: string
+        }
+        Update: {
+          afisari?: number | null
+          clickuri?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          ctr?: number | null
+          data_end_campanie?: string | null
+          data_start_campanie?: string | null
+          descriere?: string | null
+          documente_atasate?: string[] | null
+          id?: string
+          link_url?: string | null
+          prioritate?: number | null
+          scoli_target?: string[] | null
+          sponsor_id?: string
+          status?: string | null
+          stil_card?: Json | null
+          stil_inky?: Json | null
+          stil_ticker?: Json | null
+          tip?: string
+          titlu?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_campaigns_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_impressions: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_click: boolean | null
+          promo_id: string | null
+          school_id: string | null
+          tip: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_click?: boolean | null
+          promo_id?: string | null
+          school_id?: string | null
+          tip: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_click?: boolean | null
+          promo_id?: string | null
+          school_id?: string | null
+          tip?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_impressions_promo_id_fkey"
+            columns: ["promo_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_promos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_impressions_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_plans: {
+        Row: {
+          descriere: string | null
+          id: string
+          include_custom_inky: boolean | null
+          include_dashboard: boolean | null
+          include_infodisplay: boolean | null
+          include_inky: boolean | null
+          include_ticker: boolean | null
+          numar_scoli: number | null
+          nume_plan: string
+          pret: number | null
+        }
+        Insert: {
+          descriere?: string | null
+          id?: string
+          include_custom_inky?: boolean | null
+          include_dashboard?: boolean | null
+          include_infodisplay?: boolean | null
+          include_inky?: boolean | null
+          include_ticker?: boolean | null
+          numar_scoli?: number | null
+          nume_plan: string
+          pret?: number | null
+        }
+        Update: {
+          descriere?: string | null
+          id?: string
+          include_custom_inky?: boolean | null
+          include_dashboard?: boolean | null
+          include_infodisplay?: boolean | null
+          include_inky?: boolean | null
+          include_ticker?: boolean | null
+          numar_scoli?: number | null
+          nume_plan?: string
+          pret?: number | null
+        }
+        Relationships: []
+      }
+      sponsor_promos: {
+        Row: {
+          activ: boolean | null
+          created_at: string | null
+          cta_text: string | null
+          descriere: string | null
+          id: string
+          link_url: string | null
+          prioritate: number | null
+          scoli_target: string[] | null
+          sponsor_id: string
+          stil_card: Json | null
+          stil_inky: Json | null
+          stil_ticker: Json | null
+          tip: string
+          titlu: string
+        }
+        Insert: {
+          activ?: boolean | null
+          created_at?: string | null
+          cta_text?: string | null
+          descriere?: string | null
+          id?: string
+          link_url?: string | null
+          prioritate?: number | null
+          scoli_target?: string[] | null
+          sponsor_id: string
+          stil_card?: Json | null
+          stil_inky?: Json | null
+          stil_ticker?: Json | null
+          tip: string
+          titlu: string
+        }
+        Update: {
+          activ?: boolean | null
+          created_at?: string | null
+          cta_text?: string | null
+          descriere?: string | null
+          id?: string
+          link_url?: string | null
+          prioritate?: number | null
+          scoli_target?: string[] | null
+          sponsor_id?: string
+          stil_card?: Json | null
+          stil_inky?: Json | null
+          stil_ticker?: Json | null
+          tip?: string
+          titlu?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_promos_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsors: {
+        Row: {
+          activ: boolean | null
+          created_at: string | null
+          culoare_brand: string | null
+          data_expirare: string | null
+          data_start: string | null
+          descriere: string | null
+          id: string
+          logo_url: string | null
+          nume: string
+          plan: string | null
+          website: string | null
+        }
+        Insert: {
+          activ?: boolean | null
+          created_at?: string | null
+          culoare_brand?: string | null
+          data_expirare?: string | null
+          data_start?: string | null
+          descriere?: string | null
+          id?: string
+          logo_url?: string | null
+          nume: string
+          plan?: string | null
+          website?: string | null
+        }
+        Update: {
+          activ?: boolean | null
+          created_at?: string | null
+          culoare_brand?: string | null
+          data_expirare?: string | null
+          data_start?: string | null
+          descriere?: string | null
+          id?: string
+          logo_url?: string | null
+          nume?: string
+          plan?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      stories: {
+        Row: {
+          audio_url: string | null
+          categorie: string | null
+          continut: string
+          created_at: string | null
+          id: string
+          thumbnail: string | null
+          titlu: string
+          varsta: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          categorie?: string | null
+          continut: string
+          created_at?: string | null
+          id?: string
+          thumbnail?: string | null
+          titlu: string
+          varsta?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          categorie?: string | null
+          continut?: string
+          created_at?: string | null
+          id?: string
+          thumbnail?: string | null
+          titlu?: string
+          varsta?: string | null
+        }
+        Relationships: []
+      }
+      story_favorites: {
+        Row: {
+          id: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_favorites_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_groups: {
+        Row: {
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_groups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_mappings: {
+        Row: {
+          consent: boolean | null
+          created_at: string | null
+          grupa: string
+          id: string
+          sync_type: string | null
+          whatsapp_group: string
+        }
+        Insert: {
+          consent?: boolean | null
+          created_at?: string | null
+          grupa: string
+          id?: string
+          sync_type?: string | null
+          whatsapp_group: string
+        }
+        Update: {
+          consent?: boolean | null
+          created_at?: string | null
+          grupa?: string
+          id?: string
+          sync_type?: string | null
+          whatsapp_group?: string
+        }
+        Relationships: []
+      }
+      workshops: {
+        Row: {
+          categorie: string | null
+          created_at: string | null
+          data_publicare: string | null
+          descriere: string | null
+          durata_minute: number | null
+          id: string
+          imagine_url: string | null
+          instructor: string | null
+          luna: string
+          materiale: string[] | null
+          publicat: boolean | null
+          scoli_target: string[] | null
+          titlu: string
+        }
+        Insert: {
+          categorie?: string | null
+          created_at?: string | null
+          data_publicare?: string | null
+          descriere?: string | null
+          durata_minute?: number | null
+          id?: string
+          imagine_url?: string | null
+          instructor?: string | null
+          luna: string
+          materiale?: string[] | null
+          publicat?: boolean | null
+          scoli_target?: string[] | null
+          titlu: string
+        }
+        Update: {
+          categorie?: string | null
+          created_at?: string | null
+          data_publicare?: string | null
+          descriere?: string | null
+          durata_minute?: number | null
+          id?: string
+          imagine_url?: string | null
+          instructor?: string | null
+          luna?: string
+          materiale?: string[] | null
+          publicat?: boolean | null
+          scoli_target?: string[] | null
+          titlu?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "parinte"
+        | "profesor"
+        | "director"
+        | "administrator"
+        | "secretara"
+        | "sponsor"
+        | "inky"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +1367,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "parinte",
+        "profesor",
+        "director",
+        "administrator",
+        "secretara",
+        "sponsor",
+        "inky",
+      ],
+    },
   },
 } as const
