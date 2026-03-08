@@ -229,7 +229,7 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
   isSelected: boolean;
   onRefresh: () => void;
 }) {
-  const totalCost = costs.reduce((s, c) => s + c.total, 0);
+  const totalCost = costs.reduce((s, c) => s + (c.total ?? (c.cantitate * c.pret_unitar)), 0);
   const budgetPct = site.buget > 0 ? Math.round((totalCost / site.buget) * 100) : 0;
   const overdueTasks = tasks.filter(t => t.status !== 'done' && t.data_limita && t.data_limita < today);
   const activeTasks = tasks.filter(t => t.status !== 'done');
