@@ -133,7 +133,7 @@ export default function SponsorsTab() {
                         <h3 className="text-sm font-semibold">{promo.titlu}</h3>
                         {promo.link_url && <button onClick={() => openLink(promo.link_url!)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline"><ExternalLink className="h-3 w-3" />{promo.link_url}</button>}
                       </div>
-                      <Switch checked={promo.activ} />
+                      <Switch checked={promo.activ} onCheckedChange={() => toast.info('Modificarea statusului promoției necesită permisiuni de admin.')} />
                     </div>
                   </div>
                 </div>
