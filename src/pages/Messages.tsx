@@ -81,32 +81,37 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
   // Real-time subscription for new messages
   useEffect(() => {
     if (!selectedConvo) return;
-    const channel = (await import('@/integrations/supabase/client')).supabase
-      .channel(`messages:${selectedConvo.id}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `conversation_id=eq.${selectedConvo.id}`,
-      }, (payload: any) => {
-        const m = payload.new;
-        if (m.sender_id === user?.id) return; // Skip own messages (already added)
-        setMessages(prev => {
-          if (prev.some(msg => msg.id === m.id)) return prev;
-          return [...prev, {
-            id: m.id,
-            expeditor: m.sender_id,
-            expeditor_nume: '', // Will show after refresh
-            destinatar: user?.id || '',
-            mesaj: m.mesaj,
-            data: m.created_at,
-            citit: false,
-          }];
-        });
-      })
-      .subscribe();
+    
+    import('@/integrations/supabase/client').then(({ supabase: sb }) => {
+      const channel = sb
+        .channel(`messages:${selectedConvo.id}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${selectedConvo.id}`,
+        }, (payload: any) => {
+          const m = payload.new;
+          if (m.sender_id === user?.id) return;
+          setMessages(prev => {
+            if (prev.some(msg => msg.id === m.id)) return prev;
+            return [...prev, {
+              id: m.id,
+              expeditor: m.sender_id,
+              expeditor_nume: '',
+              destinatar: user?.id || '',
+              mesaj: m.mesaj,
+              data: m.created_at,
+              citit: false,
+            }];
+          });
+        })
+        .subscribe();
 
-    return () => { channel.unsubscribe(); };
+      channelRef.current = channel;
+    });
+
+    return () => { channelRef.current?.unsubscribe(); };
   }, [selectedConvo?.id, user?.id]);
 
   useEffect(() => {
