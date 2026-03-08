@@ -54,7 +54,7 @@ export async function saveSchedule(groupId: string, cells: ScheduleCell[]): Prom
         profesor: c.profesor,
         sala: c.sala || null,
         culoare: c.culoare,
-      } as any))
+      }))
     );
   }
 }
