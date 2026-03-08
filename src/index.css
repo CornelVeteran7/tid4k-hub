@@ -272,6 +272,26 @@ html, body {
   -webkit-touch-callout: none !important;
 }
 
+/* Display ticker — pure CSS, Puppeteer-safe */
+@keyframes display-ticker {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.display-ticker-track {
+  animation: display-ticker 30s linear infinite;
+}
+
+/* Display page — use viewport units for TV scaling */
+/* Font preload: block render until loaded for Puppeteer screenshots */
+@font-face {
+  font-family: 'Poppins';
+  font-display: block;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-display: block;
+}
+
 /* Print styles for attendance */
 @media print {
   body * {

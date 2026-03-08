@@ -2,7 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { QRCodeSVG } from 'qrcode.react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { DisplayHeader } from '@/components/display/DisplayHeader';
+import { DisplayTicker } from '@/components/display/DisplayTicker';
+import { DisplayPanelSlider } from '@/components/display/DisplayPanelSlider';
+import { QueueDisplay } from '@/components/display/QueueDisplay';
+import { ConstructionDisplay } from '@/components/display/ConstructionDisplay';
+import { MenuDisplay } from '@/components/display/MenuDisplay';
 
 interface DisplayPanel {
   id: string;
@@ -10,7 +15,6 @@ interface DisplayPanel {
   continut: string;
   durata: number;
   ordine: number;
-  activ?: boolean;
 }
 
 interface DisplayConfig {
@@ -18,15 +22,16 @@ interface DisplayConfig {
   ticker_messages: string[];
   qr_codes: { label: string; url: string }[];
   transition: 'fade' | 'slide';
-  org_name?: string;
+  org_id: string;
+  org_name: string;
   org_logo?: string;
-  primary_color?: string;
+  primary_color: string;
+  vertical_type: string;
 }
 
 export default function PublicDisplay() {
   const { orgSlug } = useParams<{ orgSlug: string }>();
   const [config, setConfig] = useState<DisplayConfig | null>(null);
-  const [currentPanel, setCurrentPanel] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const loadContent = useCallback(async () => {
@@ -37,35 +42,24 @@ export default function PublicDisplay() {
       .eq('name', orgSlug || '')
       .maybeSingle();
 
-    // Load display panels (only active ones)
-    const { data: panels } = await supabase
-      .from('infodisplay_panels')
-      .select('*')
-      .order('ordine');
+    const orgId = org?.id || '';
 
-    const { data: ticker } = await supabase
-      .from('infodisplay_ticker')
-      .select('*')
-      .order('ordine');
-
-    const { data: qr } = await supabase
-      .from('infodisplay_qr')
-      .select('*');
-
-    const { data: settings } = await supabase
-      .from('infodisplay_settings')
-      .select('*')
-      .limit(1)
-      .maybeSingle();
-
-    // Also load non-expired, non-hidden announcements as ticker messages
-    const { data: announcements } = await supabase
-      .from('announcements')
-      .select('titlu')
-      .eq('ascuns_banda', false)
-      .or('data_expirare.is.null,data_expirare.gt.' + new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(10);
+    // Load display data in parallel
+    const [{ data: panels }, { data: ticker }, { data: qr }, { data: settings }, { data: announcements }] =
+      await Promise.all([
+        supabase.from('infodisplay_panels').select('*').eq('organization_id', orgId).order('ordine'),
+        supabase.from('infodisplay_ticker').select('*').eq('organization_id', orgId).order('ordine'),
+        supabase.from('infodisplay_qr').select('*').eq('organization_id', orgId),
+        supabase.from('infodisplay_settings').select('*').eq('organization_id', orgId).limit(1).maybeSingle(),
+        supabase
+          .from('announcements')
+          .select('titlu')
+          .eq('organization_id', orgId)
+          .eq('ascuns_banda', false)
+          .or('data_expirare.is.null,data_expirare.gt.' + new Date().toISOString())
+          .order('created_at', { ascending: false })
+          .limit(10),
+      ]);
 
     const tickerMsgs = [
       ...(ticker || []).map(t => t.mesaj),
@@ -83,29 +77,20 @@ export default function PublicDisplay() {
       ticker_messages: tickerMsgs,
       qr_codes: (qr || []).map(q => ({ label: q.label, url: q.url })),
       transition: (settings?.transition as 'fade' | 'slide') || 'fade',
+      org_id: orgId,
       org_name: org?.name || orgSlug || 'InfoDisplay',
       org_logo: org?.logo_url || undefined,
       primary_color: org?.primary_color || '#4F46E5',
+      vertical_type: org?.vertical_type || 'kids',
     });
     setLoading(false);
   }, [orgSlug]);
 
   useEffect(() => {
     loadContent();
-    // Refresh every 5 minutes
     const interval = setInterval(loadContent, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [loadContent]);
-
-  // Auto-rotate panels
-  useEffect(() => {
-    if (!config || config.panels.length === 0) return;
-    const duration = (config.panels[currentPanel]?.durata || 8) * 1000;
-    const timer = setTimeout(() => {
-      setCurrentPanel(prev => (prev + 1) % config.panels.length);
-    }, duration);
-    return () => clearTimeout(timer);
-  }, [config, currentPanel]);
 
   if (loading) {
     return (
@@ -115,97 +100,147 @@ export default function PublicDisplay() {
     );
   }
 
-  if (!config || config.panels.length === 0) {
+  if (!config) {
     return (
       <div className="fixed inset-0 bg-black text-white flex flex-col items-center justify-center">
-        <h1 className="text-4xl font-bold mb-4">{config?.org_name || 'InfoDisplay'}</h1>
-        <p className="text-white/60 text-lg">Nu sunt panouri configurate</p>
+        <h1 className="text-[5vh] font-bold mb-4">Organizație negăsită</h1>
+        <p className="text-white/60 text-[2vh]">Verifică URL-ul sau contactează administratorul</p>
       </div>
     );
   }
 
-  const panel = config.panels[currentPanel];
-  const isSlide = config.transition === 'slide';
+  const qrUrl = `${window.location.origin}/qr/${orgSlug}`;
 
   return (
     <div className="fixed inset-0 bg-black text-white overflow-hidden select-none cursor-none">
-      {/* Header bar */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 py-4">
-        <div className="flex items-center gap-4">
-          {config.org_logo && (
-            <img src={config.org_logo} alt="" className="h-10 w-10 rounded-lg object-contain bg-white/10 p-1" />
-          )}
-          <span className="text-xl font-bold opacity-80">{config.org_name}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm opacity-50 font-mono">
-            {new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
-          </span>
-          {/* Panel indicators */}
-          <div className="flex gap-1.5">
-            {config.panels.map((_, i) => (
-              <div
-                key={i}
-                className={`h-2 rounded-full transition-all duration-500 ${i === currentPanel ? 'w-6' : 'w-2'}`}
-                style={{ backgroundColor: i === currentPanel ? (config.primary_color || '#4F46E5') : 'rgba(255,255,255,0.3)' }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Header — shared across all verticals */}
+      <DisplayHeader
+        orgName={config.org_name}
+        orgLogo={config.org_logo}
+        primaryColor={config.primary_color}
+        qrUrl={qrUrl}
+      />
 
-      {/* Main content area */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentPanel}
-          initial={isSlide ? { x: '100%' } : { opacity: 0 }}
-          animate={isSlide ? { x: 0 } : { opacity: 1 }}
-          exit={isSlide ? { x: '-100%' } : { opacity: 0 }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="absolute inset-0 flex flex-col items-center justify-center px-16 py-24"
-        >
-          <div className="text-center max-w-4xl">
-            <span
-              className="inline-block px-4 py-1 rounded-full text-sm font-bold mb-6 uppercase tracking-wider"
-              style={{ backgroundColor: config.primary_color || '#4F46E5' }}
-            >
-              {panel.tip}
-            </span>
-            <h2 className="text-5xl font-bold leading-tight mb-8">{panel.continut}</h2>
+      {/* Vertical-specific main content */}
+      <VerticalContent config={config} />
 
-            {/* QR codes */}
-            {config.qr_codes.length > 0 && (
-              <div className="flex items-center justify-center gap-8 mt-12">
-                {config.qr_codes.map(qr => (
-                  <div key={qr.label} className="flex flex-col items-center gap-3">
-                    <div className="p-4 bg-white rounded-2xl">
-                      <QRCodeSVG value={qr.url} size={100} />
-                    </div>
-                    <span className="text-sm opacity-60">{qr.label}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </motion.div>
-      </AnimatePresence>
+      {/* Ticker — shared across all verticals */}
+      <DisplayTicker messages={config.ticker_messages} color={config.primary_color} />
+    </div>
+  );
+}
 
-      {/* News Ticker */}
-      {config.ticker_messages.length > 0 && (
-        <div
-          className="absolute bottom-0 left-0 right-0 py-3 overflow-hidden"
-          style={{ backgroundColor: config.primary_color || '#4F46E5' }}
-        >
-          <div className="animate-ticker-scroll whitespace-nowrap">
-            {/* Duplicate messages for seamless loop */}
-            {[...config.ticker_messages, ...config.ticker_messages].map((msg, i) => (
-              <span key={i} className="mx-12 text-base font-medium">
-                {msg} ●
-              </span>
-            ))}
-          </div>
+/** Routes display content based on vertical_type */
+function VerticalContent({ config }: { config: DisplayConfig }) {
+  switch (config.vertical_type) {
+    case 'medicine':
+      return (
+        <QueueDisplay
+          organizationId={config.org_id}
+          primaryColor={config.primary_color}
+        />
+      );
+
+    case 'construction':
+      return (
+        <ConstructionDisplay
+          organizationId={config.org_id}
+          primaryColor={config.primary_color}
+        />
+      );
+
+    case 'kids':
+      return (
+        <KidsDisplay config={config} />
+      );
+
+    default:
+      // Schools, living, culture, students, workshops — standard panel slideshow
+      return (
+        <DefaultDisplay config={config} />
+      );
+  }
+}
+
+/** Kids: panels + today's menu + QR codes */
+function KidsDisplay({ config }: { config: DisplayConfig }) {
+  const hasMenu = config.vertical_type === 'kids';
+
+  return (
+    <>
+      {config.panels.length > 0 ? (
+        <DisplayPanelSlider panels={config.panels} primaryColor={config.primary_color} />
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="text-[8vh] mb-[2vh]">🧒</div>
+          <div className="text-[3vh] opacity-60">{config.org_name}</div>
         </div>
       )}
-    </div>
+
+      {/* Floating menu card — bottom left */}
+      {hasMenu && (
+        <div className="absolute bottom-[7vh] left-[2vw] z-[5]">
+          <MenuDisplay organizationId={config.org_id} />
+        </div>
+      )}
+
+      {/* QR codes — bottom right */}
+      {config.qr_codes.length > 0 && (
+        <div className="absolute bottom-[7vh] right-[2vw] z-[5] flex gap-[1.5vw]">
+          {config.qr_codes.map(qr => (
+            <div key={qr.label} className="flex flex-col items-center gap-[0.5vh]">
+              <div className="p-[0.8vh] bg-white rounded-xl">
+                <QRCodeSVG value={qr.url} size={80} />
+              </div>
+              <span className="text-[1.4vh] opacity-60">{qr.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
+/** Default slideshow for other verticals */
+function DefaultDisplay({ config }: { config: DisplayConfig }) {
+  if (config.panels.length === 0) {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="text-[5vh] font-bold mb-[2vh]">{config.org_name}</div>
+        <div className="text-[2.5vh] opacity-40">
+          {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </div>
+        {config.qr_codes.length > 0 && (
+          <div className="flex gap-[2vw] mt-[4vh]">
+            {config.qr_codes.map(qr => (
+              <div key={qr.label} className="flex flex-col items-center gap-[0.5vh]">
+                <div className="p-[1vh] bg-white rounded-xl">
+                  <QRCodeSVG value={qr.url} size={100} />
+                </div>
+                <span className="text-[1.4vh] opacity-60">{qr.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <DisplayPanelSlider panels={config.panels} primaryColor={config.primary_color} />
+      {config.qr_codes.length > 0 && (
+        <div className="absolute bottom-[7vh] right-[2vw] z-[5] flex gap-[1.5vw]">
+          {config.qr_codes.map(qr => (
+            <div key={qr.label} className="flex flex-col items-center gap-[0.5vh]">
+              <div className="p-[0.8vh] bg-white rounded-xl">
+                <QRCodeSVG value={qr.url} size={80} />
+              </div>
+              <span className="text-[1.4vh] opacity-60">{qr.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   );
 }

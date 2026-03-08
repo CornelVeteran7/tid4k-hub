@@ -306,6 +306,56 @@ export type Database = {
           },
         ]
       }
+      construction_tasks: {
+        Row: {
+          assignee: string | null
+          created_at: string
+          data_limita: string | null
+          descriere: string | null
+          id: string
+          locatie: string | null
+          organization_id: string | null
+          prioritate: string | null
+          status: string
+          titlu: string
+          updated_at: string | null
+        }
+        Insert: {
+          assignee?: string | null
+          created_at?: string
+          data_limita?: string | null
+          descriere?: string | null
+          id?: string
+          locatie?: string | null
+          organization_id?: string | null
+          prioritate?: string | null
+          status?: string
+          titlu: string
+          updated_at?: string | null
+        }
+        Update: {
+          assignee?: string | null
+          created_at?: string
+          data_limita?: string | null
+          descriere?: string | null
+          id?: string
+          locatie?: string | null
+          organization_id?: string | null
+          prioritate?: string | null
+          status?: string
+          titlu?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
@@ -948,6 +998,50 @@ export type Database = {
           },
         ]
       }
+      queue_entries: {
+        Row: {
+          cabinet: string | null
+          called_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          note: string | null
+          numar_tichet: number
+          organization_id: string | null
+          status: string
+        }
+        Insert: {
+          cabinet?: string | null
+          called_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          numar_tichet: number
+          organization_id?: string | null
+          status?: string
+        }
+        Update: {
+          cabinet?: string | null
+          called_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          numar_tichet?: number
+          organization_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_entries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schedule: {
         Row: {
           created_at: string | null
@@ -1332,6 +1426,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sponsors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ssm_reminders: {
+        Row: {
+          activ: boolean | null
+          created_at: string
+          id: string
+          mesaj: string
+          ordine: number | null
+          organization_id: string | null
+          tip: string | null
+        }
+        Insert: {
+          activ?: boolean | null
+          created_at?: string
+          id?: string
+          mesaj: string
+          ordine?: number | null
+          organization_id?: string | null
+          tip?: string | null
+        }
+        Update: {
+          activ?: boolean | null
+          created_at?: string
+          id?: string
+          mesaj?: string
+          ordine?: number | null
+          organization_id?: string | null
+          tip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ssm_reminders_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
