@@ -1,127 +1,85 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Settings as SettingsIcon, Upload, Key, MessageCircle, Facebook, Bell, Database, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Building2, Palette, LayoutGrid, Users, Monitor, Link2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { isAdmin as checkIsAdmin } from '@/utils/roles';
+import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
+import SettingsGeneral from '@/components/settings/SettingsGeneral';
+import SettingsBranding from '@/components/settings/SettingsBranding';
+import SettingsModules from '@/components/settings/SettingsModules';
+import SettingsUsers from '@/components/settings/SettingsUsers';
+import SettingsDisplay from '@/components/settings/SettingsDisplay';
+import SettingsIntegrations from '@/components/settings/SettingsIntegrations';
+
+const TABS = [
+  { value: 'general', label: 'General', icon: Building2 },
+  { value: 'branding', label: 'Branding', icon: Palette },
+  { value: 'modules', label: 'Module', icon: LayoutGrid },
+  { value: 'users', label: 'Utilizatori', icon: Users },
+  { value: 'display', label: 'Display', icon: Monitor },
+  { value: 'integrations', label: 'Integrări', icon: Link2 },
+];
 
 export default function Settings() {
+  const { user } = useAuth();
+
+  if (!user || !checkIsAdmin(user.status, user.nume_prenume)) {
+    return <Navigate to="/" replace />;
+  }
+
+  const orgId = user.organization_id;
+  const verticalType = (user.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
+
+  if (!orgId) {
+    return (
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
+        Nu ești asociat unei organizații.
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-5 pb-20 max-w-4xl">
       <div>
         <h1 className="text-2xl font-display font-bold">Configurări</h1>
-        <p className="text-muted-foreground">Setări sistem și integrări</p>
+        <p className="text-sm text-muted-foreground">
+          Setări pentru {verticalDef.label} — {user.org_name}
+        </p>
       </div>
 
-      {/* School Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <SettingsIcon className="h-4 w-4" /> Informații școală
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div><Label>Nume școală</Label><Input defaultValue="Grădinița Floarea Soarelui" /></div>
-          <div><Label>Adresă</Label><Input defaultValue="Str. Exemplu nr. 1, București" /></div>
-          <div>
-            <Label>Logo</Label>
-            <div className="mt-2 flex items-center gap-4">
-              <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
-                <Upload className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <Button variant="outline" size="sm">Schimbă logo</Button>
-            </div>
-          </div>
-          <Button onClick={() => toast.success('Salvat!')}>Salvează</Button>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="general" className="space-y-4">
+        <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
+          <TabsList className="inline-flex w-auto min-w-full sm:min-w-0">
+            {TABS.map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 shrink-0 text-xs sm:text-sm">
+                <tab.icon className="h-4 w-4" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
-      {/* API Keys */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Key className="h-4 w-4" /> Chei API</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {['Cloudmersive', 'OpenAI', 'Twilio'].map((name) => (
-            <div key={name}>
-              <Label>{name}</Label>
-              <Input type="password" defaultValue="••••••••••••••••" readOnly className="font-mono" />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* WhatsApp */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><MessageCircle className="h-4 w-4" /> Integrare WhatsApp</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div><p className="font-medium text-sm">Sincronizare activă</p><p className="text-xs text-muted-foreground">Bidirecțională</p></div>
-            <Badge className="bg-success text-success-foreground">Activ</Badge>
-          </div>
-          <Separator />
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span>Grupa Mare → Grupa Mare - Părinți</span><Badge variant="secondary">Bidirecțional</Badge></div>
-            <div className="flex justify-between"><span>Clasa I-A → Clasa I-A Comunicare</span><Badge variant="secondary">Unidirecțional</Badge></div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch defaultChecked id="consent" />
-            <Label htmlFor="consent" className="text-sm">Consimțământ părinți activ</Label>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Facebook */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Facebook className="h-4 w-4" /> Integrare Facebook</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div><Label>Page ID</Label><Input defaultValue="123456789" className="font-mono" /></div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm">Token status</span>
-            <Badge className="bg-success text-success-foreground">Activ</Badge>
-          </div>
-          <div><Label>Format postare</Label><Input defaultValue="text+image" /></div>
-        </CardContent>
-      </Card>
-
-      {/* Notifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Bell className="h-4 w-4" /> Notificări</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label>Notificări email</Label>
-            <Switch defaultChecked />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label>Notificări SMS</Label>
-            <Switch />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Maintenance */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Database className="h-4 w-4" /> Mentenanță sistem</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Button variant="outline" className="gap-2" onClick={() => toast.success('Cache golit!')}>
-            <Trash2 className="h-4 w-4" /> Golește cache
-          </Button>
-          <Button variant="outline" className="gap-2" onClick={() => toast.success('Backup inițiat!')}>
-            <Database className="h-4 w-4" /> Backup bază de date
-          </Button>
-        </CardContent>
-      </Card>
+        <TabsContent value="general">
+          <SettingsGeneral orgId={orgId} />
+        </TabsContent>
+        <TabsContent value="branding">
+          <SettingsBranding orgId={orgId} />
+        </TabsContent>
+        <TabsContent value="modules">
+          <SettingsModules orgId={orgId} verticalType={verticalType} />
+        </TabsContent>
+        <TabsContent value="users">
+          <SettingsUsers orgId={orgId} verticalType={verticalType} />
+        </TabsContent>
+        <TabsContent value="display">
+          <SettingsDisplay orgId={orgId} />
+        </TabsContent>
+        <TabsContent value="integrations">
+          <SettingsIntegrations orgId={orgId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
