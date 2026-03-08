@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  ShieldCheck, Plus, FileText, CheckCircle2, AlertTriangle, Pencil, Trash2, ClipboardList
+  ShieldCheck, Plus, FileText, CheckCircle2, AlertTriangle, Trash2, ClipboardList, Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -18,7 +18,7 @@ import {
   getChecklists, createChecklist, updateChecklist,
   type SSMTemplate, type SSMChecklist
 } from '@/api/ssm';
-import { format, isToday, isBefore, startOfDay } from 'date-fns';
+import { format, isBefore, startOfDay } from 'date-fns';
 
 export default function SSMPage() {
   const { user } = useAuth();
@@ -29,6 +29,7 @@ export default function SSMPage() {
   const [showAddTemplate, setShowAddTemplate] = useState(false);
   const [activeChecklist, setActiveChecklist] = useState<SSMChecklist | null>(null);
   const [newTmpl, setNewTmpl] = useState({ nume: '', itemsText: '' });
+  const [pdfChecklist, setPdfChecklist] = useState<SSMChecklist | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
@@ -110,7 +111,7 @@ export default function SSMPage() {
     const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = 'hsl(var(--foreground))';
+    ctx.strokeStyle = '#000';
     ctx.lineTo(x, y);
     ctx.stroke();
   }, [isDrawing]);
@@ -139,6 +140,65 @@ export default function SSMPage() {
       setActiveChecklist(null);
       reload();
     } catch (e: any) { toast.error(e.message); }
+  };
+
+  const generatePDF = (checklist: SSMChecklist) => {
+    const template = templates.find(t => t.id === checklist.template_id);
+    const w = window.open('', '_blank', 'width=800,height=600');
+    if (!w) { toast.error('Permite pop-up-uri pentru a genera PDF'); return; }
+    
+    const itemsHtml = checklist.items.map((item, i) => `
+      <tr>
+        <td style="padding:8px;border:1px solid #ddd;text-align:center;">${i + 1}</td>
+        <td style="padding:8px;border:1px solid #ddd;">${item.text}</td>
+        <td style="padding:8px;border:1px solid #ddd;text-align:center;font-size:18px;">${item.checked ? '✅' : '❌'}</td>
+      </tr>
+    `).join('');
+
+    w.document.write(`
+      <html>
+      <head><title>Raport SSM — ${checklist.data}</title></head>
+      <body style="font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:20px;">
+        <h1 style="text-align:center;color:#1a1a1a;">RAPORT SSM</h1>
+        <h2 style="text-align:center;color:#666;">${template?.nume || 'Checklist'}</h2>
+        <hr style="margin:20px 0;" />
+        
+        <table style="width:100%;margin-bottom:16px;">
+          <tr><td><strong>Data:</strong> ${checklist.data}</td><td><strong>Completat de:</strong> ${checklist.completat_de}</td></tr>
+          <tr><td><strong>Status:</strong> ${checklist.status === 'completed' ? 'COMPLETAT ✅' : 'INCOMPLET ⚠️'}</td>
+              <td><strong>Completat la:</strong> ${checklist.completed_at ? format(new Date(checklist.completed_at), 'dd.MM.yyyy HH:mm') : '—'}</td></tr>
+        </table>
+
+        <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+          <thead>
+            <tr style="background:#f5f5f5;">
+              <th style="padding:8px;border:1px solid #ddd;width:40px;">Nr.</th>
+              <th style="padding:8px;border:1px solid #ddd;">Punct de verificare</th>
+              <th style="padding:8px;border:1px solid #ddd;width:60px;">Status</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+
+        <div style="margin-top:30px;">
+          <p><strong>Rezumat:</strong> ${checklist.items.filter(i => i.checked).length} / ${checklist.items.length} puncte îndeplinite</p>
+        </div>
+
+        ${checklist.semnatura_data ? `
+          <div style="margin-top:30px;text-align:center;">
+            <p><strong>Semnătura:</strong></p>
+            <img src="${checklist.semnatura_data}" style="max-width:300px;border:1px solid #ddd;border-radius:8px;" />
+          </div>
+        ` : ''}
+
+        <div style="margin-top:40px;text-align:center;color:#999;font-size:12px;">
+          <p>Document generat automat — SSM Module</p>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    setTimeout(() => w.print(), 500);
   };
 
   if (!orgId) return null;
@@ -265,9 +325,16 @@ export default function SSMPage() {
                         {c.completat_de} · {c.items.filter(i => i.checked).length}/{c.items.length} puncte
                       </p>
                     </div>
-                    {c.status === 'incomplete' && (
-                      <Button size="sm" variant="outline" onClick={() => setActiveChecklist(c)}>Continuă</Button>
-                    )}
+                    <div className="flex gap-1">
+                      {c.status === 'incomplete' && (
+                        <Button size="sm" variant="outline" onClick={() => setActiveChecklist(c)}>Continuă</Button>
+                      )}
+                      {c.status === 'completed' && (
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => generatePDF(c)}>
+                          <Download className="h-3.5 w-3.5" /> PDF
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 );
               })}

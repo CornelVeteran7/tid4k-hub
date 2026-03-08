@@ -41,6 +41,7 @@ import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
 import PublicDisplay from "./pages/PublicDisplay";
 import QRCancelarie from "./pages/QRCancelarie";
+import SurtitleAudiencePage from "./pages/SurtitleAudience";
 
 const queryClient = new QueryClient();
 
@@ -113,6 +114,7 @@ const App = () => (
                 {/* Public routes — no auth required */}
                 <Route path="/display/:orgSlug" element={<PublicDisplay />} />
                 <Route path="/qr/:orgSlug" element={<QRCancelarie />} />
+                <Route path="/surtitle/:orgSlug" element={<SurtitleAudiencePage />} />
                 <Route path="/queue/:orgSlug" element={<QueueTicket />} />
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
