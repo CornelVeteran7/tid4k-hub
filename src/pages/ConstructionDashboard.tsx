@@ -62,12 +62,13 @@ export default function ConstructionDashboard() {
   const totalOverdue = tasks.filter(t => t.status !== 'done' && t.data_limita && t.data_limita < today).length;
   const totalActive = tasks.filter(t => t.status !== 'done').length;
   const totalDoneToday = tasks.filter(t => t.status === 'done' && t.completed_at && t.completed_at.startsWith(today)).length;
-  const totalCostAll = costs.reduce((s, c) => s + c.total, 0);
+  const costTotal = (c: ConstructionCost) => c.total ?? (c.cantitate * c.pret_unitar);
+  const totalCostAll = costs.reduce((s, c) => s + costTotal(c), 0);
 
   // Burn rate: avg daily cost over last 30 days
   const thirtyDaysAgo = format(addDays(new Date(), -30), 'yyyy-MM-dd');
   const recentCosts = costs.filter(c => c.data_inregistrare >= thirtyDaysAgo);
-  const burnRate = recentCosts.length > 0 ? Math.round(recentCosts.reduce((s, c) => s + c.total, 0) / 30) : 0;
+  const burnRate = recentCosts.length > 0 ? Math.round(recentCosts.reduce((s, c) => s + costTotal(c), 0) / 30) : 0;
 
   const workerUrl = `${window.location.origin}/santiere/worker`;
 
