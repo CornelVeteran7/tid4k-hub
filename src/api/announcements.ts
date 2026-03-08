@@ -1,10 +1,21 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Announcement } from '@/types';
 
+async function getUserOrgId(): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data: profile } = await supabase.from('profiles').select('organization_id').eq('id', user.id).single();
+  return profile?.organization_id || null;
+}
+
 export async function getAnnouncements(grupa?: string): Promise<Announcement[]> {
   const { data: { user } } = await supabase.auth.getUser();
+  const orgId = await getUserOrgId();
 
   let query = supabase.from('announcements').select('*').order('created_at', { ascending: false });
+  if (orgId) {
+    query = query.eq('organization_id', orgId);
+  }
   if (grupa) {
     query = query.or(`target.eq.${grupa},target.eq.scoala`);
   }
@@ -38,7 +49,7 @@ export async function getAnnouncements(grupa?: string): Promise<Announcement[]> 
 
 export async function createAnnouncement(ann: Partial<Announcement>): Promise<Announcement> {
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase.from('profiles').select('nume_prenume').eq('id', user?.id).single();
+  const { data: profile } = await supabase.from('profiles').select('nume_prenume, organization_id').eq('id', user?.id).single();
 
   const { data, error } = await supabase.from('announcements').insert({
     titlu: ann.titlu || '',
@@ -49,6 +60,8 @@ export async function createAnnouncement(ann: Partial<Announcement>): Promise<An
     target: ann.target || 'scoala',
     ascuns_banda: ann.ascuns_banda || false,
     pozitie_banda: ann.pozitie_banda || null,
+    organization_id: profile?.organization_id || null,
+    data_expirare: (ann as any).data_expirare || null,
   }).select().single();
 
   if (error) throw error;
@@ -65,6 +78,15 @@ export async function createAnnouncement(ann: Partial<Announcement>): Promise<An
     ascuns_banda: data.ascuns_banda || false,
     pozitie_banda: data.pozitie_banda || undefined,
   };
+}
+
+export async function markAsRead(announcementId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.from('announcement_reads').upsert({
+    announcement_id: announcementId,
+    user_id: user.id,
+  }, { onConflict: 'announcement_id,user_id' });
 }
 
 export async function hideFromTicker(id: string): Promise<void> {

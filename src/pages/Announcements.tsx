@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
-import { getAnnouncements, createAnnouncement, hideFromTicker, restoreToTicker } from '@/api/announcements';
+import { getAnnouncements, createAnnouncement, hideFromTicker, restoreToTicker, markAsRead } from '@/api/announcements';
 import type { Announcement } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,10 +48,24 @@ export default function Announcements() {
     return true;
   });
 
+  const handleMarkRead = async (ann: Announcement) => {
+    if (ann.citit) return;
+    try {
+      await markAsRead(ann.id);
+      setAnnouncements((prev) =>
+        prev.map((a) => a.id === ann.id ? { ...a, citit: true } : a)
+      );
+      toast.success('Marcat ca citit');
+    } catch {
+      toast.error('Eroare la marcarea ca citit');
+    }
+  };
+
   const handleCreate = async () => {
     const ann = await createAnnouncement({
       titlu: newTitle, continut: newContent, prioritate: newPriority,
       autor: user?.nume_prenume || '', target: currentGroup?.id || 'scoala',
+      ...(newExpiry ? { data_expirare: newExpiry } as any : {}),
     });
     setAnnouncements((prev) => [ann, ...prev]);
     setCreateOpen(false);
@@ -172,7 +186,13 @@ export default function Announcements() {
                   <Badge variant={ann.prioritate === 'urgent' ? 'destructive' : 'secondary'}>
                     {ann.prioritate === 'urgent' ? '⚠️ Urgent' : 'Normal'}
                   </Badge>
-                  <Button variant={ann.citit ? 'secondary' : 'outline'} size="sm" className="ml-auto shrink-0 gap-1">
+                  <Button
+                    variant={ann.citit ? 'secondary' : 'outline'}
+                    size="sm"
+                    className="ml-auto shrink-0 gap-1"
+                    onClick={() => handleMarkRead(ann)}
+                    disabled={ann.citit}
+                  >
                     <Check className="h-3.5 w-3.5" />
                     {ann.citit ? 'Citit' : 'Marchează citit'}
                   </Button>

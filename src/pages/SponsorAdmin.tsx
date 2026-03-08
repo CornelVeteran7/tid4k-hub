@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSponsors, getActivePromos, getSponsorPlans, getAllCampaigns, getSponsorStats } from '@/api/sponsors';
+import { getSponsors, getActivePromos, getSponsorPlans, getAllCampaigns, getSponsorStats, createCampaign, updateCampaign, updateCampaignStatus } from '@/api/sponsors';
 import { getSchools } from '@/api/schools';
 import type { Sponsor, SponsorPromo, SponsorPlan, SponsorCampaign, SponsorStats } from '@/types/sponsor';
 import type { School } from '@/types';
@@ -17,6 +17,7 @@ import {
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 const PROMO_TYPE_LABELS: Record<SponsorPromo['tip'], { label: string; icon: React.ElementType; color: string }> = {
   card_dashboard: { label: 'Card Dashboard', icon: Layout, color: '#2ECC71' },
@@ -69,6 +70,41 @@ export default function SponsorAdmin() {
     setEditorOpen(true);
   };
 
+  const handleSaveCampaign = async (data: Partial<SponsorCampaign>) => {
+    if (!selectedSponsor) return;
+    try {
+      if (data.id) {
+        const updated = await updateCampaign(data.id, data);
+        setCampaigns(prev => prev.map(c => c.id === updated.id ? updated : c));
+        toast.success('Campanie actualizată!');
+      } else {
+        const created = await createCampaign({
+          ...data,
+          sponsor_id: selectedSponsor.id,
+          status: 'draft',
+          statistici: { afisari: 0, clickuri: 0, ctr: 0 },
+          documente_atasate: [],
+        } as any);
+        setCampaigns(prev => [created, ...prev]);
+        toast.success('Campanie creată!');
+      }
+    } catch (err: any) {
+      toast.error('Eroare: ' + (err.message || 'necunoscută'));
+    }
+  };
+
+  const handleToggleCampaignStatus = async (campaign: SponsorCampaign) => {
+    const newStatus = campaign.status === 'activ' ? 'pauza' : 'activ';
+    try {
+      await updateCampaignStatus(campaign.id, newStatus);
+      setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, status: newStatus } : c));
+      toast.success(`Campanie ${newStatus === 'activ' ? 'activată' : 'pusă pe pauză'}!`);
+    } catch (err: any) {
+      toast.error('Eroare: ' + (err.message || 'necunoscută'));
+    }
+  };
+
+
   // Global stats
   const totalAfisari = campaigns.reduce((sum, c) => sum + c.statistici.afisari, 0);
   const totalClickuri = campaigns.reduce((sum, c) => sum + c.statistici.clickuri, 0);
@@ -99,6 +135,7 @@ export default function SponsorAdmin() {
             onBack={goBack}
             onNewCampaign={() => openEditor()}
             onEditCampaign={(c) => openEditor(c)}
+            onToggleStatus={handleToggleCampaignStatus}
             openLink={openLink}
           />
         )}
@@ -114,7 +151,7 @@ export default function SponsorAdmin() {
           sponsorLogo={selectedSponsor.logo_url}
           sponsorCuloare={selectedSponsor.culoare_brand}
           schools={schools}
-          onSave={(data) => console.log('Save campaign:', data)}
+          onSave={handleSaveCampaign}
         />
       )}
     </div>
@@ -249,7 +286,7 @@ function SponsorList({
 
 // ========== SPONSOR DETAIL VIEW ==========
 function SponsorDetail({
-  sponsor, promos, campaigns, stats, plan, schools, onBack, onNewCampaign, onEditCampaign, openLink,
+  sponsor, promos, campaigns, stats, plan, schools, onBack, onNewCampaign, onEditCampaign, onToggleStatus, openLink,
 }: {
   sponsor: Sponsor;
   promos: SponsorPromo[];
@@ -260,6 +297,7 @@ function SponsorDetail({
   onBack: () => void;
   onNewCampaign: () => void;
   onEditCampaign: (c: Partial<SponsorCampaign>) => void;
+  onToggleStatus: (c: SponsorCampaign) => void;
   openLink: (url: string) => void;
 }) {
   return (
@@ -439,12 +477,12 @@ function SponsorDetail({
                           <FileEdit className="h-3 w-3 mr-1" />Editează
                         </Button>
                         {campaign.status === 'activ' && (
-                          <Button variant="outline" size="sm" className="text-xs h-7 text-amber-600">
+                          <Button variant="outline" size="sm" className="text-xs h-7 text-amber-600" onClick={() => onToggleStatus(campaign)}>
                             <Pause className="h-3 w-3 mr-1" />Pauză
                           </Button>
                         )}
                         {campaign.status === 'pauza' && (
-                          <Button variant="outline" size="sm" className="text-xs h-7 text-emerald-600">
+                          <Button variant="outline" size="sm" className="text-xs h-7 text-emerald-600" onClick={() => onToggleStatus(campaign)}>
                             <Play className="h-3 w-3 mr-1" />Activează
                           </Button>
                         )}
