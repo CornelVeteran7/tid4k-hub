@@ -253,13 +253,24 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Progress */}
+        {/* Progress — editable */}
         <div>
           <div className="flex justify-between text-xs mb-1">
             <span>Progres</span>
             <span className="font-semibold">{site.progress_pct}%</span>
           </div>
-          <Progress value={site.progress_pct} className="h-2" />
+          <Progress value={site.progress_pct} className="h-2 cursor-pointer"
+            onClick={async (e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+              try {
+                await upsertSite({ ...site, progress_pct: Math.max(0, Math.min(100, pct)) });
+                toast.success(`Progres: ${pct}%`);
+                onRefresh();
+              } catch (err: any) { toast.error(err.message); }
+            }}
+          />
         </div>
 
         {/* Budget */}
