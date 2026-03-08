@@ -294,9 +294,9 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
                     <Select value={newStory.varsta} onValueChange={v => setNewStory({ ...newStory, varsta: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="3-5">3-5 ani</SelectItem>
-                        <SelectItem value="5-7">5-7 ani</SelectItem>
-                        <SelectItem value="7-10">7-10 ani</SelectItem>
+                        <SelectItem value="3-4">3-4 ani</SelectItem>
+                        <SelectItem value="4-5">4-5 ani</SelectItem>
+                        <SelectItem value="5-6">5-6 ani</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
