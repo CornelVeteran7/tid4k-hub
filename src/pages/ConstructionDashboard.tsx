@@ -726,6 +726,12 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
   const site = selectedSite ? sites.find(s => s.id === selectedSite) : null;
   const budgetPct = site && site.buget > 0 ? Math.round((totalSpent / site.buget) * 100) : 0;
 
+  // Burn rate for this site/selection
+  const thirtyAgo = format(addDays(new Date(), -30), 'yyyy-MM-dd');
+  const recentSiteCosts = costs.filter(c => c.data_inregistrare >= thirtyAgo);
+  const siteBurnRate = recentSiteCosts.length > 0 ? Math.round(recentSiteCosts.reduce((s, c) => s + c.total, 0) / 30) : 0;
+  const daysLeft = site && siteBurnRate > 0 && site.buget > totalSpent ? Math.round((site.buget - totalSpent) / siteBurnRate) : null;
+
   const categoryLabels: Record<string, string> = {
     materiale: '🧱 Materiale',
     manopera: '👷 Manoperă',
