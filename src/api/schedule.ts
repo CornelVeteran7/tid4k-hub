@@ -47,7 +47,7 @@ export async function saveSchedule(groupId: string, cells: ScheduleCell[]): Prom
   if (cells.length > 0) {
     await supabase.from('schedule').insert(
       cells.map(c => ({
-        group_id: group.id,
+        group_id: resolvedId,
         zi: c.zi,
         ora: c.ora,
         materie: c.materie,
