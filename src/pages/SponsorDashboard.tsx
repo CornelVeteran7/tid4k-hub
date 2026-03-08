@@ -135,7 +135,7 @@ export default function SponsorDashboard() {
             const statusCfg = STATUS_CONFIG[campaign.status];
             const TipIcon = TIP_ICONS[campaign.tip] || Layout;
             return (
-              <Card key={campaign.id_campanie} className="overflow-hidden">
+              <Card key={campaign.id} className="overflow-hidden">
                 <div className="flex items-stretch">
                   <div className="w-1.5 shrink-0" style={{ backgroundColor: sponsor.culoare_brand }} />
                   <div className="flex-1 p-4">
