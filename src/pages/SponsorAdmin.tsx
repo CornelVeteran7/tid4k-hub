@@ -193,7 +193,7 @@ function SponsorList({
             Selectează un sponsor pentru a vedea detaliile complete
           </p>
         </div>
-        <Button className="gap-2" onClick={() => toast.info('Funcționalitate în dezvoltare — contactează echipa Inky pentru a adăuga un sponsor nou.')}>
+        <Button className="gap-2" onClick={() => setSponsorDialogOpen(true)}>
           <Plus className="h-4 w-4" />
           Sponsor nou
         </Button>
