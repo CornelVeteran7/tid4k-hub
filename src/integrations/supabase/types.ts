@@ -582,6 +582,104 @@ export type Database = {
           },
         ]
       }
+      contributions_config: {
+        Row: {
+          created_at: string
+          daily_rate: number
+          effective_from: string
+          id: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_rate?: number
+          effective_from?: string
+          id?: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_rate?: number
+          effective_from?: string
+          id?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contributions_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contributions_monthly: {
+        Row: {
+          amount_calculated: number
+          amount_paid: number
+          child_id: string
+          created_at: string
+          daily_rate: number
+          days_present: number
+          id: string
+          month: number
+          notes: string | null
+          organization_id: string
+          status: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          amount_calculated?: number
+          amount_paid?: number
+          child_id: string
+          created_at?: string
+          daily_rate?: number
+          days_present?: number
+          id?: string
+          month: number
+          notes?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          amount_calculated?: number
+          amount_paid?: number
+          child_id?: string
+          created_at?: string
+          daily_rate?: number
+          days_present?: number
+          id?: string
+          month?: number
+          notes?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contributions_monthly_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contributions_monthly_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
