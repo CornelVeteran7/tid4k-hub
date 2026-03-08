@@ -602,7 +602,7 @@ function QueueContent({ config }: { config: DisplayConfig }) {
       {/* Bottom strip: next 3 + wait time + QR */}
       <div className="flex items-end" style={{
         position: 'absolute', left: 60, right: 60,
-        bottom: config.ticker_messages.length > 0 ? 64 : 16,
+        bottom: config.ticker_messages.length > 0 ? 60 : 16,
         gap: 24,
       }}>
         {/* Next in queue */}
