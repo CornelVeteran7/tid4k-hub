@@ -124,6 +124,7 @@ export default function SponsorAdmin() {
             totalAfisari={totalAfisari}
             totalClickuri={totalClickuri}
             onSelect={openSponsorDetail}
+            onNewSponsor={() => setSponsorDialogOpen(true)}
           />
         ) : (
           <SponsorDetail
