@@ -93,6 +93,7 @@ function ProtectedRoutes() {
             <Route path="/video" element={<VideoGenerationPage />} />
             <Route path="/coada" element={<QueueAdmin />} />
             <Route path="/contributii" element={<Contributions />} />
+            <Route path="/superadmin" element={<SuperAdmin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
