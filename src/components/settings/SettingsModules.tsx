@@ -20,11 +20,18 @@ const ALL_MODULES: Record<string, { label: string; description: string; vertical
   ateliere: { label: 'Ateliere', description: 'Activități creative', verticals: ['kids'] },
   meniu: { label: 'Meniu OMS', description: 'Meniul zilnic / săptămânal', verticals: ['kids'] },
   mesaje: { label: 'Mesaje', description: 'Comunicare directă', verticals: ['kids', 'schools', 'medicine', 'living', 'students', 'construction', 'workshops'] },
-  orar: { label: 'Orar', description: 'Programul zilnic/săptămânal', verticals: ['kids', 'schools', 'medicine', 'culture', 'students'] },
+  orar: { label: 'Orar', description: 'Programul zilnic/săptămânal', verticals: ['kids', 'schools', 'medicine', 'culture', 'students', 'workshops'] },
   anunturi: { label: 'Anunțuri', description: 'Comunicări oficiale', verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
   rapoarte: { label: 'Rapoarte', description: 'Statistici și analize', verticals: ['schools', 'living', 'students', 'construction', 'workshops'] },
   coada: { label: 'Sistem Coadă', description: 'Queue cu tichete', verticals: ['medicine', 'students'] },
-  video: { label: 'Video Monitoring', description: 'Monitorizare video', verticals: ['kids', 'construction'] },
+  video: { label: 'Generare Video', description: 'Monitorizare/generare video', verticals: ['kids', 'schools', 'medicine', 'culture'] },
+  social: { label: 'Social Media', description: 'WhatsApp + Facebook', verticals: ['kids', 'schools'] },
+  inventar: { label: 'Inventar QR', description: 'Gestionare inventar cu coduri QR', verticals: ['kids', 'schools', 'living', 'construction', 'workshops'] },
+  ssm: { label: 'SSM', description: 'Securitate și Sănătate în Muncă', verticals: ['construction'] },
+  revista: { label: 'Revista Școlii', description: 'Revista digitală cu articole', verticals: ['schools'] },
+  supratitrare: { label: 'Supratitrare', description: 'Subtitrări live pentru spectacole', verticals: ['culture'] },
+  contributii: { label: 'Contribuții', description: 'Evidența contribuțiilor zilnice', verticals: ['kids'] },
+  santiere: { label: 'Șantiere', description: 'Dashboard patron construcții', verticals: ['construction'] },
 };
 
 export default function SettingsModules({ orgId, verticalType }: Props) {
@@ -45,12 +52,10 @@ export default function SettingsModules({ orgId, verticalType }: Props) {
       .eq('organization_id', orgId);
 
     const states: Record<string, boolean> = {};
-    // Default: ON for defaultModules of this vertical
     const defaults = VERTICAL_DEFINITIONS[verticalType]?.defaultModules || [];
     availableModules.forEach(([key]) => {
       states[key] = defaults.includes(key);
     });
-    // Override with DB values
     (data || []).forEach(row => {
       states[row.module_key] = row.is_active;
     });
@@ -107,6 +112,9 @@ export default function SettingsModules({ orgId, verticalType }: Props) {
             </div>
           ))}
         </div>
+        <p className="text-xs text-muted-foreground mt-4">
+          {availableModules.filter(([k]) => moduleStates[k]).length} / {availableModules.length} module active
+        </p>
       </CardContent>
     </Card>
   );
