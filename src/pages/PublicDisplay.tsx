@@ -357,11 +357,15 @@ export default function PublicDisplay() {
         {/* ── TICKER BAR ── */}
         {config.ticker_messages.length > 0 && (
           <div className="absolute bottom-0 left-0 right-0 z-20 overflow-hidden"
-            style={{ backgroundColor: config.primary_color, padding: '12px 0' }}>
-            <div className="display-ticker-track whitespace-nowrap">
-              {[...config.ticker_messages, ...config.ticker_messages, ...config.ticker_messages].map((msg, i) => (
-                <span key={i} style={{ margin: '0 64px', fontSize: 20, fontWeight: 500 }}>
-                  {msg} ●
+            style={{ backgroundColor: config.primary_color, height: 48, display: 'flex', alignItems: 'center' }}>
+            <div className="display-ticker-track whitespace-nowrap" style={{ fontSize: 20, fontWeight: 500 }}>
+              {Array.from({ length: 3 }).map((_, rep) => (
+                <span key={rep}>
+                  {config.ticker_messages.map((msg, i) => (
+                    <span key={`${rep}-${i}`} style={{ margin: '0 64px' }}>
+                      {msg} ●
+                    </span>
+                  ))}
                 </span>
               ))}
             </div>
@@ -414,8 +418,8 @@ function KidsContent({ config, isPortrait }: { config: DisplayConfig; isPortrait
 
       {/* Bottom info strip — above ticker */}
       <div className="absolute left-0 right-0 z-10 flex" style={{
-        bottom: config.ticker_messages.length > 0 ? 56 : 0,
-        padding: '0 48px 16px',
+        bottom: config.ticker_messages.length > 0 ? 60 : 12,
+        padding: '0 48px',
         gap: 24,
       }}>
         {/* Menu of the day */}
@@ -515,7 +519,7 @@ function DefaultContent({ config, isPortrait }: { config: DisplayConfig; isPortr
       <PanelSlideshow panels={config.panels} primaryColor={config.primary_color} />
       {config.qr_codes.length > 0 && (
         <div className="absolute z-10 flex" style={{
-          bottom: config.ticker_messages.length > 0 ? 64 : 24,
+          bottom: config.ticker_messages.length > 0 ? 60 : 24,
           right: 48,
           gap: 16,
         }}>
@@ -549,7 +553,7 @@ function QueueContent({ config }: { config: DisplayConfig }) {
   const estimatedWaitNew = config.queue_waiting.length * config.queue_avg_wait;
 
   return (
-    <div className="absolute inset-0 flex flex-col" style={{ padding: '100px 60px 80px' }}>
+    <div className="absolute inset-0 flex flex-col" style={{ padding: '100px 60px 60px' }}>
       {config.queue_serving.length > 0 ? (
         <>
           {/* Multi-cabinet serving — split layout */}
@@ -598,7 +602,7 @@ function QueueContent({ config }: { config: DisplayConfig }) {
       {/* Bottom strip: next 3 + wait time + QR */}
       <div className="flex items-end" style={{
         position: 'absolute', left: 60, right: 60,
-        bottom: config.ticker_messages.length > 0 ? 64 : 16,
+        bottom: config.ticker_messages.length > 0 ? 60 : 16,
         gap: 24,
       }}>
         {/* Next in queue */}
@@ -659,7 +663,7 @@ function QueueContent({ config }: { config: DisplayConfig }) {
 
 function ConstructionContent({ config }: { config: DisplayConfig }) {
   return (
-    <div className="absolute inset-0 flex" style={{ padding: '100px 48px 64px', gap: 32 }}>
+    <div className="absolute inset-0 flex" style={{ padding: '100px 48px 60px', gap: 32 }}>
       {/* Left: Tasks */}
       <div className="flex-1 flex flex-col">
         <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 20 }}>🏗️ Sarcini active</div>

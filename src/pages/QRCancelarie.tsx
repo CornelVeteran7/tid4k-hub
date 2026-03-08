@@ -164,7 +164,7 @@ export default function QRCancelarie() {
               Conectează-te pentru a vedea mesaje, documente și informații personale.
             </p>
             <Button asChild className="gap-2">
-              <Link to="/login">
+              <Link to={`/login/${orgSlug}`}>
                 <LogIn className="h-4 w-4" /> Autentifică-te
               </Link>
             </Button>
