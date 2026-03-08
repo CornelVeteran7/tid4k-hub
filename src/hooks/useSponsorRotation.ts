@@ -35,7 +35,7 @@ export function useSponsorRotation(
     if (!currentSlot) return;
     if (impressionLogged.current === currentSlot.id_promo) return;
     impressionLogged.current = currentSlot.id_promo;
-    logImpression({ id_promo: currentSlot.id_promo, tip, school_id: schoolId });
+    logImpression({ id_promo: currentSlot.id_promo, tip, school_id: schoolId?.toString() });
   }, [currentSlot, tip, schoolId]);
 
   useEffect(() => {

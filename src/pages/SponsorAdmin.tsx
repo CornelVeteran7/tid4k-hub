@@ -475,7 +475,7 @@ function SponsorDetail({
             {promos.map(promo => {
               const meta = PROMO_TYPE_LABELS[promo.tip];
               return (
-                <Card key={promo.id_promo} className="overflow-hidden">
+                <Card key={promo.id} className="overflow-hidden">
                   <div className="flex items-stretch">
                     <div className="w-1.5 shrink-0" style={{ backgroundColor: meta.color }} />
                     <div className="flex-1 p-3 flex items-center justify-between gap-3">

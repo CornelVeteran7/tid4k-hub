@@ -26,7 +26,7 @@ export default function SponsorCard() {
 
   const handleClick = () => {
     if (promo.link_url) {
-      logClick({ id_promo: promo.id, tip: 'card_dashboard', school_id: schoolId });
+      logClick({ id_promo: promo.id, tip: 'card_dashboard', school_id: schoolId?.toString() });
       openLink(promo.link_url);
     }
   };
