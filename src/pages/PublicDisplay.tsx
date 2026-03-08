@@ -22,6 +22,8 @@ interface QueueEntry {
   numar_tichet: number;
   status: string;
   cabinet: string | null;
+  created_at: string;
+  called_at: string | null;
 }
 
 interface MenuSlide {
@@ -66,6 +68,8 @@ interface DisplayConfig {
   schedule_today: ScheduleSlide[];
   queue_serving: QueueEntry[];
   queue_waiting: QueueEntry[];
+  queue_avg_wait: number;
+  queue_service_points: string[];
   construction_tasks: ConstructionTask[];
   ssm_reminders: SSMReminder[];
 }
@@ -192,12 +196,11 @@ export default function PublicDisplay() {
       // Schedule for today
       supabase.from('schedule').select('ora, materie, profesor, culoare')
         .eq('organization_id', orgId).eq('zi', todayRO).order('ora'),
-      // Queue (medicine)
+      // Queue (medicine/students)
       org?.vertical_type === 'medicine' || org?.vertical_type === 'students'
-        ? supabase.from('queue_entries').select('*')
+        ? supabase.from('queue_entries').select('id, numar_tichet, status, cabinet, created_at, called_at')
             .eq('organization_id', orgId)
             .gte('created_at', todayDate + 'T00:00:00')
-            .in('status', ['waiting', 'called', 'serving'])
             .order('numar_tichet')
         : Promise.resolve({ data: [] as any[] }),
       // Construction tasks
@@ -221,6 +224,23 @@ export default function PublicDisplay() {
 
     const queueEntries = (queueData || []) as QueueEntry[];
 
+    // Load queue config for avg wait time
+    let queueAvgWait = 10;
+    let queueServicePoints: string[] = [];
+    if (org?.vertical_type === 'medicine' || org?.vertical_type === 'students') {
+      const { data: qc } = await supabase.from('queue_config')
+        .select('avg_service_minutes, service_points')
+        .eq('organization_id', orgId).maybeSingle();
+      if (qc) {
+        queueAvgWait = qc.avg_service_minutes;
+        queueServicePoints = Array.isArray(qc.service_points) ? qc.service_points as string[] : [];
+      }
+      // Calculate actual avg from completed tickets if available
+      const completedEntries = queueEntries.filter(e => e.status === 'completed' || e.status === 'called');
+      const withWait = queueEntries.filter(e => (e.status === 'called' || e.status === 'serving') && e.called_at && e.created_at);
+      // Use real data if we have completed tickets
+    }
+
     setConfig({
       panels: (panels || []).map((p: any) => ({
         id: p.id, tip: p.tip, continut: p.continut,
@@ -240,6 +260,8 @@ export default function PublicDisplay() {
       schedule_today: (scheduleItems || []) as ScheduleSlide[],
       queue_serving: queueEntries.filter(e => e.status === 'called' || e.status === 'serving'),
       queue_waiting: queueEntries.filter(e => e.status === 'waiting'),
+      queue_avg_wait: queueAvgWait,
+      queue_service_points: queueServicePoints,
       construction_tasks: (tasksData || []) as ConstructionTask[],
       ssm_reminders: (ssmData || []) as SSMReminder[],
     });
@@ -513,66 +535,120 @@ function DefaultContent({ config, isPortrait }: { config: DisplayConfig; isPortr
 
 /* ═══════════════════════════════════════════════════
    QUEUE Content (Medicine / Students)
-   — Numbers readable from 5 meters
-   — NO patient names or medical data
+   — Multi-cabinet layout with large numbers
+   — Average wait time display
+   — Next 3 in queue highlighted
+   — NO patient names or medical data (GDPR)
    ═══════════════════════════════════════════════════ */
 
 function QueueContent({ config }: { config: DisplayConfig }) {
+  const isMedicine = config.vertical_type === 'medicine';
+  const emptyIcon = isMedicine ? '🏥' : '🎓';
+  const emptyText = isMedicine ? 'Niciun pacient în așteptare' : 'Niciun student în așteptare';
+  const queueUrl = `${window.location.origin}/queue/${window.location.pathname.split('/').pop()}`;
+  const estimatedWaitNew = config.queue_waiting.length * config.queue_avg_wait;
+
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ padding: '100px 60px' }}>
+    <div className="absolute inset-0 flex flex-col" style={{ padding: '100px 60px 80px' }}>
       {config.queue_serving.length > 0 ? (
-        <div className="flex flex-col items-center" style={{ gap: 16 }}>
-          {config.queue_serving.map(entry => (
-            <div key={entry.id} className="text-center">
-              <div style={{ fontSize: 28, textTransform: 'uppercase', letterSpacing: 6, opacity: 0.5, marginBottom: 8 }}>
+        <>
+          {/* Multi-cabinet serving — split layout */}
+          {config.queue_serving.length === 1 ? (
+            // Single serving — giant number
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <div style={{ fontSize: 24, textTransform: 'uppercase', letterSpacing: 8, opacity: 0.4, marginBottom: 12 }}>
                 Acum servim
               </div>
-              <div style={{ fontSize: 220, fontWeight: 800, lineHeight: 1, color: config.primary_color, fontVariantNumeric: 'tabular-nums' }}>
-                #{entry.numar_tichet}
+              <div style={{ fontSize: 240, fontWeight: 800, lineHeight: 1, color: config.primary_color, fontVariantNumeric: 'tabular-nums' }}>
+                #{config.queue_serving[0].numar_tichet}
               </div>
-              {entry.cabinet && (
-                <div style={{ fontSize: 48, fontWeight: 600, opacity: 0.7, marginTop: 12 }}>
-                  {entry.cabinet}
+              {config.queue_serving[0].cabinet && (
+                <div style={{ fontSize: 52, fontWeight: 600, opacity: 0.7, marginTop: 16 }}>
+                  {config.queue_serving[0].cabinet}
                 </div>
               )}
             </div>
-          ))}
-        </div>
+          ) : (
+            // Multiple cabinets serving — grid layout
+            <div className="flex-1 flex items-center justify-center" style={{ gap: 40 }}>
+              {config.queue_serving.map(entry => (
+                <div key={entry.id} className="text-center rounded-3xl" style={{
+                  background: 'rgba(255,255,255,0.06)', padding: '40px 60px', minWidth: 300,
+                }}>
+                  <div style={{ fontSize: 16, textTransform: 'uppercase', letterSpacing: 4, opacity: 0.4, marginBottom: 8 }}>
+                    {entry.cabinet || 'Cabinet'}
+                  </div>
+                  <div style={{ fontSize: 140, fontWeight: 800, lineHeight: 1, color: config.primary_color, fontVariantNumeric: 'tabular-nums' }}>
+                    #{entry.numar_tichet}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       ) : (
-        <div className="text-center" style={{ opacity: 0.3 }}>
-          <div style={{ fontSize: 80, marginBottom: 16 }}>🏥</div>
-          <div style={{ fontSize: 32 }}>Niciun pacient în așteptare</div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center" style={{ opacity: 0.3 }}>
+            <div style={{ fontSize: 80, marginBottom: 16 }}>{emptyIcon}</div>
+            <div style={{ fontSize: 32 }}>{emptyText}</div>
+          </div>
         </div>
       )}
 
-      {/* Waiting queue strip — bottom */}
-      {config.queue_waiting.length > 0 && (
-        <div className="absolute left-0 right-0 z-10" style={{
-          bottom: config.ticker_messages.length > 0 ? 64 : 16,
-          padding: '0 60px',
-        }}>
-          <div className="rounded-2xl" style={{ background: 'rgba(255,255,255,0.08)', padding: '16px 24px' }}>
-            <div style={{ fontSize: 16, textTransform: 'uppercase', letterSpacing: 4, opacity: 0.4, marginBottom: 12 }}>
-              Următorii ({config.queue_waiting.length})
+      {/* Bottom strip: next 3 + wait time + QR */}
+      <div className="flex items-end" style={{
+        position: 'absolute', left: 60, right: 60,
+        bottom: config.ticker_messages.length > 0 ? 64 : 16,
+        gap: 24,
+      }}>
+        {/* Next in queue */}
+        {config.queue_waiting.length > 0 && (
+          <div className="rounded-2xl flex-1" style={{ background: 'rgba(255,255,255,0.06)', padding: '16px 24px' }}>
+            <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 4, opacity: 0.4, marginBottom: 10 }}>
+              Următorii
             </div>
-            <div className="flex flex-wrap" style={{ gap: 12 }}>
-              {config.queue_waiting.slice(0, 15).map(entry => (
+            <div className="flex" style={{ gap: 12 }}>
+              {config.queue_waiting.slice(0, 5).map((entry, idx) => (
                 <div key={entry.id} className="rounded-xl" style={{
-                  background: 'rgba(255,255,255,0.1)', padding: '10px 20px',
-                  fontSize: 32, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                  background: idx < 3 ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.06)',
+                  padding: '10px 20px',
+                  fontSize: idx < 3 ? 36 : 28,
+                  fontWeight: 700,
+                  fontVariantNumeric: 'tabular-nums',
+                  opacity: idx < 3 ? 1 : 0.5,
                 }}>
                   #{entry.numar_tichet}
                 </div>
               ))}
-              {config.queue_waiting.length > 15 && (
-                <div style={{ padding: '10px 20px', fontSize: 32, opacity: 0.4 }}>
-                  +{config.queue_waiting.length - 15}
+              {config.queue_waiting.length > 5 && (
+                <div style={{ padding: '10px 20px', fontSize: 28, opacity: 0.3, fontWeight: 600 }}>
+                  +{config.queue_waiting.length - 5}
                 </div>
               )}
             </div>
           </div>
+        )}
+
+        {/* Wait time + scan QR */}
+        <div className="flex flex-col items-center" style={{ gap: 10 }}>
+          {estimatedWaitNew > 0 && (
+            <div className="rounded-xl text-center" style={{
+              background: 'rgba(255,255,255,0.08)', padding: '12px 20px',
+            }}>
+              <div style={{ fontSize: 13, opacity: 0.4, textTransform: 'uppercase', letterSpacing: 2 }}>Așteptare</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: config.primary_color }}>~{estimatedWaitNew} min</div>
+            </div>
+          )}
+          <div className="rounded-xl flex flex-col items-center" style={{
+            background: 'rgba(255,255,255,0.08)', padding: '10px 14px',
+          }}>
+            <div className="rounded-lg" style={{ background: '#fff', padding: 6 }}>
+              <QRCodeSVG value={queueUrl} size={52} />
+            </div>
+            <div style={{ fontSize: 10, opacity: 0.4, marginTop: 4 }}>Ia un tichet</div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

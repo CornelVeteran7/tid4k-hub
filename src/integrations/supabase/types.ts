@@ -1709,6 +1709,47 @@ export type Database = {
           },
         ]
       }
+      queue_config: {
+        Row: {
+          avg_service_minutes: number
+          created_at: string
+          daily_reset_time: string
+          id: string
+          organization_id: string
+          prefix: string
+          service_points: Json
+          updated_at: string
+        }
+        Insert: {
+          avg_service_minutes?: number
+          created_at?: string
+          daily_reset_time?: string
+          id?: string
+          organization_id: string
+          prefix?: string
+          service_points?: Json
+          updated_at?: string
+        }
+        Update: {
+          avg_service_minutes?: number
+          created_at?: string
+          daily_reset_time?: string
+          id?: string
+          organization_id?: string
+          prefix?: string
+          service_points?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       queue_entries: {
         Row: {
           cabinet: string | null

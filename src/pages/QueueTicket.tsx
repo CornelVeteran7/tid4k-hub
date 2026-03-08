@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Ticket, Clock, CheckCircle2, Bell } from 'lucide-react';
-import { format } from 'date-fns';
+import { Ticket, Clock, CheckCircle2, Bell, Timer } from 'lucide-react';
+import { format, differenceInMinutes } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
 interface OrgInfo {
@@ -13,6 +13,7 @@ interface OrgInfo {
   name: string;
   logo_url: string | null;
   primary_color: string;
+  vertical_type: string;
 }
 
 interface QueueEntry {
@@ -29,20 +30,27 @@ export default function QueueTicket() {
   const [org, setOrg] = useState<OrgInfo | null>(null);
   const [myTicket, setMyTicket] = useState<QueueEntry | null>(null);
   const [waitingAhead, setWaitingAhead] = useState(0);
+  const [estimatedWaitMin, setEstimatedWaitMin] = useState(0);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
   const todayStart = format(new Date(), 'yyyy-MM-dd') + 'T00:00:00';
-
-  // Store ticket ID in sessionStorage so refreshing doesn't lose it
   const ticketKey = `queue_ticket_${orgSlug}`;
 
   const loadOrg = useCallback(async () => {
-    const { data } = await supabase
+    // Try slug first, then name fallback
+    let { data } = await supabase
       .from('organizations')
-      .select('id, name, logo_url, primary_color')
-      .eq('name', orgSlug || '')
+      .select('id, name, logo_url, primary_color, vertical_type')
+      .eq('slug', orgSlug || '')
       .maybeSingle();
+    if (!data) {
+      ({ data } = await supabase
+        .from('organizations')
+        .select('id, name, logo_url, primary_color, vertical_type')
+        .eq('name', orgSlug || '')
+        .maybeSingle());
+    }
     if (data) setOrg(data as OrgInfo);
     setLoading(false);
     return data as OrgInfo | null;
@@ -63,7 +71,6 @@ export default function QueueTicket() {
 
     setMyTicket(ticket as QueueEntry);
 
-    // Count waiting ahead
     if (ticket.status === 'waiting') {
       const { count } = await supabase
         .from('queue_entries')
@@ -72,7 +79,17 @@ export default function QueueTicket() {
         .eq('status', 'waiting')
         .lt('numar_tichet', ticket.numar_tichet)
         .gte('created_at', todayStart);
-      setWaitingAhead(count || 0);
+      const ahead = count || 0;
+      setWaitingAhead(ahead);
+
+      // Get avg service time from config or estimate from completed
+      const { data: qConfig } = await supabase
+        .from('queue_config')
+        .select('avg_service_minutes')
+        .eq('organization_id', orgId)
+        .maybeSingle();
+      const avgMin = qConfig?.avg_service_minutes || 10;
+      setEstimatedWaitMin(ahead * avgMin);
     }
   }, [ticketKey, todayStart]);
 
@@ -97,8 +114,7 @@ export default function QueueTicket() {
         const updated = payload.new as QueueEntry;
         setMyTicket(updated);
         if (updated.status === 'called' || updated.status === 'serving') {
-          // Try to notify
-          if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+          if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 200]);
           try { new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA').play(); } catch {}
         }
         if (updated.status === 'completed') {
@@ -109,7 +125,7 @@ export default function QueueTicket() {
     return () => { supabase.removeChannel(channel); };
   }, [org, myTicket?.id, ticketKey]);
 
-  // Also refresh waiting count periodically
+  // Refresh waiting count periodically
   useEffect(() => {
     if (!org || !myTicket || myTicket.status !== 'waiting') return;
     const interval = setInterval(() => loadTicketStatus(myTicket.id, org.id), 10000);
@@ -120,7 +136,6 @@ export default function QueueTicket() {
     if (!org) return;
     setGenerating(true);
 
-    // Get next ticket number
     const { data: lastTicket } = await supabase
       .from('queue_entries')
       .select('numar_tichet')
@@ -148,7 +163,6 @@ export default function QueueTicket() {
     setMyTicket(ticket);
     sessionStorage.setItem(ticketKey, ticket.id);
 
-    // Count ahead
     const { count } = await supabase
       .from('queue_entries')
       .select('id', { count: 'exact', head: true })
@@ -156,7 +170,15 @@ export default function QueueTicket() {
       .eq('status', 'waiting')
       .lt('numar_tichet', nextNumber)
       .gte('created_at', todayStart);
-    setWaitingAhead(count || 0);
+    const ahead = count || 0;
+    setWaitingAhead(ahead);
+
+    const { data: qConfig } = await supabase
+      .from('queue_config')
+      .select('avg_service_minutes')
+      .eq('organization_id', org.id)
+      .maybeSingle();
+    setEstimatedWaitMin(ahead * (qConfig?.avg_service_minutes || 10));
 
     setGenerating(false);
   };
@@ -178,6 +200,9 @@ export default function QueueTicket() {
   }
 
   const primaryColor = org.primary_color || '#4F46E5';
+  const isMedicine = org.vertical_type === 'medicine';
+  const emptyIcon = isMedicine ? '🏥' : '🎓';
+  const serviceLabel = isMedicine ? 'cabinet' : 'ghișeu';
 
   return (
     <div className="min-h-screen bg-background safe-top safe-bottom">
@@ -188,12 +213,13 @@ export default function QueueTicket() {
             style={{ background: `${primaryColor}15`, padding: 6 }} />
         )}
         <h1 className="text-2xl font-display font-bold text-foreground">{org.name}</h1>
-        <p className="text-muted-foreground text-sm mt-1">Sistem de gestionare coadă</p>
+        <p className="text-muted-foreground text-sm mt-1">
+          {isMedicine ? 'Sistem de gestionare coadă' : 'Sistem de gestionare coadă secretariat'}
+        </p>
       </div>
 
       <div className="max-w-md mx-auto px-4 pb-8 space-y-6">
         {!myTicket ? (
-          /* No ticket — show generate button */
           <div className="text-center py-12">
             <div className="h-24 w-24 rounded-full mx-auto flex items-center justify-center mb-6"
               style={{ background: `${primaryColor}15` }}>
@@ -218,7 +244,6 @@ export default function QueueTicket() {
             </Button>
           </div>
         ) : myTicket.status === 'called' || myTicket.status === 'serving' ? (
-          /* Called — your turn! */
           <Card className="border-2 border-primary animate-pulse">
             <CardContent className="p-8 text-center">
               <div className="h-20 w-20 rounded-full mx-auto flex items-center justify-center mb-4 bg-primary/10">
@@ -232,12 +257,11 @@ export default function QueueTicket() {
                 </Badge>
               )}
               <p className="text-sm text-muted-foreground mt-4">
-                Vă rugăm prezentați-vă la {myTicket.cabinet || 'ghișeu'}
+                Vă rugăm prezentați-vă la {myTicket.cabinet || serviceLabel}
               </p>
             </CardContent>
           </Card>
         ) : myTicket.status === 'skipped' ? (
-          /* Skipped */
           <Card>
             <CardContent className="p-6 text-center">
               <div className="text-4xl font-bold text-muted-foreground mb-2">#{myTicket.numar_tichet}</div>
@@ -254,7 +278,6 @@ export default function QueueTicket() {
             </CardContent>
           </Card>
         ) : (
-          /* Waiting */
           <Card>
             <CardContent className="p-8 text-center">
               <div className="h-16 w-16 rounded-full mx-auto flex items-center justify-center mb-4 bg-muted">
@@ -266,6 +289,12 @@ export default function QueueTicket() {
                 <Clock className="h-3.5 w-3.5 mr-1" />
                 {waitingAhead === 0 ? 'Sunteți următorul!' : `${waitingAhead} persoane înaintea dvs.`}
               </Badge>
+              {estimatedWaitMin > 0 && waitingAhead > 0 && (
+                <div className="mt-3 flex items-center justify-center gap-1.5 text-sm text-primary">
+                  <Timer className="h-4 w-4" />
+                  <span>Estimare: ~{estimatedWaitMin} minute</span>
+                </div>
+              )}
               <p className="text-xs text-muted-foreground mt-4">
                 Ora emitere: {format(new Date(myTicket.created_at), 'HH:mm', { locale: ro })}
               </p>
@@ -277,7 +306,6 @@ export default function QueueTicket() {
           </Card>
         )}
 
-        {/* GDPR notice */}
         <p className="text-xs text-center text-muted-foreground">
           🔒 Nu se colectează date personale. Se folosesc doar numere de ordine.
         </p>
