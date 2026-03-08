@@ -519,7 +519,7 @@ function DefaultContent({ config, isPortrait }: { config: DisplayConfig; isPortr
       <PanelSlideshow panels={config.panels} primaryColor={config.primary_color} />
       {config.qr_codes.length > 0 && (
         <div className="absolute z-10 flex" style={{
-          bottom: config.ticker_messages.length > 0 ? 64 : 24,
+          bottom: config.ticker_messages.length > 0 ? 60 : 24,
           right: 48,
           gap: 16,
         }}>
