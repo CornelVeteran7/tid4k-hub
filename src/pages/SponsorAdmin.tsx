@@ -15,6 +15,7 @@ import {
   TrendingUp, MousePointerClick, Target
 } from 'lucide-react';
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
+import SponsorDialog from '@/components/sponsor/SponsorDialog';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
