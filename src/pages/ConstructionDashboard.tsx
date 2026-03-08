@@ -218,7 +218,7 @@ function AddSiteDialog({ orgId, onDone }: { orgId: string; onDone: () => void })
 /* ════════════════════════════════════════════════
    Site Card
    ════════════════════════════════════════════════ */
-function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isSelected }: {
+function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isSelected, onRefresh }: {
   site: ConstructionSite;
   tasks: ConstructionTask[];
   costs: ConstructionCost[];
@@ -227,6 +227,7 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
   today: string;
   onSelect: () => void;
   isSelected: boolean;
+  onRefresh: () => void;
 }) {
   const totalCost = costs.reduce((s, c) => s + c.total, 0);
   const budgetPct = site.buget > 0 ? Math.round((totalCost / site.buget) * 100) : 0;
