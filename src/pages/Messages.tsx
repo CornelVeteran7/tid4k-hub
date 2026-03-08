@@ -262,7 +262,7 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
 
                       {/* Messages in this date group */}
                       {group.messages.map((msg, idx) => {
-                        const isMine = msg.expeditor === user?.id_utilizator;
+                        const isMine = msg.expeditor === user?.id;
                         const prevMsg = idx > 0 ? group.messages[idx - 1] : null;
                         const isConsecutive = prevMsg && prevMsg.expeditor === msg.expeditor;
 
