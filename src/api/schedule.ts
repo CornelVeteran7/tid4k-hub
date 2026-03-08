@@ -14,7 +14,7 @@ export async function getSchedule(groupId: string): Promise<ScheduleCell[]> {
   const { data, error } = await supabase
     .from('schedule')
     .select('*')
-    .eq('group_id', group.id)
+    .eq('group_id', resolvedId)
     .order('zi')
     .order('ora');
 
