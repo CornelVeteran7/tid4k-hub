@@ -1,0 +1,1 @@
+UPDATE public.organizations SET slug = 'gradinita-floarea-soarelui' WHERE name = 'Grădinița Floarea Soarelui' AND slug IS NULL;

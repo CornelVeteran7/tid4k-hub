@@ -130,7 +130,7 @@ export default function PublicDisplay() {
     const { data: org } = await supabase
       .from('organizations')
       .select('*')
-      .eq('name', orgSlug || '')
+      .eq('slug', orgSlug || '')
       .maybeSingle();
 
     const orgId = org?.id || '';
