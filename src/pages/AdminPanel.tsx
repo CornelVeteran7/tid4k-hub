@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette } from 'lucide-react';
+import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette, HelpCircle } from 'lucide-react';
 import { getSchools } from '@/api/schools';
 import type { School as SchoolType } from '@/types';
 import SchoolsTab from '@/components/admin/SchoolsTab';
