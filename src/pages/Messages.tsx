@@ -54,12 +54,14 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const channelRef = useRef<any>(null);
 
+  const { isDemo } = useAuth();
+
   useEffect(() => {
-    if (user) getConversations(user.id).then(c => {
+    if (user && !isDemo) getConversations(user.id).then(c => {
       setConversations(c);
       setFilteredConvos(c);
     });
-  }, [user]);
+  }, [user, isDemo]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
