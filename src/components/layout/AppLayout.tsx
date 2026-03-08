@@ -99,9 +99,7 @@ const ADMIN_NAV = [
 
 
 const INKY_ITEMS = [
-{ path: '/orar-cancelarie', label: 'Orar CANCELARIE', icon: Calendar },
-{ path: '/social-facebook', label: 'Facebook', icon: Facebook },
-{ path: '/social-whatsapp', label: 'WhatsApp', icon: MessageCircle }];
+{ path: '/orar-cancelarie', label: 'Orar CANCELARIE', icon: Calendar }];
 
 
 function getTimeAgo(dateStr: string): string {
