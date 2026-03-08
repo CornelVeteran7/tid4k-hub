@@ -77,7 +77,7 @@ interface DisplayConfig {
 const DESIGN_W = 1920;
 const DESIGN_H = 1080;
 const REFRESH_INTERVAL = 60_000; // 60 seconds
-const DAYS_RO = ['luni', 'marti', 'miercuri', 'joi', 'vineri'];
+const DAYS_RO = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri'];
 const MEAL_LABELS: Record<string, string> = {
   mic_dejun: '🌅 Mic dejun',
   gustare_1: '🍎 Gustare',
