@@ -802,6 +802,10 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
                 <p className="text-xs text-muted-foreground mt-1">
                   Plătit: {totalPaid.toLocaleString('ro-RO')} lei · Restanță: {(totalSpent - totalPaid).toLocaleString('ro-RO')} lei
                 </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  🔥 Burn rate: {siteBurnRate.toLocaleString('ro-RO')} lei/zi
+                  {daysLeft !== null && ` · Buget suficient ~${daysLeft} zile`}
+                </p>
               </div>
               <div className="text-right">
                 <p className={`text-3xl font-bold ${budgetPct >= 100 ? 'text-destructive' : budgetPct >= 80 ? 'text-orange-500' : 'text-green-600'}`}>
