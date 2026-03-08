@@ -112,7 +112,7 @@ export default function ConstructionWorker() {
       <div className="text-center pt-2">
         <HardHat className="h-10 w-10 text-primary mx-auto" />
         <h1 className="text-2xl font-bold mt-2">Taskurile Mele</h1>
-        <p className="text-base text-muted-foreground">{format(new Date(), 'EEEE, d MMMM yyyy', { locale: undefined })}</p>
+        <p className="text-base text-muted-foreground">{format(new Date(), 'EEEE, d MMMM yyyy', { locale: ro })}</p>
       </div>
 
       {/* Overdue warning */}
