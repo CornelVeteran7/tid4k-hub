@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette, HelpCircle } from 'lucide-react';
 import { getSchools } from '@/api/schools';
 import type { School as SchoolType } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { isAdmin as checkIsAdmin } from '@/utils/roles';
+import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 import SchoolsTab from '@/components/admin/SchoolsTab';
 import UsersTab from '@/components/admin/UsersTab';
 import ScheduleTab from '@/components/admin/ScheduleTab';
@@ -14,25 +18,35 @@ import DocsTab from '@/components/admin/DocsTab';
 import BrandingTab from '@/components/admin/BrandingTab';
 import UserGuideTab from '@/components/admin/UserGuideTab';
 
-const TABS = [
-  { value: 'scoli', label: 'Școli', icon: School },
-  { value: 'utilizatori', label: 'Utilizatori', icon: Users },
-  { value: 'orar', label: 'Orar', icon: Calendar },
-  { value: 'meniu', label: 'Meniu', icon: UtensilsCrossed },
-  { value: 'ateliere', label: 'Ateliere', icon: Paintbrush },
-  { value: 'setari', label: 'Setări', icon: Settings },
-  { value: 'ghid', label: 'Ghid', icon: HelpCircle },
-  { value: 'docs', label: 'Docs', icon: BookOpen },
-  { value: 'branding', label: 'Branding', icon: Palette },
-];
-
 export default function AdminPanel() {
+  const { user } = useAuth();
   const [schools, setSchools] = useState<SchoolType[]>([]);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>('all');
 
-  useEffect(() => { getSchools().then(setSchools); }, []);
+  // Access control: only admin/director/inky
+  if (!user || !checkIsAdmin(user.status, user.nume_prenume)) {
+    return <Navigate to="/" replace />;
+  }
 
-  const currentSchool = schools.find(s => s.id.toString() === selectedSchoolId);
+  const verticalType = (user.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
+
+  // Filter tabs based on vertical
+  const TABS = [
+    { value: 'scoli', label: verticalDef.entityLabelPlural, icon: School, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'utilizatori', label: 'Utilizatori', icon: Users, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'orar', label: 'Orar', icon: Calendar, verticals: ['kids', 'schools', 'medicine', 'students', 'culture'] },
+    { value: 'meniu', label: 'Meniu', icon: UtensilsCrossed, verticals: ['kids'] },
+    { value: 'ateliere', label: 'Ateliere', icon: Paintbrush, verticals: ['kids'] },
+    { value: 'setari', label: 'Setări', icon: Settings, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'ghid', label: 'Ghid', icon: HelpCircle, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'docs', label: 'Docs', icon: BookOpen, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'branding', label: 'Branding', icon: Palette, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+  ];
+
+  const visibleTabs = TABS.filter(t => t.verticals.includes(verticalType));
+
+  useEffect(() => { getSchools().then(setSchools); }, []);
 
   return (
     <div className="space-y-5 pb-20 overflow-hidden">
@@ -44,17 +58,17 @@ export default function AdminPanel() {
             Panou Administrare
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Gestionează unitățile de învățământ, utilizatorii și sponsorii
+            Gestionează {verticalDef.entityLabelPlural.toLowerCase()}, utilizatorii și setările
           </p>
         </div>
 
-        {/* Global school selector */}
+        {/* Global selector */}
         <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
           <SelectTrigger className="w-full sm:w-[260px] shrink-0">
-            <SelectValue placeholder="Selectează școala" />
+            <SelectValue placeholder={`Selectează ${verticalDef.entityLabel.toLowerCase()}`} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Toate unitățile</SelectItem>
+            <SelectItem value="all">Toate {verticalDef.entityLabelPlural.toLowerCase()}</SelectItem>
             {schools.map(s => (
               <SelectItem key={s.id} value={s.id.toString()}>
                 {s.nume}
@@ -65,10 +79,10 @@ export default function AdminPanel() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="scoli" className="space-y-4">
+      <Tabs defaultValue={visibleTabs[0]?.value || 'scoli'} className="space-y-4">
         <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
           <TabsList className="inline-flex w-auto min-w-full sm:min-w-0">
-            {TABS.map(tab => (
+            {visibleTabs.map(tab => (
               <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 shrink-0 text-xs sm:text-sm">
                 <tab.icon className="h-4 w-4" />
                 <span className="hidden xs:inline sm:inline">{tab.label}</span>
