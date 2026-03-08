@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award, Package, ShieldCheck, Newspaper, Theater, HardHat } from
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award, Package, ShieldCheck, Newspaper, Theater, HardHat, Video } from
 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
@@ -83,6 +83,9 @@ const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; 
 { path: '/ssm', label: 'SSM', icon: ShieldCheck, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },
 { path: '/revista', label: 'Revista Școlii', icon: Newspaper, roles: ['profesor', 'parinte', 'director', 'administrator'], verticals: ['schools'] },
 { path: '/supratitrare', label: 'Supratitrare', icon: Theater, roles: ['profesor', 'director', 'administrator'], verticals: ['culture'] },
+{ path: '/video', label: 'Generare Video', icon: Video, roles: ['profesor', 'director', 'administrator'], verticals: ['kids', 'schools', 'medicine', 'culture'] },
+{ path: '/social-whatsapp', label: 'WhatsApp', icon: MessageCircle, roles: ['director', 'administrator'], verticals: ['kids', 'schools'] },
+{ path: '/social-facebook', label: 'Facebook', icon: Facebook, roles: ['director', 'administrator'], verticals: ['kids', 'schools'] },
 ];
 
 
@@ -96,9 +99,7 @@ const ADMIN_NAV = [
 
 
 const INKY_ITEMS = [
-{ path: '/orar-cancelarie', label: 'Orar CANCELARIE', icon: Calendar },
-{ path: '/social-facebook', label: 'Facebook', icon: Facebook },
-{ path: '/social-whatsapp', label: 'WhatsApp', icon: MessageCircle }];
+{ path: '/orar-cancelarie', label: 'Orar CANCELARIE', icon: Calendar }];
 
 
 function getTimeAgo(dateStr: string): string {

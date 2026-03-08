@@ -32,6 +32,7 @@ import InventoryPage from "./pages/Inventory";
 import SSMPage from "./pages/SSM";
 import MagazinePage from "./pages/Magazine";
 import SurtitlesPage from "./pages/Surtitles";
+import VideoGenerationPage from "./pages/VideoGeneration";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
@@ -84,6 +85,7 @@ function ProtectedRoutes() {
             <Route path="/ssm" element={<SSMPage />} />
             <Route path="/revista" element={<MagazinePage />} />
             <Route path="/supratitrare" element={<SurtitlesPage />} />
+            <Route path="/video" element={<VideoGenerationPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
