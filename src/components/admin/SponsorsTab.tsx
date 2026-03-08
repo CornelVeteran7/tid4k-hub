@@ -259,7 +259,21 @@ export default function SponsorsTab() {
       </Tabs>
 
       {editingSponsor && (
-        <CampaignEditor open={editorOpen} onOpenChange={setEditorOpen} campaign={editingCampaign} sponsorNume={editingSponsor.nume} sponsorLogo={editingSponsor.logo_url} sponsorCuloare={editingSponsor.culoare_brand} schools={schools} onSave={data => console.log('Save:', data)} />
+        <CampaignEditor open={editorOpen} onOpenChange={setEditorOpen} campaign={editingCampaign} sponsorNume={editingSponsor.nume} sponsorLogo={editingSponsor.logo_url} sponsorCuloare={editingSponsor.culoare_brand} schools={schools} onSave={async (data) => {
+          try {
+            if (data.id) {
+              const updated = await updateCampaign(data.id, data);
+              setCampaigns(prev => prev.map(c => c.id === updated.id ? updated : c));
+              toast.success('Campanie actualizată!');
+            } else {
+              const created = await createCampaign({ ...data, sponsor_id: editingSponsor.id, status: 'draft', statistici: { afisari: 0, clickuri: 0, ctr: 0 }, documente_atasate: [] } as any);
+              setCampaigns(prev => [created, ...prev]);
+              toast.success('Campanie creată!');
+            }
+          } catch (err: any) {
+            toast.error('Eroare: ' + (err.message || 'necunoscută'));
+          }
+        }} />
       )}
     </div>
   );
