@@ -41,6 +41,7 @@ import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
 import PublicDisplay from "./pages/PublicDisplay";
 import QRCancelarie from "./pages/QRCancelarie";
+import SurtitleAudiencePage from "./pages/SurtitleAudience";
 
 const queryClient = new QueryClient();
 
