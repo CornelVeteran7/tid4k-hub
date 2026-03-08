@@ -52,6 +52,7 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const channelRef = useRef<any>(null);
 
   useEffect(() => {
     if (user) getConversations(user.id).then(c => {
