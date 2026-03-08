@@ -100,7 +100,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   students: {
     label: 'Universități',
     description: 'Platformă pentru universități',
-    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte'],
+    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte', 'coada'],
     entityLabel: 'Facultate',
     entityLabelPlural: 'Facultăți',
     memberLabel: 'Student',
