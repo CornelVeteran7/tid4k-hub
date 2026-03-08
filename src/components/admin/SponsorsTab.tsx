@@ -41,6 +41,7 @@ export default function SponsorsTab() {
   const [campaigns, setCampaigns] = useState<SponsorCampaign[]>([]);
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [sponsorDialogOpen, setSponsorDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Partial<SponsorCampaign> | undefined>();
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const { openLink } = useExternalLink();
