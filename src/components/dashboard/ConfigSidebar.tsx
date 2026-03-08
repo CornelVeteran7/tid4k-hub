@@ -18,8 +18,7 @@ const MODULE_ITEMS = [
 const NAV_LINKS = [
   { label: 'Istoric prezență', icon: History, route: '/prezenta' },
   { label: 'Statistici', icon: BarChart3, route: '/rapoarte' },
-  { label: 'Profilul meu', icon: UserCircle, route: null },
-  { label: 'Adaugă copii', icon: UserPlus, route: null },
+  { label: 'Profilul meu', icon: UserCircle, route: '/profil' },
 ];
 
 interface ConfigSidebarProps {
