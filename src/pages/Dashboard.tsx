@@ -499,6 +499,8 @@ export default function Dashboard() {
   if (!user) return null;
 
   const roles = getRoles(user.status);
+  const verticalType = (user.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
 
   return (
     <div className="relative isolate min-w-0 pb-32">
