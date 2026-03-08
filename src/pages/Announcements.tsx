@@ -105,7 +105,7 @@ export default function Announcements() {
           <CardContent>
             <div className="space-y-2">
               {announcements.slice(0, 10).map((ann) => (
-                <div key={ann.id_info} className="flex items-center gap-3 text-sm p-2 rounded border">
+                <div key={ann.id} className="flex items-center gap-3 text-sm p-2 rounded border">
                   <Badge
                     variant={ann.ascuns_banda ? 'destructive' : 'default'}
                     className={!ann.ascuns_banda ? 'bg-success text-success-foreground' : ''}
