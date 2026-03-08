@@ -26,7 +26,7 @@ export async function getSchedule(groupId: string): Promise<ScheduleCell[]> {
     ora: s.ora,
     materie: s.materie,
     profesor: s.profesor || '',
-    sala: (s as any).sala || '',
+    sala: s.sala || '',
     culoare: s.culoare || '#E3F2FD',
   }));
 }
