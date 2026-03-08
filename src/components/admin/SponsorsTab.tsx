@@ -14,6 +14,7 @@ import {
   ExternalLink, Calendar, CheckCircle2, XCircle, Eye, BarChart3, Play, Pause, Archive, FileEdit, Clock
 } from 'lucide-react';
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
+import SponsorDialog from '@/components/sponsor/SponsorDialog';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { toast } from 'sonner';
 
