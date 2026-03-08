@@ -353,6 +353,54 @@ export type Database = {
           },
         ]
       }
+      facebook_posts: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          posted_at: string | null
+          status: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          posted_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          posted_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      facebook_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          page_id: string | null
+          posting_format: string | null
+          token_status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          page_id?: string | null
+          posting_format?: string | null
+          token_status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          page_id?: string | null
+          posting_format?: string | null
+          token_status?: string | null
+        }
+        Relationships: []
+      }
       groups: {
         Row: {
           created_at: string | null
@@ -387,6 +435,93 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      infodisplay_panels: {
+        Row: {
+          continut: string
+          created_at: string | null
+          durata: number | null
+          id: string
+          ordine: number | null
+          tip: string
+        }
+        Insert: {
+          continut: string
+          created_at?: string | null
+          durata?: number | null
+          id?: string
+          ordine?: number | null
+          tip: string
+        }
+        Update: {
+          continut?: string
+          created_at?: string | null
+          durata?: number | null
+          id?: string
+          ordine?: number | null
+          tip?: string
+        }
+        Relationships: []
+      }
+      infodisplay_qr: {
+        Row: {
+          created_at: string | null
+          id: string
+          label: string
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          label: string
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          label?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      infodisplay_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          transition: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          transition?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          transition?: string | null
+        }
+        Relationships: []
+      }
+      infodisplay_ticker: {
+        Row: {
+          created_at: string | null
+          id: string
+          mesaj: string
+          ordine: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mesaj: string
+          ordine?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mesaj?: string
+          ordine?: number | null
+        }
+        Relationships: []
       }
       menu_items: {
         Row: {
@@ -633,6 +768,265 @@ export type Database = {
         }
         Relationships: []
       }
+      sponsor_campaigns: {
+        Row: {
+          afisari: number | null
+          clickuri: number | null
+          created_at: string | null
+          cta_text: string | null
+          ctr: number | null
+          data_end_campanie: string | null
+          data_start_campanie: string | null
+          descriere: string | null
+          documente_atasate: string[] | null
+          id: string
+          link_url: string | null
+          prioritate: number | null
+          scoli_target: string[] | null
+          sponsor_id: string
+          status: string | null
+          stil_card: Json | null
+          stil_inky: Json | null
+          stil_ticker: Json | null
+          tip: string
+          titlu: string
+        }
+        Insert: {
+          afisari?: number | null
+          clickuri?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          ctr?: number | null
+          data_end_campanie?: string | null
+          data_start_campanie?: string | null
+          descriere?: string | null
+          documente_atasate?: string[] | null
+          id?: string
+          link_url?: string | null
+          prioritate?: number | null
+          scoli_target?: string[] | null
+          sponsor_id: string
+          status?: string | null
+          stil_card?: Json | null
+          stil_inky?: Json | null
+          stil_ticker?: Json | null
+          tip: string
+          titlu: string
+        }
+        Update: {
+          afisari?: number | null
+          clickuri?: number | null
+          created_at?: string | null
+          cta_text?: string | null
+          ctr?: number | null
+          data_end_campanie?: string | null
+          data_start_campanie?: string | null
+          descriere?: string | null
+          documente_atasate?: string[] | null
+          id?: string
+          link_url?: string | null
+          prioritate?: number | null
+          scoli_target?: string[] | null
+          sponsor_id?: string
+          status?: string | null
+          stil_card?: Json | null
+          stil_inky?: Json | null
+          stil_ticker?: Json | null
+          tip?: string
+          titlu?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_campaigns_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_impressions: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_click: boolean | null
+          promo_id: string | null
+          school_id: string | null
+          tip: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_click?: boolean | null
+          promo_id?: string | null
+          school_id?: string | null
+          tip: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_click?: boolean | null
+          promo_id?: string | null
+          school_id?: string | null
+          tip?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_impressions_promo_id_fkey"
+            columns: ["promo_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_promos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsor_impressions_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_plans: {
+        Row: {
+          descriere: string | null
+          id: string
+          include_custom_inky: boolean | null
+          include_dashboard: boolean | null
+          include_infodisplay: boolean | null
+          include_inky: boolean | null
+          include_ticker: boolean | null
+          numar_scoli: number | null
+          nume_plan: string
+          pret: number | null
+        }
+        Insert: {
+          descriere?: string | null
+          id?: string
+          include_custom_inky?: boolean | null
+          include_dashboard?: boolean | null
+          include_infodisplay?: boolean | null
+          include_inky?: boolean | null
+          include_ticker?: boolean | null
+          numar_scoli?: number | null
+          nume_plan: string
+          pret?: number | null
+        }
+        Update: {
+          descriere?: string | null
+          id?: string
+          include_custom_inky?: boolean | null
+          include_dashboard?: boolean | null
+          include_infodisplay?: boolean | null
+          include_inky?: boolean | null
+          include_ticker?: boolean | null
+          numar_scoli?: number | null
+          nume_plan?: string
+          pret?: number | null
+        }
+        Relationships: []
+      }
+      sponsor_promos: {
+        Row: {
+          activ: boolean | null
+          created_at: string | null
+          cta_text: string | null
+          descriere: string | null
+          id: string
+          link_url: string | null
+          prioritate: number | null
+          scoli_target: string[] | null
+          sponsor_id: string
+          stil_card: Json | null
+          stil_inky: Json | null
+          stil_ticker: Json | null
+          tip: string
+          titlu: string
+        }
+        Insert: {
+          activ?: boolean | null
+          created_at?: string | null
+          cta_text?: string | null
+          descriere?: string | null
+          id?: string
+          link_url?: string | null
+          prioritate?: number | null
+          scoli_target?: string[] | null
+          sponsor_id: string
+          stil_card?: Json | null
+          stil_inky?: Json | null
+          stil_ticker?: Json | null
+          tip: string
+          titlu: string
+        }
+        Update: {
+          activ?: boolean | null
+          created_at?: string | null
+          cta_text?: string | null
+          descriere?: string | null
+          id?: string
+          link_url?: string | null
+          prioritate?: number | null
+          scoli_target?: string[] | null
+          sponsor_id?: string
+          stil_card?: Json | null
+          stil_inky?: Json | null
+          stil_ticker?: Json | null
+          tip?: string
+          titlu?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_promos_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsors: {
+        Row: {
+          activ: boolean | null
+          created_at: string | null
+          culoare_brand: string | null
+          data_expirare: string | null
+          data_start: string | null
+          descriere: string | null
+          id: string
+          logo_url: string | null
+          nume: string
+          plan: string | null
+          website: string | null
+        }
+        Insert: {
+          activ?: boolean | null
+          created_at?: string | null
+          culoare_brand?: string | null
+          data_expirare?: string | null
+          data_start?: string | null
+          descriere?: string | null
+          id?: string
+          logo_url?: string | null
+          nume: string
+          plan?: string | null
+          website?: string | null
+        }
+        Update: {
+          activ?: boolean | null
+          created_at?: string | null
+          culoare_brand?: string | null
+          data_expirare?: string | null
+          data_start?: string | null
+          descriere?: string | null
+          id?: string
+          logo_url?: string | null
+          nume?: string
+          plan?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       stories: {
         Row: {
           audio_url: string | null
@@ -747,6 +1141,33 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_mappings: {
+        Row: {
+          consent: boolean | null
+          created_at: string | null
+          grupa: string
+          id: string
+          sync_type: string | null
+          whatsapp_group: string
+        }
+        Insert: {
+          consent?: boolean | null
+          created_at?: string | null
+          grupa: string
+          id?: string
+          sync_type?: string | null
+          whatsapp_group: string
+        }
+        Update: {
+          consent?: boolean | null
+          created_at?: string | null
+          grupa?: string
+          id?: string
+          sync_type?: string | null
+          whatsapp_group?: string
         }
         Relationships: []
       }
