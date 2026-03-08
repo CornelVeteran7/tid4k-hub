@@ -27,6 +27,7 @@ import Infodisplay from "./pages/Infodisplay";
 import SocialMediaFacebook from "./pages/SocialMediaFacebook";
 import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
 import ConstructionDashboard from "./pages/ConstructionDashboard";
+import ConstructionWorker from "./pages/ConstructionWorker";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
