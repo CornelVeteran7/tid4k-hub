@@ -72,6 +72,7 @@ function ProtectedRoutes() {
             <Route path="/social-facebook" element={<SocialMediaFacebook />} />
             <Route path="/social-whatsapp" element={<SocialMediaWhatsapp />} />
             <Route path="/profil" element={<MyProfile />} />
+            <Route path="/santiere" element={<ConstructionDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
