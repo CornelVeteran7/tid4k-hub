@@ -20,6 +20,7 @@ serve(async (req) => {
       vertical_type: "kids",
       primary_color: "#1E3A4C",
       secondary_color: "#2D5F7A",
+      admin_email: "admin@fluturasi-demo.test",
       groups: [
         { nume: "Grupa Mică", slug: "grupa-mica", tip: "gradinita" },
         { nume: "Grupa Mijlocie", slug: "grupa-mijlocie", tip: "gradinita" },
@@ -33,6 +34,7 @@ serve(async (req) => {
       vertical_type: "schools",
       primary_color: "#1B5E20",
       secondary_color: "#388E3C",
+      admin_email: "admin@scoala-1-demo.test",
       groups: [
         { nume: "Clasa a V-a A", slug: "5a", tip: "scoala" },
         { nume: "Clasa a VI-a B", slug: "6b", tip: "scoala" },
@@ -45,6 +47,7 @@ serve(async (req) => {
       vertical_type: "medicine",
       primary_color: "#0D47A1",
       secondary_color: "#1976D2",
+      admin_email: "admin@dr-ionescu-demo.test",
       groups: [
         { nume: "Cabinet Stomatologie", slug: "stomatologie", tip: "scoala" },
         { nume: "Cabinet Dermatologie", slug: "dermatologie", tip: "scoala" },
@@ -57,6 +60,7 @@ serve(async (req) => {
       vertical_type: "living",
       primary_color: "#4E342E",
       secondary_color: "#795548",
+      admin_email: "admin@bloc-a1-demo.test",
       groups: [
         { nume: "Scara A", slug: "scara-a", tip: "scoala" },
         { nume: "Scara B", slug: "scara-b", tip: "scoala" },
@@ -69,6 +73,7 @@ serve(async (req) => {
       vertical_type: "culture",
       primary_color: "#880E4F",
       secondary_color: "#AD1457",
+      admin_email: "admin@teatru-national-demo.test",
       groups: [
         { nume: "Sala Mare", slug: "sala-mare", tip: "scoala" },
         { nume: "Sala Studio", slug: "sala-studio", tip: "scoala" },
@@ -81,6 +86,7 @@ serve(async (req) => {
       vertical_type: "students",
       primary_color: "#311B92",
       secondary_color: "#512DA8",
+      admin_email: "admin@universitate-demo.test",
       groups: [
         { nume: "Facultatea de Informatică", slug: "info", tip: "scoala" },
         { nume: "Facultatea de Drept", slug: "drept", tip: "scoala" },
@@ -93,6 +99,7 @@ serve(async (req) => {
       vertical_type: "construction",
       primary_color: "#E65100",
       secondary_color: "#F57C00",
+      admin_email: "admin@constructii-demo.test",
       groups: [
         { nume: "Șantier Central", slug: "santier-central", tip: "scoala" },
       ],
@@ -104,6 +111,7 @@ serve(async (req) => {
       vertical_type: "workshops",
       primary_color: "#263238",
       secondary_color: "#455A64",
+      admin_email: "admin@service-rapid-demo.test",
       groups: [
         { nume: "Mecanică", slug: "mecanica", tip: "scoala" },
         { nume: "Electrică", slug: "electrica", tip: "scoala" },
@@ -112,7 +120,9 @@ serve(async (req) => {
     },
   ];
 
+  const PASSWORD = "Demo2026!";
   const results: string[] = [];
+  const credentials: { vertical: string; email: string; password: string; orgId: string }[] = [];
 
   for (const v of VERTICALS) {
     // Check if org already exists
@@ -123,7 +133,23 @@ serve(async (req) => {
       .maybeSingle();
 
     if (existing) {
-      results.push(`⏭️ ${v.name} already exists (${existing.id})`);
+      // Even if org exists, check if admin user exists and report
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .eq("organization_id", existing.id)
+        .eq("email", v.admin_email)
+        .maybeSingle();
+
+      if (existingProfile) {
+        results.push(`⏭️ ${v.name} already exists (${existing.id}) — admin ${v.admin_email} exists`);
+        credentials.push({ vertical: v.vertical_type, email: v.admin_email, password: PASSWORD, orgId: existing.id });
+      } else {
+        // Org exists but no admin — create admin user
+        const adminResult = await createAdminUser(supabase, existing.id, v.name, v.admin_email, PASSWORD);
+        results.push(`⏭️ ${v.name} exists (${existing.id}) — ${adminResult}`);
+        credentials.push({ vertical: v.vertical_type, email: v.admin_email, password: PASSWORD, orgId: existing.id });
+      }
       continue;
     }
 
@@ -205,7 +231,6 @@ serve(async (req) => {
         data_estimare_finalizare: "2026-06-30",
       });
 
-      // Teams
       for (const team of [
         { nume: "Echipa Zidari", specialitate: "zidarie", nr_membri: 5 },
         { nume: "Echipa Instalații", specialitate: "instalatii", nr_membri: 3 },
@@ -214,7 +239,6 @@ serve(async (req) => {
         await supabase.from("construction_teams").insert({ ...team, organization_id: org.id });
       }
 
-      // SSM template
       await supabase.from("ssm_templates").insert({
         organization_id: org.id,
         nume: "Verificare zilnică SSM",
@@ -228,10 +252,61 @@ serve(async (req) => {
       });
     }
 
-    results.push(`✅ ${v.name} created (${org.id}) with ${v.groups.length} groups`);
+    // Create admin user for this org
+    const adminResult = await createAdminUser(supabase, org.id, v.name, v.admin_email, PASSWORD);
+    
+    credentials.push({ vertical: v.vertical_type, email: v.admin_email, password: PASSWORD, orgId: org.id });
+    results.push(`✅ ${v.name} created (${org.id}) with ${v.groups.length} groups — ${adminResult}`);
   }
 
-  return new Response(JSON.stringify({ success: true, results }), {
+  return new Response(JSON.stringify({ success: true, results, credentials }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
+
+async function createAdminUser(
+  supabase: any,
+  orgId: string,
+  orgName: string,
+  email: string,
+  password: string
+): Promise<string> {
+  try {
+    // Create auth user
+    const { data: authUser, error: authErr } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: `Admin ${orgName}` },
+    });
+
+    if (authErr) {
+      // User might already exist
+      if (authErr.message?.includes("already been registered")) {
+        return `admin user ${email} already exists`;
+      }
+      return `admin creation failed: ${authErr.message}`;
+    }
+
+    const userId = authUser.user.id;
+
+    // Update profile with organization_id and name
+    await supabase
+      .from("profiles")
+      .update({
+        organization_id: orgId,
+        nume_prenume: `Admin ${orgName}`,
+      })
+      .eq("id", userId);
+
+    // Add administrator role (handle_new_user trigger already adds 'parinte')
+    await supabase.from("user_roles").insert({
+      user_id: userId,
+      role: "administrator",
+    });
+
+    return `admin ${email} created (${userId})`;
+  } catch (e) {
+    return `admin error: ${e.message}`;
+  }
+}
