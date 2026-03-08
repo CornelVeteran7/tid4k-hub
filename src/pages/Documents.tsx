@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
-import { getDocuments, deleteDocument } from '@/api/documents';
+import { getDocuments, deleteDocument, uploadDocument } from '@/api/documents';
+import { supabase } from '@/integrations/supabase/client';
 import type { DocumentItem } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
