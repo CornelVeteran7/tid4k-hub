@@ -129,17 +129,21 @@ export async function getWeeklyAttendance(grupa: string, mondayDate: string): Pr
     .gte('data', mondayDate)
     .lte('data', friday);
 
-  const attMap = new Map<string, Map<string, boolean>>();
+  const attMap = new Map<string, Map<string, { prezent: boolean; observatii: string }>>();
   (attendance || []).forEach(a => {
     if (!attMap.has(a.child_id)) attMap.set(a.child_id, new Map());
-    attMap.get(a.child_id)!.set(a.data, a.prezent);
+    attMap.get(a.child_id)!.set(a.data, { prezent: a.prezent ?? false, observatii: a.observatii || '' });
   });
 
-  const records: WeeklyAttendanceRecord[] = (children || []).map(c => ({
-    id_copil: c.id,
-    nume_prenume_copil: c.nume_prenume,
-    zile: Object.fromEntries(weekDates.map(d => [d, attMap.get(c.id)?.get(d) ?? false])),
-  }));
+  const records: WeeklyAttendanceRecord[] = (children || []).map(c => {
+    const childAtt = attMap.get(c.id);
+    return {
+      id_copil: c.id,
+      nume_prenume_copil: c.nume_prenume,
+      zile: Object.fromEntries(weekDates.map(d => [d, childAtt?.get(d)?.prezent ?? false])),
+      observatii_zile: Object.fromEntries(weekDates.map(d => [d, childAtt?.get(d)?.observatii || ''])),
+    };
+  });
 
   return { saptamana_start: mondayDate, saptamana_end: friday, records };
 }
@@ -148,12 +152,102 @@ export async function saveWeeklyAttendance(grupa: string, data: WeeklyAttendance
   const { data: { user } } = await supabase.auth.getUser();
   for (const record of data.records) {
     for (const [date, prezent] of Object.entries(record.zile)) {
+      const observatii = record.observatii_zile?.[date] || '';
       await supabase.from('attendance').upsert({
         child_id: record.id_copil,
         data: date,
         prezent,
+        observatii,
         marked_by: user?.id || null,
       }, { onConflict: 'child_id,data' });
     }
   }
+}
+
+/**
+ * Parent-specific: get attendance only for their own children
+ */
+export async function getParentChildAttendance(parentId: string, mondayDate: string): Promise<WeeklyAttendanceData> {
+  const monday = new Date(mondayDate);
+  const weekDates = Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d.toISOString().split('T')[0];
+  });
+  const friday = weekDates[4];
+
+  // Get only parent's children
+  const { data: children } = await supabase
+    .from('children')
+    .select('id, nume_prenume')
+    .eq('parinte_id', parentId)
+    .order('nume_prenume');
+
+  if (!children || children.length === 0) {
+    return { saptamana_start: mondayDate, saptamana_end: friday, records: [] };
+  }
+
+  const { data: attendance } = await supabase
+    .from('attendance')
+    .select('*')
+    .in('child_id', children.map(c => c.id))
+    .gte('data', mondayDate)
+    .lte('data', friday);
+
+  const attMap = new Map<string, Map<string, { prezent: boolean; observatii: string }>>();
+  (attendance || []).forEach(a => {
+    if (!attMap.has(a.child_id)) attMap.set(a.child_id, new Map());
+    attMap.get(a.child_id)!.set(a.data, { prezent: a.prezent ?? false, observatii: a.observatii || '' });
+  });
+
+  const records: WeeklyAttendanceRecord[] = children.map(c => {
+    const childAtt = attMap.get(c.id);
+    return {
+      id_copil: c.id,
+      nume_prenume_copil: c.nume_prenume,
+      zile: Object.fromEntries(weekDates.map(d => [d, childAtt?.get(d)?.prezent ?? false])),
+      observatii_zile: Object.fromEntries(weekDates.map(d => [d, childAtt?.get(d)?.observatii || ''])),
+    };
+  });
+
+  return { saptamana_start: mondayDate, saptamana_end: friday, records };
+}
+
+/**
+ * Get monthly contribution data for all children in a group
+ */
+export async function getContributions(
+  groupId: string,
+  month: number,
+  year: number,
+  dailyRate: number
+): Promise<{ children: { id: string; nume: string; zile_prezent: number; total: number }[]; grandTotal: number }> {
+  const { data: children } = await supabase
+    .from('children')
+    .select('id, nume_prenume')
+    .eq('group_id', groupId)
+    .order('nume_prenume');
+
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+
+  const { data: attendance } = await supabase
+    .from('attendance')
+    .select('child_id, prezent')
+    .in('child_id', (children || []).map(c => c.id))
+    .gte('data', startDate)
+    .lte('data', endDate)
+    .eq('prezent', true);
+
+  const countMap = new Map<string, number>();
+  (attendance || []).forEach(a => {
+    countMap.set(a.child_id, (countMap.get(a.child_id) || 0) + 1);
+  });
+
+  const result = (children || []).map(c => {
+    const days = countMap.get(c.id) || 0;
+    return { id: c.id, nume: c.nume_prenume, zile_prezent: days, total: days * dailyRate };
+  });
+
+  return { children: result, grandTotal: result.reduce((s, c) => s + c.total, 0) };
 }
