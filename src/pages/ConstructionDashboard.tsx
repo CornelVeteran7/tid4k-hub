@@ -58,6 +58,19 @@ export default function ConstructionDashboard() {
   const thisWeekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
   const thisWeekEnd = format(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 6), 'yyyy-MM-dd');
 
+  // Morning summary — solves "I call 15 people every morning"
+  const totalOverdue = tasks.filter(t => t.status !== 'done' && t.data_limita && t.data_limita < today).length;
+  const totalActive = tasks.filter(t => t.status !== 'done').length;
+  const totalDoneToday = tasks.filter(t => t.status === 'done' && t.completed_at && t.completed_at.startsWith(today)).length;
+  const totalCostAll = costs.reduce((s, c) => s + c.total, 0);
+
+  // Burn rate: avg daily cost over last 30 days
+  const thirtyDaysAgo = format(addDays(new Date(), -30), 'yyyy-MM-dd');
+  const recentCosts = costs.filter(c => c.data_inregistrare >= thirtyDaysAgo);
+  const burnRate = recentCosts.length > 0 ? Math.round(recentCosts.reduce((s, c) => s + c.total, 0) / 30) : 0;
+
+  const workerUrl = `${window.location.origin}/santiere/worker`;
+
   return (
     <div className="space-y-6 pb-20">
       <div className="flex items-center justify-between">
@@ -67,8 +80,42 @@ export default function ConstructionDashboard() {
           </h1>
           <p className="text-sm text-muted-foreground">Gestionare șantiere, echipe și costuri</p>
         </div>
-        <AddSiteDialog orgId={orgId} onDone={reload} />
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(workerUrl); toast.success('Link worker copiat! Trimite-l muncitorilor.'); }}>
+            📱 Link muncitori
+          </Button>
+          <AddSiteDialog orgId={orgId} onDone={reload} />
+        </div>
       </div>
+
+      {/* ═══ MORNING SUMMARY ═══ */}
+      <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+        <CardContent className="py-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">📊 Rezumat dimineață — {format(new Date(), 'd MMMM yyyy', { locale: ro })}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold">{sites.length}</p>
+              <p className="text-xs text-muted-foreground">Șantiere active</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">{totalActive}</p>
+              <p className="text-xs text-muted-foreground">Taskuri active</p>
+            </div>
+            <div className="text-center">
+              <p className={`text-2xl font-bold ${totalOverdue > 0 ? 'text-destructive' : 'text-green-600'}`}>{totalOverdue}</p>
+              <p className="text-xs text-muted-foreground">Întârziate</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-green-600">{totalDoneToday}</p>
+              <p className="text-xs text-muted-foreground">Gata azi</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">{burnRate.toLocaleString('ro-RO')}</p>
+              <p className="text-xs text-muted-foreground">lei/zi (burn rate)</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Site Cards Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,6 +130,7 @@ export default function ConstructionDashboard() {
             today={today}
             onSelect={() => setSelectedSite(prev => prev === site.id ? null : site.id)}
             isSelected={selectedSite === site.id}
+            onRefresh={reload}
           />
         ))}
         {sites.length === 0 && (
@@ -170,7 +218,7 @@ function AddSiteDialog({ orgId, onDone }: { orgId: string; onDone: () => void })
 /* ════════════════════════════════════════════════
    Site Card
    ════════════════════════════════════════════════ */
-function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isSelected }: {
+function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isSelected, onRefresh }: {
   site: ConstructionSite;
   tasks: ConstructionTask[];
   costs: ConstructionCost[];
@@ -179,6 +227,7 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
   today: string;
   onSelect: () => void;
   isSelected: boolean;
+  onRefresh: () => void;
 }) {
   const totalCost = costs.reduce((s, c) => s + c.total, 0);
   const budgetPct = site.buget > 0 ? Math.round((totalCost / site.buget) * 100) : 0;
@@ -204,13 +253,24 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Progress */}
+        {/* Progress — editable */}
         <div>
           <div className="flex justify-between text-xs mb-1">
             <span>Progres</span>
             <span className="font-semibold">{site.progress_pct}%</span>
           </div>
-          <Progress value={site.progress_pct} className="h-2" />
+          <Progress value={site.progress_pct} className="h-2 cursor-pointer"
+            onClick={async (e) => {
+              e.stopPropagation();
+              const rect = e.currentTarget.getBoundingClientRect();
+              const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+              try {
+                await upsertSite({ ...site, progress_pct: Math.max(0, Math.min(100, pct)) });
+                toast.success(`Progres: ${pct}%`);
+                onRefresh();
+              } catch (err: any) { toast.error(err.message); }
+            }}
+          />
         </div>
 
         {/* Budget */}
@@ -666,6 +726,12 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
   const site = selectedSite ? sites.find(s => s.id === selectedSite) : null;
   const budgetPct = site && site.buget > 0 ? Math.round((totalSpent / site.buget) * 100) : 0;
 
+  // Burn rate for this site/selection
+  const thirtyAgo = format(addDays(new Date(), -30), 'yyyy-MM-dd');
+  const recentSiteCosts = costs.filter(c => c.data_inregistrare >= thirtyAgo);
+  const siteBurnRate = recentSiteCosts.length > 0 ? Math.round(recentSiteCosts.reduce((s, c) => s + c.total, 0) / 30) : 0;
+  const daysLeft = site && siteBurnRate > 0 && site.buget > totalSpent ? Math.round((site.buget - totalSpent) / siteBurnRate) : null;
+
   const categoryLabels: Record<string, string> = {
     materiale: '🧱 Materiale',
     manopera: '👷 Manoperă',
@@ -735,6 +801,10 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
                 <p className="text-xs text-muted-foreground">din {site.buget.toLocaleString('ro-RO')} lei · Rămas: {(site.buget - totalSpent).toLocaleString('ro-RO')} lei</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Plătit: {totalPaid.toLocaleString('ro-RO')} lei · Restanță: {(totalSpent - totalPaid).toLocaleString('ro-RO')} lei
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  🔥 Burn rate: {siteBurnRate.toLocaleString('ro-RO')} lei/zi
+                  {daysLeft !== null && ` · Buget suficient ~${daysLeft} zile`}
                 </p>
               </div>
               <div className="text-right">
