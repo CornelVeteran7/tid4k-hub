@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette, HelpCircle } from 'lucide-react';
+import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette, HelpCircle, BarChart3 } from 'lucide-react';
 import { getSchools } from '@/api/schools';
 import type { School as SchoolType } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +17,7 @@ import WorkshopsTab from '@/components/admin/WorkshopsTab';
 import DocsTab from '@/components/admin/DocsTab';
 import BrandingTab from '@/components/admin/BrandingTab';
 import UserGuideTab from '@/components/admin/UserGuideTab';
+import BusinessIntelligenceTab from '@/components/admin/BusinessIntelligenceTab';
 
 export default function AdminPanel() {
   const { user } = useAuth();
@@ -42,6 +43,7 @@ export default function AdminPanel() {
     { value: 'ghid', label: 'Ghid', icon: HelpCircle, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'docs', label: 'Docs', icon: BookOpen, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'branding', label: 'Branding', icon: Palette, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'bi', label: 'BI', icon: BarChart3, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
   ];
   const visibleTabs = TABS.filter(t => t.verticals.includes(verticalType));
 
@@ -99,6 +101,7 @@ export default function AdminPanel() {
           <TabsContent value="ghid"><UserGuideTab /></TabsContent>
           <TabsContent value="docs"><DocsTab /></TabsContent>
           <TabsContent value="branding"><BrandingTab /></TabsContent>
+          <TabsContent value="bi"><BusinessIntelligenceTab /></TabsContent>
         </div>
       </Tabs>
     </div>
