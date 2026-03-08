@@ -17,6 +17,7 @@ import {
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 const PROMO_TYPE_LABELS: Record<SponsorPromo['tip'], { label: string; icon: React.ElementType; color: string }> = {
   card_dashboard: { label: 'Card Dashboard', icon: Layout, color: '#2ECC71' },
