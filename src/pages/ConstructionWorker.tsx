@@ -208,7 +208,7 @@ export default function ConstructionWorker() {
                     {uploading === task.id ? (
                       <><Loader2 className="h-7 w-7 animate-spin" /> Se încarcă...</>
                     ) : (
-                      <><Camera className="h-7 w-7" /> FAȘ POZĂ</>
+                      <><Camera className="h-7 w-7" /> 📸 POZĂ</>
                     )}
                   </Button>
 
