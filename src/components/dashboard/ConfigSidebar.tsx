@@ -3,7 +3,6 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { ClipboardList, Image, FileText, BookOpen, UtensilsCrossed, MessageSquare, History, BarChart3, UserCircle, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import type { ModuleVisibility } from './ModuleHub';
 
 const MODULE_ITEMS = [
