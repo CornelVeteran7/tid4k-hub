@@ -168,8 +168,8 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
 
   const visibleSecondary = SECONDARY_NAV.filter((i) => {
     if (!canSee(i.roles)) return false;
-    if (i.verticals) return i.verticals.includes(verticalType);
-    if (i.moduleKey) return verticalDef.defaultModules.includes(i.moduleKey);
+    if (i.verticals && !i.verticals.includes(verticalType)) return false;
+    if (i.moduleKey && !activeModules.has(i.moduleKey)) return false;
     return true;
   });
   const visibleAdmin = ADMIN_NAV.filter((i) => canSee(i.roles));
