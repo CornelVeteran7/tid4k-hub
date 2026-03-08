@@ -73,7 +73,7 @@ function isoWeekToMonday(weekStr: string): Date {
 export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
   const [menu, setMenu] = useState<WeeklyMenuType | null>(null);
-  const [week, setWeek] = useState('2026-W09');
+  const [week, setWeek] = useState(() => dateToISOWeek(new Date()));
   const [showEmoji, setShowEmoji] = useState(() => localStorage.getItem('tid4k_emoji') !== 'false');
   const [showNutrients, setShowNutrients] = useState(() => localStorage.getItem('tid4k_nutrients') !== 'false');
   const [showKcal, setShowKcal] = useState(() => localStorage.getItem('tid4k_kcal') !== 'false');
