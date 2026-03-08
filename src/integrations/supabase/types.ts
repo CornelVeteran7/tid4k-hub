@@ -625,6 +625,41 @@ export type Database = {
           },
         ]
       }
+      modules_config: {
+        Row: {
+          config: Json | null
+          created_at: string
+          id: string
+          is_active: boolean
+          module_key: string
+          organization_id: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_key: string
+          organization_id: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_key?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modules_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nutritional_data: {
         Row: {
           carbohidrati: number | null
@@ -658,6 +693,36 @@ export type Database = {
         }
         Relationships: []
       }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          primary_color: string | null
+          secondary_color: string | null
+          vertical_type: Database["public"]["Enums"]["vertical_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          vertical_type?: Database["public"]["Enums"]["vertical_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          vertical_type?: Database["public"]["Enums"]["vertical_type"]
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -665,6 +730,7 @@ export type Database = {
           email: string | null
           id: string
           nume_prenume: string
+          organization_id: string | null
           status: string | null
           telefon: string | null
         }
@@ -674,6 +740,7 @@ export type Database = {
           email?: string | null
           id: string
           nume_prenume?: string
+          organization_id?: string | null
           status?: string | null
           telefon?: string | null
         }
@@ -683,10 +750,19 @@ export type Database = {
           email?: string | null
           id?: string
           nume_prenume?: string
+          organization_id?: string | null
           status?: string | null
           telefon?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       schedule: {
         Row: {
@@ -1224,6 +1300,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_org_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1241,6 +1318,15 @@ export type Database = {
         | "secretara"
         | "sponsor"
         | "inky"
+      vertical_type:
+        | "kids"
+        | "schools"
+        | "medicine"
+        | "living"
+        | "culture"
+        | "students"
+        | "construction"
+        | "workshops"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1376,6 +1462,16 @@ export const Constants = {
         "secretara",
         "sponsor",
         "inky",
+      ],
+      vertical_type: [
+        "kids",
+        "schools",
+        "medicine",
+        "living",
+        "culture",
+        "students",
+        "construction",
+        "workshops",
       ],
     },
   },
