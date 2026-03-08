@@ -153,8 +153,20 @@ function UploadForm({ groupId, onUploaded }: { groupId: string; onUploaded: (doc
   const [cat, setCat] = useState('activitati');
   const [uploading, setUploading] = useState(false);
 
+  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const MAX_SIZE = 20 * 1024 * 1024; // 20MB
+
   const handleUpload = async () => {
     if (!file) return;
+    // Security: validate file type and size
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error('Tip de fișier neacceptat. Acceptăm: PDF, JPG, PNG, GIF, WebP');
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      toast.error('Fișierul depășește limita de 20MB');
+      return;
+    }
     setUploading(true);
     try {
       // Upload to Supabase Storage
