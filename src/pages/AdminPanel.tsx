@@ -32,7 +32,7 @@ export default function AdminPanel() {
 
   useEffect(() => { getSchools().then(setSchools); }, []);
 
-  const currentSchool = schools.find(s => s.id_scoala.toString() === selectedSchoolId);
+  const currentSchool = schools.find(s => s.id.toString() === selectedSchoolId);
 
   return (
     <div className="space-y-5 pb-20 overflow-hidden">
