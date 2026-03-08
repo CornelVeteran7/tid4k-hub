@@ -56,8 +56,8 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
     toast.success('Poveste adăugată!');
   };
 
-  const toggleFavorite = (id: number) => {
-    setStories((prev) => prev.map((s) => s.id_poveste === id ? { ...s, favorit: !s.favorit } : s));
+  const toggleFavorite = (id: string) => {
+    setStories((prev) => prev.map((s) => s.id === id ? { ...s, favorit: !s.favorit } : s));
   };
 
   // Story Reader View
