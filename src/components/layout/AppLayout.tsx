@@ -83,6 +83,9 @@ const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; 
 { path: '/ssm', label: 'SSM', icon: ShieldCheck, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },
 { path: '/revista', label: 'Revista Școlii', icon: Newspaper, roles: ['profesor', 'parinte', 'director', 'administrator'], verticals: ['schools'] },
 { path: '/supratitrare', label: 'Supratitrare', icon: Theater, roles: ['profesor', 'director', 'administrator'], verticals: ['culture'] },
+{ path: '/video', label: 'Generare Video', icon: Video, roles: ['profesor', 'director', 'administrator'], verticals: ['kids', 'schools', 'medicine', 'culture'] },
+{ path: '/social-whatsapp', label: 'WhatsApp', icon: MessageCircle, roles: ['director', 'administrator'], verticals: ['kids', 'schools'] },
+{ path: '/social-facebook', label: 'Facebook', icon: Facebook, roles: ['director', 'administrator'], verticals: ['kids', 'schools'] },
 ];
 
 
