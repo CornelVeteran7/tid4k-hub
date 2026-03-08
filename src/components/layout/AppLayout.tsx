@@ -123,7 +123,7 @@ function getTimeAgo(dateStr: string): string {
 }
 
 export function AppLayout({ children }: {children: React.ReactNode;}) {
-  const { user, logout } = useAuth();
+  const { user, logout, isDemo } = useAuth();
   const { currentGroup, availableGroups, switchGroup } = useGroup();
   const { unreadMessages, newAnnouncements, notifications, markAsRead, markAllAsRead } = useNotifications();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
