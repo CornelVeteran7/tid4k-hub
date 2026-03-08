@@ -478,7 +478,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
           <div data-tutorial="group-selector" className="flex-1 flex justify-center min-w-0 px-2 lg:hidden">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
                 <SelectTrigger className="w-full max-w-[180px]">
-                  <SelectValue placeholder="Selectează grupa" />
+                  <SelectValue placeholder={`Selectează ${verticalDef.entityLabel.toLowerCase()}`} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableGroups.map((g) =>
