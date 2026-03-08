@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel } from '@/utils/roles';
 import { Badge } from '@/components/ui/badge';
+import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 import { Users, Camera, FileText, Clock, CalendarDays, Utensils, BookOpen, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useModuleConfig, type ModuleConfig } from '@/config/moduleConfig';
