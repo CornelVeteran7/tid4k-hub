@@ -23,6 +23,8 @@ export default function AdminPanel() {
   const [schools, setSchools] = useState<SchoolType[]>([]);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>('all');
 
+  useEffect(() => { getSchools().then(setSchools); }, []);
+
   // Access control: only admin/director/inky
   if (!user || !checkIsAdmin(user.status, user.nume_prenume)) {
     return <Navigate to="/" replace />;
@@ -30,23 +32,6 @@ export default function AdminPanel() {
 
   const verticalType = (user.vertical_type || 'kids') as VerticalType;
   const verticalDef = VERTICAL_DEFINITIONS[verticalType];
-
-  // Filter tabs based on vertical
-  const TABS = [
-    { value: 'scoli', label: verticalDef.entityLabelPlural, icon: School, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
-    { value: 'utilizatori', label: 'Utilizatori', icon: Users, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
-    { value: 'orar', label: 'Orar', icon: Calendar, verticals: ['kids', 'schools', 'medicine', 'students', 'culture'] },
-    { value: 'meniu', label: 'Meniu', icon: UtensilsCrossed, verticals: ['kids'] },
-    { value: 'ateliere', label: 'Ateliere', icon: Paintbrush, verticals: ['kids'] },
-    { value: 'setari', label: 'Setări', icon: Settings, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
-    { value: 'ghid', label: 'Ghid', icon: HelpCircle, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
-    { value: 'docs', label: 'Docs', icon: BookOpen, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
-    { value: 'branding', label: 'Branding', icon: Palette, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
-  ];
-
-  const visibleTabs = TABS.filter(t => t.verticals.includes(verticalType));
-
-  useEffect(() => { getSchools().then(setSchools); }, []);
 
   return (
     <div className="space-y-5 pb-20 overflow-hidden">
