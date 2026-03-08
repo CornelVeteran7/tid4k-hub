@@ -545,7 +545,7 @@ export default function Dashboard() {
                 {currentGroup?.nume || 'Dashboard'}
               </h1>
               <p className="text-muted-foreground text-sm mt-0.5">
-                {currentGroup ? `${currentGroup.tip === 'gradinita' ? 'Grădiniță' : 'Școală'}` : 'Selectează o grupă'}
+                {currentGroup ? `${verticalDef.entityLabel}` : `Selectează ${verticalDef.entityLabel.toLowerCase()}`}
               </p>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {roles.map(r => (

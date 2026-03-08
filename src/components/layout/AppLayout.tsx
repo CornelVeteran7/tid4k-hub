@@ -77,7 +77,8 @@ function SidebarDecoration() {
 // Secondary nav — items NOT on the dashboard
 const SECONDARY_NAV = [
 { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'orar' },
-{ path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'anunturi' }];
+{ path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'anunturi' },
+];
 
 
 // Admin nav — role-gated
@@ -184,7 +185,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
         <div data-tutorial="group-selector" className="px-3 py-3 border-b border-sidebar-border">
             <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
               <SelectTrigger className="w-full bg-sidebar-accent border-sidebar-border text-sidebar-foreground">
-                <SelectValue placeholder="Selectează grupa" />
+                <SelectValue placeholder={`Selectează ${verticalDef.entityLabel.toLowerCase()}`} />
               </SelectTrigger>
               <SelectContent>
                 {availableGroups.map((g) =>
@@ -477,7 +478,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
           <div data-tutorial="group-selector" className="flex-1 flex justify-center min-w-0 px-2 lg:hidden">
               <Select value={currentGroup?.id || ''} onValueChange={switchGroup}>
                 <SelectTrigger className="w-full max-w-[180px]">
-                  <SelectValue placeholder="Selectează grupa" />
+                  <SelectValue placeholder={`Selectează ${verticalDef.entityLabel.toLowerCase()}`} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableGroups.map((g) =>

@@ -29,7 +29,7 @@ export function getRoles(status: string): string[] {
 }
 
 /**
- * Get display label for a role.
+ * Get display label for a role (default, non-vertical-aware).
  */
 export function getRoleLabel(rol: string): string {
   const labels: Record<string, string> = {
@@ -42,4 +42,14 @@ export function getRoleLabel(rol: string): string {
     inky: 'Superuser',
   };
   return labels[rol.toLowerCase()] || rol;
+}
+
+/** Check if user has admin-level access */
+export function isAdmin(status: string, numePrenume: string): boolean {
+  return areRol(status, 'administrator') || areRol(status, 'director') || isInky(status, numePrenume);
+}
+
+/** Check if user has staff-level access (can manage content but not settings) */
+export function isStaff(status: string, numePrenume: string): boolean {
+  return areRol(status, 'profesor') || isAdmin(status, numePrenume);
 }
