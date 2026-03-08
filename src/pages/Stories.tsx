@@ -56,8 +56,8 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
     toast.success('Poveste adăugată!');
   };
 
-  const toggleFavorite = (id: number) => {
-    setStories((prev) => prev.map((s) => s.id_poveste === id ? { ...s, favorit: !s.favorit } : s));
+  const toggleFavorite = (id: string) => {
+    setStories((prev) => prev.map((s) => s.id === id ? { ...s, favorit: !s.favorit } : s));
   };
 
   // Story Reader View
@@ -218,7 +218,7 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((story) => (
           <Card
-            key={story.id_poveste}
+            key={story.id}
             className="glass-card cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5"
             onClick={() => setSelectedStory(story)}
           >
@@ -229,7 +229,7 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
                   <Badge className={`text-xs ${AGE_COLORS[story.varsta]}`}>{story.varsta} ani</Badge>
                 </div>
                 <button
-                  onClick={(e) => { e.stopPropagation(); toggleFavorite(story.id_poveste); }}
+                  onClick={(e) => { e.stopPropagation(); toggleFavorite(story.id); }}
                   className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
                 >
                   <Heart className={`h-4 w-4 ${story.favorit ? 'fill-destructive text-destructive' : ''}`} />

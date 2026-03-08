@@ -23,7 +23,7 @@ export default function Infodisplay() {
   const allPanels = config ? [
     ...config.panels,
     ...(sponsorPromo ? [{
-      id: 9000 + sponsorPromo.id_promo,
+      id: `sponsor-${sponsorPromo.id}`,
       tip: 'sponsor' as const,
       continut: sponsorPromo.titlu,
       durata: 10,

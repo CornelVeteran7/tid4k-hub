@@ -55,7 +55,7 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
     });
   }, [currentGroup, monday]);
 
-  const toggleDay = (childId: number, date: string) => {
+  const toggleDay = (childId: string, date: string) => {
     if (!data) return;
     setData({
       ...data,

@@ -39,9 +39,9 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
     });
   }, [currentGroup, category]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     await deleteDocument(id);
-    setDocuments((prev) => prev.filter((d) => d.id_info !== id));
+    setDocuments((prev) => prev.filter((d) => d.id !== id));
     toast.success('Document șters.');
   };
 
@@ -126,7 +126,7 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
       ) : (
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
           {documents.map((doc) => (
-            <Card key={doc.id_info} className="glass-card overflow-hidden hover:shadow-md transition-shadow">
+            <Card key={doc.id} className="glass-card overflow-hidden hover:shadow-md transition-shadow">
               <CardContent className={viewMode === 'grid' ? 'p-4' : 'p-4 flex items-center gap-4'}>
                 {/* Thumbnail */}
                 <div className={`${viewMode === 'grid' ? 'mb-3 h-28' : 'h-12 w-12 shrink-0'} rounded-lg bg-muted/50 flex items-center justify-center`}>
@@ -148,7 +148,7 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
                 </div>
                 <div className="flex gap-1 mt-2">
                   <Button variant="ghost" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id_info)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

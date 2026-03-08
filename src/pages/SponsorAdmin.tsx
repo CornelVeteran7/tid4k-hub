@@ -54,7 +54,7 @@ export default function SponsorAdmin() {
   // Fetch stats when sponsor selected
   useEffect(() => {
     if (selectedSponsor) {
-      getSponsorStats(selectedSponsor.id_sponsor).then(setStats);
+      getSponsorStats(selectedSponsor.id).then(setStats);
     } else {
       setStats(null);
     }
@@ -89,10 +89,10 @@ export default function SponsorAdmin() {
           />
         ) : (
           <SponsorDetail
-            key={`detail-${selectedSponsor.id_sponsor}`}
+            key={`detail-${selectedSponsor.id}`}
             sponsor={selectedSponsor}
-            promos={promos.filter(p => p.id_sponsor === selectedSponsor.id_sponsor)}
-            campaigns={campaigns.filter(c => c.id_sponsor === selectedSponsor.id_sponsor)}
+            promos={promos.filter(p => p.sponsor_id === selectedSponsor.id)}
+            campaigns={campaigns.filter(c => c.sponsor_id === selectedSponsor.id)}
             stats={stats}
             plan={plans.find(p => p.nume_plan === selectedSponsor.plan) || null}
             schools={schools}
@@ -185,13 +185,13 @@ function SponsorList({
       {/* Sponsor cards */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {sponsors.map(sponsor => {
-          const spCampaigns = campaigns.filter(c => c.id_sponsor === sponsor.id_sponsor);
-          const spPromos = promos.filter(p => p.id_sponsor === sponsor.id_sponsor);
+          const spCampaigns = campaigns.filter(c => c.sponsor_id === sponsor.id);
+          const spPromos = promos.filter(p => p.sponsor_id === sponsor.id);
           const spAfisari = spCampaigns.reduce((s, c) => s + c.statistici.afisari, 0);
 
           return (
             <Card
-              key={sponsor.id_sponsor}
+              key={sponsor.id}
               className="cursor-pointer transition-all hover:shadow-md hover:border-primary/30 group"
               onClick={() => onSelect(sponsor)}
             >
@@ -228,7 +228,7 @@ function SponsorList({
                     const meta = PROMO_TYPE_LABELS[p.tip];
                     return (
                       <span
-                        key={p.id_promo}
+                        key={p.id}
                         className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full text-white font-medium"
                         style={{ backgroundColor: meta.color }}
                         title={meta.label}
@@ -403,7 +403,7 @@ function SponsorDetail({
               const statusCfg = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.draft;
               const meta = PROMO_TYPE_LABELS[campaign.tip];
               return (
-                <Card key={campaign.id_campanie} className="overflow-hidden">
+                <Card key={campaign.id} className="overflow-hidden">
                   <div className="flex items-stretch">
                     <div className="w-1.5 shrink-0" style={{ backgroundColor: meta.color }} />
                     <div className="flex-1 p-4">
@@ -423,7 +423,7 @@ function SponsorDetail({
                             {campaign.scoli_target.includes('all') ? (
                               <Badge variant="outline" className="text-[10px]">Toate școlile</Badge>
                             ) : campaign.scoli_target.map(sid => {
-                              const school = schools.find(s => s.id_scoala.toString() === sid);
+                              const school = schools.find(s => s.id.toString() === sid);
                               return <Badge key={sid} variant="outline" className="text-[10px]">{school?.nume || `Școala ${sid}`}</Badge>;
                             })}
                           </div>
@@ -475,7 +475,7 @@ function SponsorDetail({
             {promos.map(promo => {
               const meta = PROMO_TYPE_LABELS[promo.tip];
               return (
-                <Card key={promo.id_promo} className="overflow-hidden">
+                <Card key={promo.id} className="overflow-hidden">
                   <div className="flex items-stretch">
                     <div className="w-1.5 shrink-0" style={{ backgroundColor: meta.color }} />
                     <div className="flex-1 p-3 flex items-center justify-between gap-3">

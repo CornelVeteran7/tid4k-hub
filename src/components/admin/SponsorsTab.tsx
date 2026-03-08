@@ -49,8 +49,8 @@ export default function SponsorsTab() {
     );
   }, []);
 
-  const sponsorPromos = selectedSponsor ? promos.filter(p => p.id_sponsor === selectedSponsor.id_sponsor) : promos;
-  const filteredCampaigns = selectedSponsor ? campaigns.filter(c => c.id_sponsor === selectedSponsor.id_sponsor) : campaigns;
+  const sponsorPromos = selectedSponsor ? promos.filter(p => p.sponsor_id === selectedSponsor.id) : promos;
+  const filteredCampaigns = selectedSponsor ? campaigns.filter(c => c.sponsor_id === selectedSponsor.id) : campaigns;
 
   const openEditorForSponsor = (sponsor: Sponsor, campaign?: Partial<SponsorCampaign>) => {
     setEditingSponsor(sponsor);
@@ -82,7 +82,7 @@ export default function SponsorsTab() {
         <TabsContent value="sponsors" className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {sponsors.map(sponsor => (
-              <Card key={sponsor.id_sponsor} className={`cursor-pointer transition-all hover:shadow-md ${selectedSponsor?.id_sponsor === sponsor.id_sponsor ? 'ring-2 ring-primary' : ''}`} onClick={() => setSelectedSponsor(selectedSponsor?.id_sponsor === sponsor.id_sponsor ? null : sponsor)}>
+              <Card key={sponsor.id} className={`cursor-pointer transition-all hover:shadow-md ${selectedSponsor?.id === sponsor.id ? 'ring-2 ring-primary' : ''}`} onClick={() => setSelectedSponsor(selectedSponsor?.id === sponsor.id ? null : sponsor)}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -120,7 +120,7 @@ export default function SponsorsTab() {
           {sponsorPromos.map(promo => {
             const meta = PROMO_TYPE_LABELS[promo.tip];
             return (
-              <Card key={promo.id_promo} className="overflow-hidden">
+              <Card key={promo.id} className="overflow-hidden">
                 <div className="flex items-stretch">
                   <div className="w-1.5 shrink-0" style={{ backgroundColor: meta.color }} />
                   <div className="flex-1 p-4">
@@ -152,9 +152,9 @@ export default function SponsorsTab() {
           {filteredCampaigns.map(campaign => {
             const statusCfg = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.draft;
             const meta = PROMO_TYPE_LABELS[campaign.tip];
-            const sp = sponsors.find(s => s.id_sponsor === campaign.id_sponsor);
+            const sp = sponsors.find(s => s.id === campaign.sponsor_id);
             return (
-              <Card key={campaign.id_campanie} className="overflow-hidden">
+              <Card key={campaign.id} className="overflow-hidden">
                 <div className="flex items-stretch">
                   <div className="w-1.5 shrink-0" style={{ backgroundColor: campaign.sponsor_culoare || meta.color }} />
                   <div className="flex-1 p-4">
@@ -170,7 +170,7 @@ export default function SponsorsTab() {
                           {campaign.scoli_target.includes('all') ? (
                             <Badge variant="outline" className="text-[10px]">Toate școlile</Badge>
                           ) : campaign.scoli_target.map(sid => {
-                            const school = schools.find(s => s.id_scoala.toString() === sid);
+                            const school = schools.find(s => s.id.toString() === sid);
                             return <Badge key={sid} variant="outline" className="text-[10px]">{school?.nume || sid}</Badge>;
                           })}
                         </div>
@@ -202,11 +202,11 @@ export default function SponsorsTab() {
             <CardContent>
               <div className="space-y-4">
                 {sponsors.map(sponsor => {
-                  const spCampaigns = campaigns.filter(c => c.id_sponsor === sponsor.id_sponsor);
+                  const spCampaigns = campaigns.filter(c => c.sponsor_id === sponsor.id);
                   const spAfisari = spCampaigns.reduce((s, c) => s + c.statistici.afisari, 0);
                   const spClickuri = spCampaigns.reduce((s, c) => s + c.statistici.clickuri, 0);
                   return (
-                    <div key={sponsor.id_sponsor} className="flex items-center gap-4">
+                    <div key={sponsor.id} className="flex items-center gap-4">
                       <div className="h-10 w-10 rounded-lg bg-white shadow-sm flex items-center justify-center p-1.5 border shrink-0" style={{ borderColor: `${sponsor.culoare_brand}30` }}>
                         <img src={sponsor.logo_url} alt={sponsor.nume} className="h-full w-full object-contain" />
                       </div>
@@ -232,7 +232,7 @@ export default function SponsorsTab() {
         <TabsContent value="plans" className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {plans.map(plan => (
-              <Card key={plan.id_plan} className={plan.nume_plan === 'Premium' ? 'ring-2 ring-primary' : ''}>
+              <Card key={plan.id} className={plan.nume_plan === 'Premium' ? 'ring-2 ring-primary' : ''}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{plan.nume_plan}</CardTitle>

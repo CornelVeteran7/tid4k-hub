@@ -20,7 +20,7 @@ export default function ScheduleTab({ schoolId, schools }: Props) {
   const [selectedGrupa, setSelectedGrupa] = useState('');
   const [cells, setCells] = useState<ScheduleCell[]>([]);
 
-  const currentSchool = schools.find(s => s.id_scoala.toString() === schoolId);
+  const currentSchool = schools.find(s => s.id.toString() === schoolId);
   const grupe = currentSchool?.grupe || [];
 
   // Reset group when school changes

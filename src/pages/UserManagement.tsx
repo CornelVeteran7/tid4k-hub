@@ -38,15 +38,15 @@ export default function UserManagement() {
       toast.success('Utilizator creat!');
     } else {
       await updateUser(editingUser);
-      setUsers((prev) => prev.map((u) => u.id_utilizator === editingUser.id_utilizator ? { ...u, ...editingUser } : u));
+      setUsers((prev) => prev.map((u) => u.id === editingUser.id ? { ...u, ...editingUser } : u));
       toast.success('Utilizator actualizat!');
     }
     setEditOpen(false);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     await deleteUser(id);
-    setUsers((prev) => prev.filter((u) => u.id_utilizator !== id));
+    setUsers((prev) => prev.filter((u) => u.id !== id));
     toast.success('Utilizator șters!');
   };
 
@@ -108,7 +108,7 @@ export default function UserManagement() {
               </TableHeader>
               <TableBody>
                 {filtered.map((user) => (
-                  <TableRow key={user.id_utilizator}>
+                  <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.nume_prenume}</TableCell>
                     <TableCell className="font-mono text-sm">{user.telefon}</TableCell>
                     <TableCell className="text-sm">{user.email}</TableCell>
@@ -136,7 +136,7 @@ export default function UserManagement() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Anulează</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(user.id_utilizator)}>Șterge</AlertDialogAction>
+                              <AlertDialogAction onClick={() => handleDelete(user.id)}>Șterge</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>

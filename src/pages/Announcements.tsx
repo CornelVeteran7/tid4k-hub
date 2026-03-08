@@ -49,14 +49,14 @@ export default function Announcements() {
 
   const handleTickerToggle = async (ann: Announcement) => {
     if (ann.ascuns_banda) {
-      await restoreToTicker(ann.id_info);
+      await restoreToTicker(ann.id);
       toast.success('Repus pe bandă');
     } else {
-      await hideFromTicker(ann.id_info);
+      await hideFromTicker(ann.id);
       toast.success('Scos de pe bandă');
     }
     setAnnouncements((prev) =>
-      prev.map((a) => a.id_info === ann.id_info ? { ...a, ascuns_banda: !a.ascuns_banda } : a)
+      prev.map((a) => a.id === ann.id ? { ...a, ascuns_banda: !a.ascuns_banda } : a)
     );
   };
 
@@ -105,7 +105,7 @@ export default function Announcements() {
           <CardContent>
             <div className="space-y-2">
               {announcements.slice(0, 10).map((ann) => (
-                <div key={ann.id_info} className="flex items-center gap-3 text-sm p-2 rounded border">
+                <div key={ann.id} className="flex items-center gap-3 text-sm p-2 rounded border">
                   <Badge
                     variant={ann.ascuns_banda ? 'destructive' : 'default'}
                     className={!ann.ascuns_banda ? 'bg-success text-success-foreground' : ''}
@@ -126,7 +126,7 @@ export default function Announcements() {
       {/* Announcements List */}
       <div className="space-y-4">
         {announcements.map((ann) => (
-          <Card key={ann.id_info} className={`glass-card ${ann.prioritate === 'urgent' ? 'border-destructive/50' : ''}`}>
+          <Card key={ann.id} className={`glass-card ${ann.prioritate === 'urgent' ? 'border-destructive/50' : ''}`}>
             <CardContent className="p-4 sm:p-5">
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">

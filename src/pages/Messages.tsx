@@ -54,7 +54,7 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user) getConversations(user.id_utilizator).then(c => {
+    if (user) getConversations(user.id).then(c => {
       setConversations(c);
       setFilteredConvos(c);
     });
@@ -74,7 +74,7 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
 
   useEffect(() => {
     if (selectedConvo && user) {
-      getMessages(selectedConvo.grupa, user.id_utilizator, selectedConvo.id).then(setMessages);
+      getMessages(selectedConvo.grupa, user.id, selectedConvo.id).then(setMessages);
     }
   }, [selectedConvo, user]);
 
@@ -262,13 +262,13 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
 
                       {/* Messages in this date group */}
                       {group.messages.map((msg, idx) => {
-                        const isMine = msg.expeditor === user?.id_utilizator;
+                        const isMine = msg.expeditor === user?.id;
                         const prevMsg = idx > 0 ? group.messages[idx - 1] : null;
                         const isConsecutive = prevMsg && prevMsg.expeditor === msg.expeditor;
 
                         return (
                           <motion.div
-                            key={msg.id_mesaj}
+                            key={msg.id}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.15 }}

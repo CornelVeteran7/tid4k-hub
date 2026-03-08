@@ -36,9 +36,8 @@ export default function UsersTab({ schoolId, schools }: Props) {
     const matchSearch = u.nume_prenume.toLowerCase().includes(search.toLowerCase()) ||
       u.telefon.includes(search) || u.email.toLowerCase().includes(search.toLowerCase());
     const matchRole = roleFilter === 'all' || u.status.includes(roleFilter);
-    // Filter by school if a specific school is selected
     const matchSchool = schoolId === 'all' || u.grupe.some(g => {
-      const school = schools.find(s => s.id_scoala.toString() === schoolId);
+      const school = schools.find(s => s.id.toString() === schoolId);
       return school?.grupe.includes(g);
     });
     return matchSearch && matchRole && matchSchool;
@@ -51,22 +50,21 @@ export default function UsersTab({ schoolId, schools }: Props) {
       toast.success('Utilizator creat!');
     } else {
       await updateUser(editingUser);
-      setUsers(prev => prev.map(u => u.id_utilizator === editingUser.id_utilizator ? { ...u, ...editingUser } : u));
+      setUsers(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...editingUser } : u));
       toast.success('Utilizator actualizat!');
     }
     setEditOpen(false);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     await deleteUser(id);
-    setUsers(prev => prev.filter(u => u.id_utilizator !== id));
+    setUsers(prev => prev.filter(u => u.id !== id));
     toast.success('Utilizator șters!');
   };
 
   const openNew = () => { setEditingUser({ nume_prenume: '', telefon: '', email: '', status: 'parinte', grupe: [] }); setIsNew(true); setEditOpen(true); };
   const openEdit = (user: User) => { setEditingUser({ ...user }); setIsNew(false); setEditOpen(true); };
 
-  // Find school name for a user based on their groups
   const getUserSchool = (user: User): string => {
     for (const school of schools) {
       if (user.grupe.some(g => school.grupe.includes(g))) return school.nume;
@@ -99,7 +97,7 @@ export default function UsersTab({ schoolId, schools }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">{filtered.length} utilizatori{schoolId !== 'all' ? ` în ${schools.find(s => s.id_scoala.toString() === schoolId)?.nume || ''}` : ' înregistrați'}</p>
+        <p className="text-sm text-muted-foreground">{filtered.length} utilizatori{schoolId !== 'all' ? ` în ${schools.find(s => s.id.toString() === schoolId)?.nume || ''}` : ' înregistrați'}</p>
         <Button size="sm" className="gap-1.5" onClick={openNew}><Plus className="h-4 w-4" />Adaugă Utilizator</Button>
       </div>
 
@@ -120,11 +118,10 @@ export default function UsersTab({ schoolId, schools }: Props) {
         </Select>
       </div>
 
-      {/* Mobile: cards; Desktop: table */}
       {isMobile ? (
         <div className="space-y-3">
           {filtered.map(user => (
-            <Card key={user.id_utilizator}>
+            <Card key={user.id}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="min-w-0">
@@ -142,7 +139,7 @@ export default function UsersTab({ schoolId, schools }: Props) {
                       <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button></AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader><AlertDialogTitle>Șterge utilizator?</AlertDialogTitle><AlertDialogDescription>Utilizatorul {user.nume_prenume} va fi șters permanent.</AlertDialogDescription></AlertDialogHeader>
-                        <AlertDialogFooter><AlertDialogCancel>Anulează</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(user.id_utilizator)}>Șterge</AlertDialogAction></AlertDialogFooter>
+                        <AlertDialogFooter><AlertDialogCancel>Anulează</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(user.id)}>Șterge</AlertDialogAction></AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
                   </div>
@@ -169,7 +166,7 @@ export default function UsersTab({ schoolId, schools }: Props) {
                 </TableHeader>
                 <TableBody>
                   {filtered.map(user => (
-                    <TableRow key={user.id_utilizator}>
+                    <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.nume_prenume}</TableCell>
                       <TableCell className="font-mono text-sm">{user.telefon}</TableCell>
                       <TableCell className="text-sm">{user.email}</TableCell>
@@ -187,7 +184,7 @@ export default function UsersTab({ schoolId, schools }: Props) {
                             <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button></AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader><AlertDialogTitle>Șterge utilizator?</AlertDialogTitle><AlertDialogDescription>Utilizatorul {user.nume_prenume} va fi șters permanent.</AlertDialogDescription></AlertDialogHeader>
-                              <AlertDialogFooter><AlertDialogCancel>Anulează</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(user.id_utilizator)}>Șterge</AlertDialogAction></AlertDialogFooter>
+                              <AlertDialogFooter><AlertDialogCancel>Anulează</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(user.id)}>Șterge</AlertDialogAction></AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
                         </div>
@@ -201,7 +198,6 @@ export default function UsersTab({ schoolId, schools }: Props) {
         </Card>
       )}
 
-      {/* Edit/Create */}
       {isMobile ? (
         <Sheet open={editOpen} onOpenChange={setEditOpen}>
           <SheetContent side="bottom" className="max-h-[70vh] overflow-y-auto">

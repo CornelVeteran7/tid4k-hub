@@ -65,7 +65,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     try {
       const [conversations, announcements, workshopOfMonth] = await Promise.all([
-        getConversations(user.id_utilizator),
+        getConversations(user.id),
         getAnnouncements(),
         getWorkshopOfMonth(),
       ]);
@@ -87,12 +87,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       }));
 
       const annNotifs: NotificationItem[] = announcements.map(a => ({
-        id: `ann-${a.id_info}`,
+        id: `ann-${a.id}`,
         type: 'announcement' as const,
         title: a.titlu,
         description: a.prioritate === 'urgent' ? '⚠️ Urgent' : a.autor,
         timestamp: a.data_upload,
-        read: readIds.has(`ann-${a.id_info}`) || a.citit,
+        read: readIds.has(`ann-${a.id}`) || a.citit,
         navigateTo: '/anunturi',
         icon: a.prioritate === 'urgent' ? 'alert' as const : 'megaphone' as const,
       }));

@@ -27,7 +27,7 @@ const sections = [
 
 export default function SettingsTab({ schoolId, schools }: Props) {
   const [openSections, setOpenSections] = useState<string[]>(['info']);
-  const currentSchool = schools.find(s => s.id_scoala.toString() === schoolId);
+  const currentSchool = schools.find(s => s.id.toString() === schoolId);
 
   const toggle = (id: string) => {
     setOpenSections(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);

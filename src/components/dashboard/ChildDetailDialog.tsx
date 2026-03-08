@@ -18,8 +18,7 @@ interface ChildDetailDialogProps {
   avatarColor: string;
 }
 
-// Mock food cost per day
-const HRANA_COST_PER_DAY = 25; // RON
+const HRANA_COST_PER_DAY = 25;
 
 function getInitials(name: string) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -39,28 +38,24 @@ export default function ChildDetailDialog({ child, open, onOpenChange, avatarCol
   useEffect(() => {
     if (child && currentGroup && open) {
       getAttendanceStats(currentGroup.id, currentMonth, currentYear).then(setStats);
-      // Randomize today's presence for demo
       setPresentToday(Math.random() > 0.3);
     }
   }, [child, currentGroup, open, currentMonth, currentYear]);
 
   if (!child) return null;
 
-  const childStats = stats?.per_copil.find(c => c.id_copil === child.id_copil);
+  const childStats = stats?.per_copil.find(c => c.id_copil === child.id);
   const zilePrezent = childStats?.zile_prezent ?? 0;
   const hranaTotal = zilePrezent * HRANA_COST_PER_DAY;
 
   const handleTogglePresence = () => {
     setPresentToday(prev => !prev);
-    // In real app: call saveAttendance API
   };
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      // In real app: call messages API
       setMessage('');
       onOpenChange(false);
-      // Navigate to messages with pre-selected parent
       navigate('/mesaje');
     }
   };
@@ -68,12 +63,11 @@ export default function ChildDetailDialog({ child, open, onOpenChange, avatarCol
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
-        {/* Header with avatar */}
         <div className="flex flex-col items-center pt-6 pb-4 px-5" style={{ background: `linear-gradient(135deg, ${avatarColor}, ${avatarColor}dd)` }}>
           <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center text-2xl font-bold text-foreground/80 shadow-lg">
-            {getInitials(child.nume_prenume_copil)}
+            {getInitials(child.nume_prenume)}
           </div>
-          <h3 className="mt-3 text-lg font-display font-bold text-foreground">{child.nume_prenume_copil}</h3>
+          <h3 className="mt-3 text-lg font-display font-bold text-foreground">{child.nume_prenume}</h3>
           {child.data_nasterii && (
             <p className="text-xs text-foreground/60 mt-0.5">
               Născut: {format(new Date(child.data_nasterii), 'dd MMM yyyy')}
@@ -82,7 +76,6 @@ export default function ChildDetailDialog({ child, open, onOpenChange, avatarCol
         </div>
 
         <div className="px-5 pb-5 space-y-4">
-          {/* Today's attendance toggle */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/50">
             <div className="flex items-center gap-3">
               <CalendarCheck className="h-5 w-5 text-warning" />
@@ -99,7 +92,6 @@ export default function ChildDetailDialog({ child, open, onOpenChange, avatarCol
             </div>
           </div>
 
-          {/* Monthly stats */}
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 rounded-xl bg-muted/50 border border-border/50 text-center">
               <CalendarCheck className="h-5 w-5 mx-auto text-primary mb-1" />
@@ -115,7 +107,6 @@ export default function ChildDetailDialog({ child, open, onOpenChange, avatarCol
             </div>
           </div>
 
-          {/* Parent contact */}
           {child.parinte_nume && (
             <div className="p-3 rounded-xl bg-muted/50 border border-border/50">
               <p className="text-xs font-semibold text-muted-foreground mb-2">CONTACT PĂRINTE</p>
@@ -135,7 +126,6 @@ export default function ChildDetailDialog({ child, open, onOpenChange, avatarCol
             </div>
           )}
 
-          {/* Quick message */}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
               <MessageSquare className="h-3.5 w-3.5" /> TRIMITE MESAJ PĂRINTE

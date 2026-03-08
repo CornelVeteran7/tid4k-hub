@@ -45,11 +45,11 @@ export default function WorkshopsTab({ schoolId, schools }: WorkshopsTabProps) {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<WorkshopCreate>({ ...emptyForm });
   const [materialeText, setMaterialeText] = useState('');
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
-  const [publishTarget, setPublishTarget] = useState<{ id: number; target: string }>({ id: 0, target: 'all' });
+  const [publishTarget, setPublishTarget] = useState<{ id: string; target: string }>({ id: '', target: 'all' });
 
   const fetchData = async () => {
     setLoading(true);
@@ -102,7 +102,7 @@ export default function WorkshopsTab({ schoolId, schools }: WorkshopsTabProps) {
     } catch { toast.error('Eroare la salvare'); }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
       await deleteWorkshop(id);
       toast.success('Atelier șters');
@@ -122,7 +122,7 @@ export default function WorkshopsTab({ schoolId, schools }: WorkshopsTabProps) {
 
   const getSchoolNames = (targets: string[]) => {
     if (targets.includes('all')) return 'Toate unitățile';
-    return targets.map(id => schools.find(s => s.id_scoala.toString() === id)?.nume || id).join(', ');
+    return targets.map(id => schools.find(s => s.id.toString() === id)?.nume || id).join(', ');
   };
 
   return (
@@ -217,7 +217,6 @@ export default function WorkshopsTab({ schoolId, schools }: WorkshopsTabProps) {
         </div>
       )}
 
-      {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
@@ -267,7 +266,7 @@ export default function WorkshopsTab({ schoolId, schools }: WorkshopsTabProps) {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Toate unitățile</SelectItem>
-                  {schools.map(s => <SelectItem key={s.id_scoala} value={s.id_scoala.toString()}>{s.nume}</SelectItem>)}
+                  {schools.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.nume}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -279,7 +278,6 @@ export default function WorkshopsTab({ schoolId, schools }: WorkshopsTabProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Publish Confirmation Dialog */}
       <AlertDialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -294,7 +292,7 @@ export default function WorkshopsTab({ schoolId, schools }: WorkshopsTabProps) {
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toate unitățile ({schools.length})</SelectItem>
-                {schools.map(s => <SelectItem key={s.id_scoala} value={s.id_scoala.toString()}>{s.nume}</SelectItem>)}
+                {schools.map(s => <SelectItem key={s.id} value={s.id.toString()}>{s.nume}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

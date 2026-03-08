@@ -32,7 +32,7 @@ export default function AdminPanel() {
 
   useEffect(() => { getSchools().then(setSchools); }, []);
 
-  const currentSchool = schools.find(s => s.id_scoala.toString() === selectedSchoolId);
+  const currentSchool = schools.find(s => s.id.toString() === selectedSchoolId);
 
   return (
     <div className="space-y-5 pb-20 overflow-hidden">
@@ -56,7 +56,7 @@ export default function AdminPanel() {
           <SelectContent>
             <SelectItem value="all">Toate unitățile</SelectItem>
             {schools.map(s => (
-              <SelectItem key={s.id_scoala} value={s.id_scoala.toString()}>
+              <SelectItem key={s.id} value={s.id.toString()}>
                 {s.nume}
               </SelectItem>
             ))}

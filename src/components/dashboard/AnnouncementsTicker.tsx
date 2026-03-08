@@ -23,27 +23,14 @@ function WaveDecoration() {
         className="w-full h-full block"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Back wave — matches bar at lower opacity for depth */}
-        <path
-          d="M0,16 C120,6 240,2 360,8 C480,14 540,18 720,12 C900,6 1020,2 1140,6 C1260,10 1380,16 1440,12 L1440,22 L0,22 Z"
-          className="fill-accent opacity-50"
-        />
-        {/* Middle wave */}
-        <path
-          d="M0,18 C160,10 280,6 420,12 C560,18 640,20 800,14 C960,8 1080,6 1200,10 C1320,14 1400,18 1440,16 L1440,22 L0,22 Z"
-          className="fill-accent opacity-70"
-        />
-        {/* Front wave — same opacity as bar for seamless blend */}
-        <path
-          d="M0,20 C200,14 320,10 480,16 C640,20 720,22 880,18 C1040,14 1160,10 1280,14 C1360,16 1420,20 1440,18 L1440,22 L0,22 Z"
-          className="fill-accent opacity-90"
-        />
+        <path d="M0,16 C120,6 240,2 360,8 C480,14 540,18 720,12 C900,6 1020,2 1140,6 C1260,10 1380,16 1440,12 L1440,22 L0,22 Z" className="fill-accent opacity-50" />
+        <path d="M0,18 C160,10 280,6 420,12 C560,18 640,20 800,14 C960,8 1080,6 1200,10 C1320,14 1400,18 1440,16 L1440,22 L0,22 Z" className="fill-accent opacity-70" />
+        <path d="M0,20 C200,14 320,10 480,16 C640,20 720,22 880,18 C1040,14 1160,10 1280,14 C1360,16 1420,20 1440,18 L1440,22 L0,22 Z" className="fill-accent opacity-90" />
       </svg>
     </div>
   );
 }
 
-/* Vertical separator between ticker items */
 const Separator = () => (
   <span className="inline-block w-px h-3.5 bg-accent-foreground/30 mx-5 align-middle" />
 );
@@ -66,7 +53,7 @@ export default memo(function AnnouncementsTicker() {
         .sort((a, b) => (a.pozitie_banda ?? 99) - (b.pozitie_banda ?? 99));
 
       setAnnouncementItems(visible.map(a => ({
-        id: `ann-${a.id_info}`,
+        id: `ann-${a.id}`,
         text: (
           <span className="inline-flex items-center gap-2">
             {a.prioritate === 'urgent' && (
@@ -82,7 +69,6 @@ export default memo(function AnnouncementsTicker() {
     });
   }, [user]);
 
-  // Build sponsor ticker item from current rotation promo
   const sponsorItem: TickerItem | null = currentPromo ? (() => {
     const stil = currentPromo.stil_ticker;
     const badgeBg = stil?.badge_bg || currentPromo.sponsor_culoare || 'rgba(255,215,0,0.3)';
@@ -90,7 +76,7 @@ export default memo(function AnnouncementsTicker() {
     const glowEffect = stil?.glow_effect;
 
     return {
-      id: `sponsor-${currentPromo.id_promo}`,
+      id: `sponsor-${currentPromo.id}`,
       text: (
         <span className="inline-flex items-center gap-2">
           <span
@@ -110,7 +96,6 @@ export default memo(function AnnouncementsTicker() {
     };
   })() : null;
 
-  // Merge: insert single sponsor after 3rd announcement
   const merged: TickerItem[] = [];
   announcementItems.forEach((item, i) => {
     merged.push(item);
@@ -124,7 +109,6 @@ export default memo(function AnnouncementsTicker() {
 
   if (merged.length === 0) return null;
 
-  // Build ticker content with separators between items
   const tickerContent = merged.flatMap((item, i) => {
     const elements = [
       <span key={item.id} className="inline-flex items-center gap-2">
@@ -137,7 +121,6 @@ export default memo(function AnnouncementsTicker() {
     return elements;
   });
 
-  // Duplicate with a separator in between for seamless loop
   const fullContent = (
     <>
       {tickerContent}
@@ -154,19 +137,12 @@ export default memo(function AnnouncementsTicker() {
       className="fixed bottom-0 right-0 left-0 lg:left-64 z-50 cursor-pointer card-tappable safe-bottom"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      {/* Wave decoration above the bar */}
       <WaveDecoration />
-
-      {/* Main ticker bar */}
       <div className="relative h-10 flex items-center">
         <div className="absolute inset-0 bg-accent/90 backdrop-blur-md" />
-
-        {/* Megaphone icon */}
         <div className="relative z-10 flex-shrink-0 flex items-center justify-center w-10 h-10 border-r border-accent-foreground/15">
           <Megaphone className="h-4 w-4 text-accent-foreground" />
         </div>
-
-        {/* Scrolling content */}
         <div className="relative z-10 flex-1 overflow-hidden">
           <div className="animate-marquee whitespace-nowrap text-accent-foreground text-[13px] font-mono tracking-wider font-light">
             {fullContent}

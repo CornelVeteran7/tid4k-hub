@@ -211,12 +211,12 @@ export default function MyProfile() {
             <CardContent>
               <div className="space-y-2">
                 {children.map(child => (
-                  <div key={child.id_copil} className="flex items-center gap-3 p-3 rounded-xl border border-border">
+                  <div key={child.id} className="flex items-center gap-3 p-3 rounded-xl border border-border">
                     <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                      {child.nume_prenume_copil.split(' ').map(n => n[0]).join('')}
+                      {child.nume_prenume.split(' ').map(n => n[0]).join('')}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{child.nume_prenume_copil}</p>
+                      <p className="text-sm font-medium truncate">{child.nume_prenume}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {child.data_nasterii && (
                           <span className="flex items-center gap-1">
@@ -309,7 +309,7 @@ export default function MyProfile() {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>ID utilizator: {user.id_utilizator}</span>
+              <span>ID utilizator: {user.id}</span>
               <span>{availableGroups.length} {availableGroups.length === 1 ? 'grupă' : 'grupe'} disponibile</span>
             </div>
           </CardContent>

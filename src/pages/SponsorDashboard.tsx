@@ -34,7 +34,7 @@ const TIP_ICONS: Record<string, React.ElementType> = {
 export default function SponsorDashboard() {
   const { user } = useAuth();
   // Mock: use sponsor ID 1 (Kaufland) for demo
-  const sponsorId = 1;
+  const sponsorId = 'demo-sponsor-1';
 
   const [sponsor, setSponsor] = useState<Sponsor | null>(null);
   const [campaigns, setCampaigns] = useState<SponsorCampaign[]>([]);
@@ -135,7 +135,7 @@ export default function SponsorDashboard() {
             const statusCfg = STATUS_CONFIG[campaign.status];
             const TipIcon = TIP_ICONS[campaign.tip] || Layout;
             return (
-              <Card key={campaign.id_campanie} className="overflow-hidden">
+              <Card key={campaign.id} className="overflow-hidden">
                 <div className="flex items-stretch">
                   <div className="w-1.5 shrink-0" style={{ backgroundColor: sponsor.culoare_brand }} />
                   <div className="flex-1 p-4">
@@ -188,7 +188,7 @@ export default function SponsorDashboard() {
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-3 mt-3">
             {archivedCampaigns.map(campaign => (
-              <Card key={campaign.id_campanie} className="opacity-60">
+              <Card key={campaign.id} className="opacity-60">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>

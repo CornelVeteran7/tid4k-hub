@@ -26,7 +26,7 @@ export default function SponsorCard() {
 
   const handleClick = () => {
     if (promo.link_url) {
-      logClick({ id_promo: promo.id_promo, tip: 'card_dashboard', school_id: schoolId });
+      logClick({ id_promo: promo.id, tip: 'card_dashboard', school_id: schoolId?.toString() });
       openLink(promo.link_url);
     }
   };
@@ -34,7 +34,7 @@ export default function SponsorCard() {
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={promo.id_promo}
+        key={promo.id}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
