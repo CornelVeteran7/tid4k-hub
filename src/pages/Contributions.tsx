@@ -57,13 +57,22 @@ export default function Contributions() {
 
   // Load data
   useEffect(() => {
-    if (!currentGroup) return;
     setLoading(true);
 
-    Promise.all([
-      getContributions(currentGroup.id, month, year, dailyRate),
-      getMonthlyContributions(month, year),
-    ]).then(([result, payments]) => {
+    const fetchData = async () => {
+      let result: { children: { id: string; nume: string; zile_prezent: number; total: number }[]; grandTotal: number };
+
+      if (isParent && user) {
+        // Parent sees only their own children
+        result = await getParentContributions(user.id, month, year, dailyRate);
+      } else if (currentGroup) {
+        result = await getContributions(currentGroup.id, month, year, dailyRate);
+      } else {
+        setLoading(false);
+        return;
+      }
+
+      const payments = await getMonthlyContributions(month, year);
       const paymentMap = new Map(payments.map(p => [p.child_id, p]));
       const rows: ContributionRow[] = result.children.map(c => {
         const payment = paymentMap.get(c.id);
@@ -76,8 +85,10 @@ export default function Contributions() {
       setChildren(rows);
       setGrandTotal(result.grandTotal);
       setLoading(false);
-    });
-  }, [currentGroup, month, year, dailyRate]);
+    };
+
+    fetchData();
+  }, [currentGroup, month, year, dailyRate, isParent, user]);
 
   const handleSaveConfig = async () => {
     setSavingConfig(true);
