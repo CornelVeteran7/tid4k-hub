@@ -31,6 +31,7 @@ export default function AdminPanel() {
   }
 
   const verticalType = (user.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
   const TABS = [
     { value: 'scoli', label: verticalDef.entityLabelPlural, icon: School, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'utilizatori', label: 'Utilizatori', icon: Users, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
