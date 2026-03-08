@@ -196,12 +196,11 @@ export default function PublicDisplay() {
       // Schedule for today
       supabase.from('schedule').select('ora, materie, profesor, culoare')
         .eq('organization_id', orgId).eq('zi', todayRO).order('ora'),
-      // Queue (medicine)
+      // Queue (medicine/students)
       org?.vertical_type === 'medicine' || org?.vertical_type === 'students'
-        ? supabase.from('queue_entries').select('*')
+        ? supabase.from('queue_entries').select('id, numar_tichet, status, cabinet, created_at, called_at')
             .eq('organization_id', orgId)
             .gte('created_at', todayDate + 'T00:00:00')
-            .in('status', ['waiting', 'called', 'serving'])
             .order('numar_tichet')
         : Promise.resolve({ data: [] as any[] }),
       // Construction tasks
