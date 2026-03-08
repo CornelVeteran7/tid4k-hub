@@ -84,6 +84,7 @@ export default function AdminPanel() {
           <TabsContent value="meniu"><MenuTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
           <TabsContent value="ateliere"><WorkshopsTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
           <TabsContent value="setari"><SettingsTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
+          <TabsContent value="ghid"><UserGuideTab /></TabsContent>
           <TabsContent value="docs"><DocsTab /></TabsContent>
           <TabsContent value="branding"><BrandingTab /></TabsContent>
         </div>
