@@ -851,8 +851,8 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <div className="text-right">
-                  <p className="text-sm font-semibold">{c.total.toLocaleString('ro-RO')} lei</p>
-                  {c.suma_platita < c.total && (
+                  <p className="text-sm font-semibold">{ct(c).toLocaleString('ro-RO')} lei</p>
+                  {c.suma_platita < ct(c) && (
                     <p className="text-[10px] text-orange-500">Plătit: {c.suma_platita.toLocaleString('ro-RO')}</p>
                   )}
                 </div>
