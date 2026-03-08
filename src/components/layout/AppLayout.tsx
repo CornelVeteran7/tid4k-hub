@@ -76,6 +76,7 @@ function SidebarDecoration() {
 
 // Secondary nav — items NOT on the dashboard
 const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; moduleKey?: string; verticals?: string[] }[] = [
+{ path: '/prezenta', label: 'Prezența', icon: ClipboardList, roles: ['profesor', 'parinte', 'director', 'administrator', 'secretara'], verticals: ['kids', 'schools'] },
 { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'orar' },
 { path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'anunturi' },
 { path: '/santiere', label: 'Șantiere', icon: HardHat, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },
@@ -87,7 +88,7 @@ const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; 
 { path: '/social-whatsapp', label: 'WhatsApp', icon: MessageCircle, roles: ['director', 'administrator'], verticals: ['kids', 'schools'] },
 { path: '/social-facebook', label: 'Facebook', icon: Facebook, roles: ['director', 'administrator'], verticals: ['kids', 'schools'] },
 { path: '/coada', label: 'Gestionare Coadă', icon: Ticket, roles: ['profesor', 'director', 'administrator'], verticals: ['medicine', 'students'] },
-{ path: '/contributii', label: 'Contribuții', icon: Coins, roles: ['profesor', 'director', 'administrator', 'secretara'], verticals: ['kids'] },
+{ path: '/contributii', label: 'Contribuții', icon: Coins, roles: ['profesor', 'parinte', 'director', 'administrator', 'secretara'], verticals: ['kids'] },
 ];
 
 
