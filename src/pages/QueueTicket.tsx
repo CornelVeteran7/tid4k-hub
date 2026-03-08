@@ -136,30 +136,18 @@ export default function QueueTicket() {
     if (!org) return;
     setGenerating(true);
 
-    const { data: lastTicket } = await supabase
-      .from('queue_entries')
-      .select('numar_tichet')
-      .eq('organization_id', org.id)
-      .gte('created_at', todayStart)
-      .order('numar_tichet', { ascending: false })
-      .limit(1)
-      .single();
+    // Use atomic DB function to prevent race conditions on ticket numbers
+    const { data, error } = await supabase.rpc('generate_queue_ticket', {
+      _org_id: org.id,
+    });
 
-    const nextNumber = (lastTicket?.numar_tichet || 0) + 1;
-
-    const { data, error } = await supabase.from('queue_entries').insert({
-      organization_id: org.id,
-      numar_tichet: nextNumber,
-      status: 'waiting',
-    }).select().single();
-
-    if (error) {
-      console.error(error);
+    if (error || !data || data.length === 0) {
+      console.error('Ticket generation failed:', error);
       setGenerating(false);
       return;
     }
 
-    const ticket = data as QueueEntry;
+    const ticket = data[0] as QueueEntry;
     setMyTicket(ticket);
     sessionStorage.setItem(ticketKey, ticket.id);
 
@@ -168,7 +156,7 @@ export default function QueueTicket() {
       .select('id', { count: 'exact', head: true })
       .eq('organization_id', org.id)
       .eq('status', 'waiting')
-      .lt('numar_tichet', nextNumber)
+      .lt('numar_tichet', ticket.numar_tichet)
       .gte('created_at', todayStart);
     const ahead = count || 0;
     setWaitingAhead(ahead);

@@ -2621,6 +2621,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_queue_ticket: {
+        Args: { _org_id: string }
+        Returns: {
+          cabinet: string
+          called_at: string
+          created_at: string
+          id: string
+          numar_tichet: number
+          status: string
+        }[]
+      }
       get_user_org_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
