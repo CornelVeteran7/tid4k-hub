@@ -103,6 +103,28 @@ export default function Announcements() {
                   <Label>Data expirare (opțional)</Label>
                   <Input type="date" value={newExpiry} onChange={(e) => setNewExpiry(e.target.value)} />
                 </div>
+                <div className="space-y-2 border rounded-lg p-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Distribuie și pe:</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="h-4 w-4 text-green-600" />
+                      <Label className="text-sm">WhatsApp</Label>
+                    </div>
+                    <Switch checked={sendWhatsapp} onCheckedChange={setSendWhatsapp} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Facebook className="h-4 w-4 text-blue-600" />
+                      <Label className="text-sm">Facebook</Label>
+                    </div>
+                    <Switch checked={sendFacebook} onCheckedChange={setSendFacebook} />
+                  </div>
+                  {(sendWhatsapp || sendFacebook) && (
+                    <p className="text-[10px] text-muted-foreground">
+                      Status: <Badge variant="outline" className="text-[10px]">pending</Badge> — trimiterea efectivă este funcție viitoare
+                    </p>
+                  )}
+                </div>
                 <Button className="w-full" onClick={handleCreate}>Publică</Button>
               </div>
             </DialogContent>
