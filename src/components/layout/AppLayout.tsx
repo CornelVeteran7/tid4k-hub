@@ -78,7 +78,12 @@ function SidebarDecoration() {
 const SECONDARY_NAV = [
 { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'orar' },
 { path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'anunturi' },
-];
+{ path: '/santiere', label: 'Șantiere', icon: HardHat, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },
+{ path: '/inventar', label: 'Inventar QR', icon: Package, roles: ['profesor', 'director', 'administrator'], verticals: ['workshops', 'construction', 'kids'] },
+{ path: '/ssm', label: 'SSM', icon: ShieldCheck, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },
+{ path: '/revista', label: 'Revista Școlii', icon: Newspaper, roles: ['profesor', 'parinte', 'director', 'administrator'], verticals: ['schools'] },
+{ path: '/supratitrare', label: 'Supratitrare', icon: Theater, roles: ['profesor', 'director', 'administrator'], verticals: ['culture'] },
+] as const;
 
 
 // Admin nav — role-gated
