@@ -146,6 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Then check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (isDemoRef.current) return; // Don't override demo session
       if (session?.user) {
         try {
           const userSession = await buildUserSession(session.user);
