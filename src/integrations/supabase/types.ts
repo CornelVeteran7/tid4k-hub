@@ -306,49 +306,275 @@ export type Database = {
           },
         ]
       }
+      construction_costs: {
+        Row: {
+          cantitate: number | null
+          categorie: string
+          created_at: string
+          data_inregistrare: string | null
+          descriere: string
+          furnizor: string | null
+          id: string
+          organization_id: string | null
+          pret_unitar: number | null
+          site_id: string
+          suma_platita: number | null
+          total: number | null
+        }
+        Insert: {
+          cantitate?: number | null
+          categorie?: string
+          created_at?: string
+          data_inregistrare?: string | null
+          descriere: string
+          furnizor?: string | null
+          id?: string
+          organization_id?: string | null
+          pret_unitar?: number | null
+          site_id: string
+          suma_platita?: number | null
+          total?: number | null
+        }
+        Update: {
+          cantitate?: number | null
+          categorie?: string
+          created_at?: string
+          data_inregistrare?: string | null
+          descriere?: string
+          furnizor?: string | null
+          id?: string
+          organization_id?: string | null
+          pret_unitar?: number | null
+          site_id?: string
+          suma_platita?: number | null
+          total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_costs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "construction_costs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "construction_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      construction_sites: {
+        Row: {
+          adresa: string | null
+          buget: number | null
+          created_at: string
+          data_estimare_finalizare: string | null
+          data_start: string | null
+          id: string
+          nume: string
+          organization_id: string | null
+          progress_pct: number | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          adresa?: string | null
+          buget?: number | null
+          created_at?: string
+          data_estimare_finalizare?: string | null
+          data_start?: string | null
+          id?: string
+          nume: string
+          organization_id?: string | null
+          progress_pct?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          adresa?: string | null
+          buget?: number | null
+          created_at?: string
+          data_estimare_finalizare?: string | null
+          data_start?: string | null
+          id?: string
+          nume?: string
+          organization_id?: string | null
+          progress_pct?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_sites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       construction_tasks: {
         Row: {
           assignee: string | null
+          completed_at: string | null
+          completed_by: string | null
           created_at: string
           data_limita: string | null
           descriere: string | null
           id: string
           locatie: string | null
           organization_id: string | null
+          photo_url: string | null
           prioritate: string | null
+          site_id: string | null
           status: string
+          team_id: string | null
           titlu: string
           updated_at: string | null
         }
         Insert: {
           assignee?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           data_limita?: string | null
           descriere?: string | null
           id?: string
           locatie?: string | null
           organization_id?: string | null
+          photo_url?: string | null
           prioritate?: string | null
+          site_id?: string | null
           status?: string
+          team_id?: string | null
           titlu: string
           updated_at?: string | null
         }
         Update: {
           assignee?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           data_limita?: string | null
           descriere?: string | null
           id?: string
           locatie?: string | null
           organization_id?: string | null
+          photo_url?: string | null
           prioritate?: string | null
+          site_id?: string | null
           status?: string
+          team_id?: string | null
           titlu?: string
           updated_at?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "construction_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "construction_tasks_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "construction_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "construction_tasks_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "construction_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      construction_team_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string | null
+          saptamana_end: string
+          saptamana_start: string
+          site_id: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          saptamana_end: string
+          saptamana_start: string
+          site_id: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          saptamana_end?: string
+          saptamana_start?: string
+          site_id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_team_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "construction_team_assignments_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "construction_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "construction_team_assignments_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "construction_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      construction_teams: {
+        Row: {
+          created_at: string
+          id: string
+          nr_membri: number | null
+          nume: string
+          organization_id: string | null
+          specialitate: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nr_membri?: number | null
+          nume: string
+          organization_id?: string | null
+          specialitate?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nr_membri?: number | null
+          nume?: string
+          organization_id?: string | null
+          specialitate?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_teams_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
