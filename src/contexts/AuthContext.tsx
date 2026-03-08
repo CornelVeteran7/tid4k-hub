@@ -218,6 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setIsDemo(false);
     isDemoRef.current = false;
+    try { sessionStorage.removeItem('demo_mode'); } catch {}
   }, []);
 
   return (
