@@ -21,6 +21,7 @@ const TABS = [
   { value: 'meniu', label: 'Meniu', icon: UtensilsCrossed },
   { value: 'ateliere', label: 'Ateliere', icon: Paintbrush },
   { value: 'setari', label: 'Setări', icon: Settings },
+  { value: 'ghid', label: 'Ghid', icon: HelpCircle },
   { value: 'docs', label: 'Docs', icon: BookOpen },
   { value: 'branding', label: 'Branding', icon: Palette },
 ];
