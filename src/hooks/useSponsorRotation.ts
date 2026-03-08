@@ -23,7 +23,7 @@ export function useSponsorRotation(
   const impressionLogged = useRef<string | null>(null);
 
   useEffect(() => {
-    getRotationConfig(tip, schoolId).then(cfg => {
+    getRotationConfig(tip, schoolId?.toString()).then(cfg => {
       setConfig(cfg);
       setCurrentIndex(0);
     });
