@@ -96,9 +96,10 @@ interface ModuleHubProps {
   onToggle?: (key: keyof ModuleVisibility) => void;
   moduleOrder?: string[];
   onReorder?: (order: string[]) => void;
+  verticalModules?: string[];
 }
 
-export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder }: ModuleHubProps) {
+export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<Workshop | null>(null);
