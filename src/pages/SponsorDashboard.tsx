@@ -34,7 +34,7 @@ const TIP_ICONS: Record<string, React.ElementType> = {
 export default function SponsorDashboard() {
   const { user } = useAuth();
   // Mock: use sponsor ID 1 (Kaufland) for demo
-  const sponsorId = 1;
+  const sponsorId = 'demo-sponsor-1';
 
   const [sponsor, setSponsor] = useState<Sponsor | null>(null);
   const [campaigns, setCampaigns] = useState<SponsorCampaign[]>([]);
