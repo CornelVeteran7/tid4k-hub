@@ -140,7 +140,14 @@ export default function PublicDisplay() {
     const dayOfWeek = now.getDay();
     const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     const todayKey = DAYS_RO[dayIndex] || '';
-    const weekStart = format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    // Convert to ISO week format to match menu_items.saptamana
+    const isoWeek = (() => {
+      const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+      return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+    })();
     const todayRO = ['duminica', 'luni', 'marti', 'miercuri', 'joi', 'vineri', 'sambata'][dayOfWeek] || '';
 
     // Parallel fetch all data
