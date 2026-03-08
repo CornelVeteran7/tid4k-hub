@@ -43,7 +43,7 @@ import PublicDisplay from "./pages/PublicDisplay";
 import QRCancelarie from "./pages/QRCancelarie";
 import SurtitleAudiencePage from "./pages/SurtitleAudience";
 import SuperAdmin from "./pages/SuperAdmin";
-
+import DemoEntry from "./pages/DemoEntry";
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
