@@ -25,7 +25,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   kids: {
     label: 'Grădinițe',
     description: 'Digital signage & comunicare pentru grădinițe',
-    defaultModules: ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje', 'orar', 'anunturi', 'video', 'social'],
+    defaultModules: ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje', 'orar', 'anunturi', 'video', 'social', 'inventar'],
     entityLabel: 'Grupă',
     entityLabelPlural: 'Grupe',
     memberLabel: 'Copil',
@@ -40,7 +40,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   schools: {
     label: 'Școli',
     description: 'Platformă de comunicare pentru școli',
-    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte', 'imagini', 'video', 'social'],
+    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte', 'imagini', 'video', 'social', 'inventar', 'revista'],
     entityLabel: 'Clasă',
     entityLabelPlural: 'Clase',
     memberLabel: 'Elev',
@@ -70,7 +70,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   living: {
     label: 'Rezidențial',
     description: 'Comunicare pentru asociații de proprietari',
-    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte'],
+    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte', 'inventar'],
     entityLabel: 'Bloc',
     entityLabelPlural: 'Blocuri',
     memberLabel: 'Locatar',
@@ -85,7 +85,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   culture: {
     label: 'Cultură',
     description: 'Digital signage pentru teatre și muzee',
-    defaultModules: ['anunturi', 'documente', 'imagini', 'orar', 'video'],
+    defaultModules: ['anunturi', 'documente', 'imagini', 'orar', 'video', 'supratitrare'],
     entityLabel: 'Sală',
     entityLabelPlural: 'Săli',
     memberLabel: 'Vizitator',
@@ -115,7 +115,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   construction: {
     label: 'Construcții',
     description: 'Comunicare pentru șantiere',
-    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte'],
+    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte', 'inventar', 'ssm'],
     entityLabel: 'Șantier',
     entityLabelPlural: 'Șantiere',
     memberLabel: 'Muncitor',
@@ -130,7 +130,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   workshops: {
     label: 'Service Auto',
     description: 'Management service auto',
-    defaultModules: ['documente', 'mesaje', 'anunturi', 'orar', 'rapoarte'],
+    defaultModules: ['documente', 'mesaje', 'anunturi', 'orar', 'rapoarte', 'inventar'],
     entityLabel: 'Service',
     entityLabelPlural: 'Service-uri',
     memberLabel: 'Client',
