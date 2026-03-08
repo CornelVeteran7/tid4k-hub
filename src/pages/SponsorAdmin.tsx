@@ -529,7 +529,7 @@ function SponsorDetail({
                             <ExternalLink className="h-3.5 w-3.5" />
                           </button>
                         )}
-                        <Switch checked={promo.activ} />
+                        <Switch checked={promo.activ} onCheckedChange={() => toast.info('Modificarea statusului promoției necesită permisiuni de admin.')} />
                       </div>
                     </div>
                   </div>

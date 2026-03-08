@@ -674,7 +674,7 @@ export default function SuperAdminDocs() {
           <DocSection id="sponsors" title="Sponsor System — Campanii & Rotație" icon={Star}>
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground">Sistem complet de sponsorizare cu campanii, canale de afișare, și rotație automată.</p>
-              <p className="text-[10px] font-mono text-muted-foreground">📁 src/pages/SponsorAdmin.tsx, SponsorDashboard.tsx</p>
+              <p className="text-[10px] font-mono text-muted-foreground">📁 src/pages/SponsorAdmin.tsx</p>
               <div className="text-xs text-muted-foreground space-y-1">
                 <p><strong>Canale:</strong> Card Dashboard, Ticker, Inky Popup, Infodisplay</p>
                 <p><strong>Pachete:</strong> Basic (500 RON), Premium (1.500 RON), Enterprise (3.000 RON)</p>
