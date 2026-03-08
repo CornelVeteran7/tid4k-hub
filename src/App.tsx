@@ -85,6 +85,7 @@ function ProtectedRoutes() {
             <Route path="/ssm" element={<SSMPage />} />
             <Route path="/revista" element={<MagazinePage />} />
             <Route path="/supratitrare" element={<SurtitlesPage />} />
+            <Route path="/video" element={<VideoGenerationPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
