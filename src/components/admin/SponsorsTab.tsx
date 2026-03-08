@@ -69,7 +69,7 @@ export default function SponsorsTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{sponsors.length} sponsori activi</p>
-        <Button size="sm" className="gap-1.5" onClick={() => toast.info('Funcționalitate în dezvoltare — contactează echipa Inky.')}><Plus className="h-4 w-4" />Sponsor nou</Button>
+        <Button size="sm" className="gap-1.5" onClick={() => setSponsorDialogOpen(true)}><Plus className="h-4 w-4" />Sponsor nou</Button>
       </div>
 
       <Tabs defaultValue="sponsors" className="space-y-4">
