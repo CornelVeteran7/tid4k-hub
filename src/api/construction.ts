@@ -25,10 +25,12 @@ export async function getSites(orgId: string): Promise<ConstructionSite[]> {
 
 export async function upsertSite(site: Partial<ConstructionSite> & { organization_id: string }) {
   if (site.id) {
-    const { error } = await supabase.from('construction_sites').update(site).eq('id', site.id);
+    const { id, ...rest } = site;
+    const { error } = await supabase.from('construction_sites').update(rest).eq('id', id);
     if (error) throw error;
   } else {
-    const { error } = await supabase.from('construction_sites').insert(site);
+    const { id, ...rest } = site;
+    const { error } = await supabase.from('construction_sites').insert({ ...rest, nume: rest.nume || 'Șantier nou' });
     if (error) throw error;
   }
 }
