@@ -696,6 +696,7 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
         descriere: newCost.descriere,
         cantitate: newCost.cantitate,
         pret_unitar: newCost.pret_unitar,
+        total: newCost.cantitate * newCost.pret_unitar,
         furnizor: newCost.furnizor,
         suma_platita: newCost.suma_platita,
         data_inregistrare: format(new Date(), 'yyyy-MM-dd'),
