@@ -39,9 +39,9 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
     });
   }, [currentGroup, category]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     await deleteDocument(id);
-    setDocuments((prev) => prev.filter((d) => d.id_info !== id));
+    setDocuments((prev) => prev.filter((d) => d.id !== id));
     toast.success('Document șters.');
   };
 
