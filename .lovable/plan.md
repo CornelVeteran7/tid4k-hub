@@ -1,99 +1,150 @@
 
 
-# Enhanced Superadmin Panel: Full Documentation Hub + Component Templates + Provisioning
+# Plan: Workshop Management System + Admin Push & Documentation
 
 ## Overview
 
-Rebuild the SuperAdminDocs component into a comprehensive documentation + visual template catalog that covers the entire design system, all whitelabel configurations, and every reusable component. The templates tab becomes an interactive catalog where each component can be previewed and used to pre-fill the provisioning wizard.
+This plan adds a complete **Workshop (Ateliere) management system** to the Admin Panel, enabling admins to create, edit, and push workshops to one or all school units. The dashboard "ATELIERE" module card will show this month's workshop preview directly (without opening), and push notifications will alert teachers about new workshops.
 
-## What Changes
+---
 
-### 1. SuperAdminDocs.tsx — Complete Rewrite (~800 lines)
+## What Gets Built
 
-Replace the current thin wrapper with a 5-section tabbed documentation hub:
+### 1. Workshop Data Model & API
 
-**Tab: Arhitectură** (keep existing DocsTab content)
+**New file: `src/api/workshops.ts`**
 
-**Tab: Design System** (NEW) — Documents:
-- Color palette: all CSS variables from `index.css` (primary navy `#1E3A4C`, accent blue `hsl(210 80% 32%)`, success green, warning amber, destructive red)
-- Typography: Playfair Display (headings/cards), Poppins (body), monospace (ticker) — with live rendered examples
-- Glass tokens: `--glass-bg`, `--glass-border`, `--glass-blur` with example card
-- Gradient tokens: `--gradient-primary`, `--gradient-warm`, `--gradient-cool`
-- Spacing & radius: `--radius: 0.75rem`
-- Dark mode: full dark variable table
-- Decorative elements: SVG contour lines spec (opacity 0.08 main, 0.45 sidebar), flower + bee line art
-- Per-vertical color assignments: the 8 color pairs from `DEFAULT_COLORS`
+Types and mock data for workshops:
 
-**Tab: Componente** (NEW) — Visual catalog of every reusable component pattern:
-- **ModuleCard**: Color swatch, title/subtitle typography (Playfair, uppercase, tracking-wide), count badge, share button. Shows the card in 3 states: default, pressed (scale 0.97), edit mode (wiggle). Documents props: `icon`, `color`, `textColor`, `title`, `subtitle`, `count`, `showShare`, `editMode`
-- **Dashboard Banner**: Liquid glass welcome card with stat buttons grid (Prezență, Fotografii, Documente, Meniu). Documents the meal-slot time logic
-- **AnnouncementsTicker**: Fixed bottom bar, scrolling animation spec (CSS `display-ticker`, triple-duplicated content, `animation-duration` based on count)
-- **Messages Layout**: Split-pane (conversation list + chat view), avatar colors, bubble styles, timestamp formatting
-- **Schedule Grid**: Day × Hour table, color-coded cells, QR per teacher, edit mode
-- **Attendance Table**: Weekly checkbox grid, yellow header with counter, monthly stats view
-- **Document Gallery**: Category filters, thumbnail grid, upload drag-drop zone
-- **Login Page**: Branded `/login/:orgSlug` with org logo, primary color gradient background
-- **Public Display**: Fullscreen slideshow, ticker, QR corner, branding overlay — documents Puppeteer requirements
-- **QR Cancelarie**: Tiered access (public vs authenticated), org-branded login link
-- **Settings Tabs**: 7-tab layout (General, Branding, Modules, Users, Display, Integrations, Vertical)
-- **Sidebar**: Desktop (280px, navy bg with SVG decorations) + mobile sheet, dynamic nav items from `SECONDARY_NAV`
+```text
+Workshop {
+  id_atelier: number
+  titlu: string
+  descriere: string
+  luna: string (YYYY-MM)
+  imagine_url: string
+  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
+  materiale: string[]
+  instructor: string
+  durata_minute: number
+  scoli_target: string[] (['all'] or specific school IDs)
+  publicat: boolean
+  data_creare: string
+  data_publicare?: string
+}
+```
 
-Each component entry shows: description, file path, key props, a small inline preview rendered with actual component styles (colored divs, not screenshots), and vertical-specific variations.
+API functions:
+- `getWorkshops(schoolId?, luna?)` -- fetch workshops, optionally filtered
+- `getWorkshopOfMonth(schoolId?)` -- returns this month's active published workshop
+- `createWorkshop(data)` -- create new
+- `updateWorkshop(id, data)` -- edit
+- `deleteWorkshop(id)` -- remove
+- `publishWorkshop(id, scoli_target)` -- mark as published + push to units
+- Mock data: 2-3 workshops for the current month
 
-**Tab: Whitelabel** (NEW) — Documents the multi-tenant system:
-- How `vertical_type` drives module visibility, terminology, and branding
-- Table of all 8 verticals with: icon, label, default modules, entity/member/staff/parent labels
-- Branding cascade: `applyBrandingColors()` → CSS custom properties → entire UI
-- Module toggle flow: `modules_config` table → `useActiveModules` hook → sidebar + dashboard filtering
-- Terminology mapping table (all 8 verticals × 4 label types)
-- Org isolation: `user_org_match()` → RLS on every table
-- Slug system: `/login/:slug`, `/display/:slug`, `/qr/:slug`
+### 2. Admin Panel: New "Ateliere" Tab
 
-**Tab: Ghiduri** (keep existing UserGuideTab content)
+**New file: `src/components/admin/WorkshopsTab.tsx`**
 
-### 2. SuperAdminTemplates.tsx — Rewrite into Interactive Catalog (~600 lines)
+A new tab in the Admin Panel (`/admin`) with:
 
-Replace the current simple card grid with a full visual template catalog:
+- **School selector awareness**: respects the global "Toate unitatile" / specific school filter at top of admin page
+- **Workshop list**: cards showing title, month, category badge, publish status, target schools
+- **Create/Edit dialog**: form with title, description, category, image URL, materials list, instructor, duration, school target (one / all)
+- **Publish button**: marks workshop as published; when target is "all", pushes to every school. Shows confirmation with school count.
+- **Status indicators**: Draft (gray), Published (green), showing which schools received it
 
-- Each of the 8 vertical templates becomes an expandable card showing:
-  - **Preview section**: Inline rendering of how the dashboard looks (colored module cards in grid, correct terminology, branding gradient)
-  - **Configuration display**: default modules (checkboxes, read-only), default groups, vertical_config fields, color pair
-  - **"Folosește acest șablon" button** → navigates to the "Client Nou" tab with all values pre-filled
+Changes to `src/pages/AdminPanel.tsx`:
+- Add `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` to TABS
+- Import and render `<WorkshopsTab>` in the new TabsContent
+- The tab respects `selectedSchoolId` (all vs specific)
 
-- Add a **"Component Templates"** section below verticals, organized by category:
-  - **Dashboard**: ModuleCard grid layout, banner, stat buttons — with color/label customization preview
-  - **Communication**: Messages split-view, announcements ticker
-  - **Data Views**: Attendance grid, schedule table, document gallery
-  - **Public Pages**: Display slideshow, QR portal, branded login
-  - **Admin**: Settings tabs, user management table
+### 3. Dashboard: Workshop Preview on Module Card
 
-Each component template shows a miniature visual preview (using actual Tailwind classes and the component's real styling) plus a description of when/how to use it.
+**Modified: `src/components/dashboard/ModuleHub.tsx`**
 
-### 3. SuperAdminNewClient.tsx — Minor Enhancement
+The "ATELIERE" card currently shows just a title and count. Change it to:
+- Fetch `getWorkshopOfMonth()` on mount
+- Display workshop title + short description directly on the card (below the subtitle), so teachers see it without tapping
+- Add a small "Luna: Martie 2026" label and category badge on the card face
+- Keep the card tappable to open full workshop detail
 
-- Add a `fromTemplate` URL parameter or prop that pre-fills all wizard fields when clicking "Use this template" from the Templates tab
-- Keep existing 6-step wizard flow unchanged
+**Modified: `src/components/dashboard/ModuleCard.tsx`**
 
-### 4. SuperAdmin.tsx — Tab Communication
+Add optional `preview` prop (ReactNode) that renders below the subtitle when provided. Only the "ateliere" card will use this prop.
 
-- Add state to track when Templates tab triggers "use template" → switch to "new" tab with pre-filled data
-- Pass callback between tabs
+### 4. Notification System: Workshop Push Notifications
 
-## Files to Create/Edit
+**Modified: `src/contexts/NotificationContext.tsx`**
 
-1. **`src/components/superadmin/SuperAdminDocs.tsx`** — Full rewrite with 5 documentation tabs
-2. **`src/components/superadmin/SuperAdminTemplates.tsx`** — Rewrite with visual catalog + "use template" flow
-3. **`src/components/superadmin/SuperAdminNewClient.tsx`** — Add template pre-fill support
-4. **`src/pages/SuperAdmin.tsx`** — Add inter-tab state for template → wizard flow
+- Import `getWorkshopOfMonth` from workshops API
+- Add `'workshop'` as a new notification type in `NotificationItem`
+- In `refreshNotifications`, check if there's a published workshop for this month that hasn't been seen (track via localStorage key `tid4k_seen_workshop_[id]`)
+- Generate notification: "Atelier nou: [titlu]" with link to open the ateliere module
 
-## No Database Changes Required
+**Modified: `src/components/layout/AppLayout.tsx`**
 
-All documentation is rendered inline from existing config files (`verticalConfig.ts`, `moduleConfig.tsx`, `index.css` variables). No new tables or migrations needed.
+- Add `Paintbrush` icon handling for `workshop` notification type in the popover renderer (distinct purple color)
 
-## Approach
+### 5. Documentation
 
-- All documentation content is hardcoded JSX (not fetched) for instant load and searchability
-- Component previews use real Tailwind classes to show accurate representations
-- The search filter in docs searches across all 5 tabs (section titles + text content)
-- Templates integrate with the existing provisioning wizard via shared state in the parent SuperAdmin page
+**New file: `docs/WORKSHOPS.md`**
+
+Three sections:
+1. **For Admins**: How to create workshops, target specific schools or all, publish flow, editing after publish
+2. **For Developers/AI**: API endpoints table, TypeScript interfaces, component architecture, notification integration
+3. **API Reference**: Full endpoint spec for backend implementation
+
+```text
+POST /ateliere.php?action=create        -- Create workshop
+POST /ateliere.php?action=update        -- Edit workshop
+POST /ateliere.php?action=publish       -- Publish + push to schools
+GET  /ateliere.php?action=list          -- List workshops (filters: school_id, luna)
+GET  /ateliere.php?action=current       -- This month's active workshop
+POST /ateliere.php?action=delete        -- Delete workshop
+POST /ateliere.php?action=notify        -- Trigger push notifications
+```
+
+---
+
+## Technical Details
+
+### File Changes Summary
+
+| File | Action | What |
+|------|--------|------|
+| `src/api/workshops.ts` | NEW | Workshop types, mock data, API functions |
+| `src/components/admin/WorkshopsTab.tsx` | NEW | Full admin UI for workshop CRUD + publish |
+| `docs/WORKSHOPS.md` | NEW | Documentation for admins and devs |
+| `src/pages/AdminPanel.tsx` | EDIT | Add "Ateliere" tab (icon + TabsContent) |
+| `src/components/dashboard/ModuleCard.tsx` | EDIT | Add optional `preview` prop |
+| `src/components/dashboard/ModuleHub.tsx` | EDIT | Fetch workshop of month, pass preview to ateliere card |
+| `src/contexts/NotificationContext.tsx` | EDIT | Add workshop notification type |
+| `src/components/layout/AppLayout.tsx` | EDIT | Render workshop notification icon in popover |
+
+### Patterns Followed
+
+- Same `USE_MOCK` toggle pattern as all other API files
+- Same collapsible card admin UI pattern as SettingsTab/SchoolsTab
+- Same notification item pattern with `type`, `icon`, `navigateTo`
+- School selector `selectedSchoolId` passed through just like other admin tabs
+- `framer-motion` animations consistent with existing module cards
+
+### Workshop Card Preview Rendering
+
+On the dashboard, the ATELIERE module card will show:
+
+```text
++------------------------------------------+
+| [Paintbrush icon]  ATELIERE              |
+|                    Activitati creative     |
+|   ┌─────────────────────────────┐         |
+|   │ Pictură pe sticlă           │  [10]   |
+|   │ Artă · Martie 2026          │         |
+|   └─────────────────────────────┘         |
++------------------------------------------+
+```
+
+This preview text appears only when a workshop-of-the-month exists.
 
