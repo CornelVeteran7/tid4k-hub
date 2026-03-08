@@ -73,27 +73,13 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
               <DialogHeader>
                 <DialogTitle>Încarcă document</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                  <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">Trage fișierele aici sau apasă pentru a selecta</p>
-                  <Input type="file" className="mt-3" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Categorie</Label>
-                  <Select defaultValue="activitati">
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button className="w-full" onClick={() => { setUploadOpen(false); toast.success('Document încărcat!'); }}>
-                  Încarcă
-                </Button>
-              </div>
+              <UploadForm
+                groupId={currentGroup?.id || ''}
+                onUploaded={(doc) => {
+                  setDocuments(prev => [doc, ...prev]);
+                  setUploadOpen(false);
+                }}
+              />
             </DialogContent>
           </Dialog>
         </div>
