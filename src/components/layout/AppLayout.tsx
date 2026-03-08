@@ -86,6 +86,7 @@ const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; 
 { path: '/video', label: 'Generare Video', icon: Video, roles: ['profesor', 'director', 'administrator'], verticals: ['kids', 'schools', 'medicine', 'culture'] },
 { path: '/social-whatsapp', label: 'WhatsApp', icon: MessageCircle, roles: ['director', 'administrator'], verticals: ['kids', 'schools'] },
 { path: '/social-facebook', label: 'Facebook', icon: Facebook, roles: ['director', 'administrator'], verticals: ['kids', 'schools'] },
+{ path: '/coada', label: 'Gestionare Coadă', icon: Ticket, roles: ['profesor', 'director', 'administrator'], verticals: ['medicine', 'students'] },
 ];
 
 
