@@ -69,6 +69,41 @@ export default function SponsorAdmin() {
     setEditorOpen(true);
   };
 
+  const handleSaveCampaign = async (data: Partial<SponsorCampaign>) => {
+    if (!selectedSponsor) return;
+    try {
+      if (data.id) {
+        const updated = await updateCampaign(data.id, data);
+        setCampaigns(prev => prev.map(c => c.id === updated.id ? updated : c));
+        toast.success('Campanie actualizată!');
+      } else {
+        const created = await createCampaign({
+          ...data,
+          sponsor_id: selectedSponsor.id,
+          status: 'draft',
+          statistici: { afisari: 0, clickuri: 0, ctr: 0 },
+          documente_atasate: [],
+        } as any);
+        setCampaigns(prev => [created, ...prev]);
+        toast.success('Campanie creată!');
+      }
+    } catch (err: any) {
+      toast.error('Eroare: ' + (err.message || 'necunoscută'));
+    }
+  };
+
+  const handleToggleCampaignStatus = async (campaign: SponsorCampaign) => {
+    const newStatus = campaign.status === 'activ' ? 'pauza' : 'activ';
+    try {
+      await updateCampaignStatus(campaign.id, newStatus);
+      setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, status: newStatus } : c));
+      toast.success(`Campanie ${newStatus === 'activ' ? 'activată' : 'pusă pe pauză'}!`);
+    } catch (err: any) {
+      toast.error('Eroare: ' + (err.message || 'necunoscută'));
+    }
+  };
+
+
   // Global stats
   const totalAfisari = campaigns.reduce((sum, c) => sum + c.statistici.afisari, 0);
   const totalClickuri = campaigns.reduce((sum, c) => sum + c.statistici.clickuri, 0);
