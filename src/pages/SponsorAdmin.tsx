@@ -185,13 +185,13 @@ function SponsorList({
       {/* Sponsor cards */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {sponsors.map(sponsor => {
-          const spCampaigns = campaigns.filter(c => c.id_sponsor === sponsor.id_sponsor);
-          const spPromos = promos.filter(p => p.id_sponsor === sponsor.id_sponsor);
+          const spCampaigns = campaigns.filter(c => c.sponsor_id === sponsor.id);
+          const spPromos = promos.filter(p => p.sponsor_id === sponsor.id);
           const spAfisari = spCampaigns.reduce((s, c) => s + c.statistici.afisari, 0);
 
           return (
             <Card
-              key={sponsor.id_sponsor}
+              key={sponsor.id}
               className="cursor-pointer transition-all hover:shadow-md hover:border-primary/30 group"
               onClick={() => onSelect(sponsor)}
             >
