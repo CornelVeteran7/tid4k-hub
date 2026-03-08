@@ -1634,6 +1634,8 @@ export type Database = {
       }
       organizations: {
         Row: {
+          address: string | null
+          contact_info: Json | null
           created_at: string
           id: string
           logo_url: string | null
@@ -1645,6 +1647,8 @@ export type Database = {
           vertical_type: Database["public"]["Enums"]["vertical_type"]
         }
         Insert: {
+          address?: string | null
+          contact_info?: Json | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -1656,6 +1660,8 @@ export type Database = {
           vertical_type?: Database["public"]["Enums"]["vertical_type"]
         }
         Update: {
+          address?: string | null
+          contact_info?: Json | null
           created_at?: string
           id?: string
           logo_url?: string | null
