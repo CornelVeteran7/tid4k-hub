@@ -11,7 +11,7 @@ import { type VerticalType } from '@/config/verticalConfig';
 
 export default function SuperAdmin() {
   const { user } = useAuth();
-  const isInky = user?.status?.includes('inky');
+  const isInky = user?.status?.includes('inky') || user?.status?.includes('administrator');
   const [activeTab, setActiveTab] = useState('docs');
   const [templatePreFill, setTemplatePreFill] = useState<VerticalType | null>(null);
 

@@ -149,7 +149,7 @@ export default function SponsorAdmin() {
           sponsorLogo={selectedSponsor.logo_url}
           sponsorCuloare={selectedSponsor.culoare_brand}
           schools={schools}
-          onSave={(data) => console.log('Save campaign:', data)}
+          onSave={handleSaveCampaign}
         />
       )}
     </div>

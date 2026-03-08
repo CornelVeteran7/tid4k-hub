@@ -186,7 +186,13 @@ export default function Announcements() {
                   <Badge variant={ann.prioritate === 'urgent' ? 'destructive' : 'secondary'}>
                     {ann.prioritate === 'urgent' ? '⚠️ Urgent' : 'Normal'}
                   </Badge>
-                  <Button variant={ann.citit ? 'secondary' : 'outline'} size="sm" className="ml-auto shrink-0 gap-1">
+                  <Button
+                    variant={ann.citit ? 'secondary' : 'outline'}
+                    size="sm"
+                    className="ml-auto shrink-0 gap-1"
+                    onClick={() => handleMarkRead(ann)}
+                    disabled={ann.citit}
+                  >
                     <Check className="h-3.5 w-3.5" />
                     {ann.citit ? 'Citit' : 'Marchează citit'}
                   </Button>
