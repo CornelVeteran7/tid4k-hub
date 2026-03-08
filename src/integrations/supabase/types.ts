@@ -57,6 +57,7 @@ export type Database = {
           autor_nume: string | null
           continut: string
           created_at: string | null
+          data_expirare: string | null
           id: string
           pozitie_banda: number | null
           prioritate: string | null
@@ -69,6 +70,7 @@ export type Database = {
           autor_nume?: string | null
           continut: string
           created_at?: string | null
+          data_expirare?: string | null
           id?: string
           pozitie_banda?: number | null
           prioritate?: string | null
@@ -81,6 +83,7 @@ export type Database = {
           autor_nume?: string | null
           continut?: string
           created_at?: string | null
+          data_expirare?: string | null
           id?: string
           pozitie_banda?: number | null
           prioritate?: string | null
@@ -214,26 +217,35 @@ export type Database = {
       }
       children: {
         Row: {
+          alergii: string[] | null
           created_at: string | null
           data_nasterii: string | null
           group_id: string | null
           id: string
+          info_extra: Json | null
+          note_medicale: string | null
           nume_prenume: string
           parinte_id: string | null
         }
         Insert: {
+          alergii?: string[] | null
           created_at?: string | null
           data_nasterii?: string | null
           group_id?: string | null
           id?: string
+          info_extra?: Json | null
+          note_medicale?: string | null
           nume_prenume: string
           parinte_id?: string | null
         }
         Update: {
+          alergii?: string[] | null
           created_at?: string | null
           data_nasterii?: string | null
           group_id?: string | null
           id?: string
+          info_extra?: Json | null
+          note_medicale?: string | null
           nume_prenume?: string
           parinte_id?: string | null
         }
@@ -699,6 +711,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          nfc_enabled: boolean | null
           primary_color: string | null
           secondary_color: string | null
           vertical_type: Database["public"]["Enums"]["vertical_type"]
@@ -708,6 +721,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          nfc_enabled?: boolean | null
           primary_color?: string | null
           secondary_color?: string | null
           vertical_type?: Database["public"]["Enums"]["vertical_type"]
@@ -717,6 +731,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          nfc_enabled?: boolean | null
           primary_color?: string | null
           secondary_color?: string | null
           vertical_type?: Database["public"]["Enums"]["vertical_type"]
