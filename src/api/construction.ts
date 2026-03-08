@@ -61,10 +61,12 @@ export async function getTeams(orgId: string): Promise<ConstructionTeam[]> {
 
 export async function upsertTeam(team: Partial<ConstructionTeam> & { organization_id: string }) {
   if (team.id) {
-    const { error } = await supabase.from('construction_teams').update(team).eq('id', team.id);
+    const { id, ...rest } = team;
+    const { error } = await supabase.from('construction_teams').update(rest).eq('id', id);
     if (error) throw error;
   } else {
-    const { error } = await supabase.from('construction_teams').insert(team);
+    const { id, ...rest } = team;
+    const { error } = await supabase.from('construction_teams').insert({ ...rest, nume: rest.nume || 'Echipă nouă' });
     if (error) throw error;
   }
 }
