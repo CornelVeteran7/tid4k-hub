@@ -14,7 +14,7 @@ export interface FacebookPost {
 }
 
 export async function getFacebookSettings(): Promise<FacebookSettings> {
-  const { data } = await supabase.from('facebook_settings').select('*').limit(1).single();
+  const { data } = await supabase.from('facebook_settings').select('*').limit(1).maybeSingle();
   return {
     page_id: data?.page_id || '',
     token_status: (data?.token_status as 'activ' | 'expirat') || 'activ',

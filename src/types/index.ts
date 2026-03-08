@@ -179,7 +179,7 @@ export interface Story {
   titlu: string;
   continut: string;
   categorie: 'educative' | 'morale' | 'distractive';
-  varsta: '3-5' | '5-7' | '7-10';
+  varsta: '3-4' | '4-5' | '5-6' | '3-5' | '5-7' | '7-10';
   thumbnail?: string;
   audio_url?: string;
   favorit?: boolean;

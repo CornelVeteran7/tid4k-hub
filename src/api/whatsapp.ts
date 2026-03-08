@@ -9,7 +9,7 @@ export interface WhatsappMapping {
 }
 
 export async function getWhatsappMappings(): Promise<WhatsappMapping[]> {
-  const { data, error } = await supabase.from('whatsapp_mappings').select('*');
+  const { data, error } = await (supabase as any).from('whatsapp_mappings').select('*');
   if (error) throw error;
   return (data || []).map(m => ({
     id: m.id,
@@ -21,7 +21,7 @@ export async function getWhatsappMappings(): Promise<WhatsappMapping[]> {
 }
 
 export async function createMapping(mapping: Partial<WhatsappMapping>): Promise<WhatsappMapping> {
-  const { data, error } = await supabase.from('whatsapp_mappings').insert({
+  const { data, error } = await (supabase as any).from('whatsapp_mappings').insert({
     grupa: mapping.grupa || '',
     whatsapp_group: mapping.whatsapp_group || '',
     consent: mapping.consent ?? true,
