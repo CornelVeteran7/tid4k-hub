@@ -42,7 +42,11 @@ async function buildUserSession(authUser: User): Promise<UserSession> {
       .select('vertical_type, name')
       .eq('id', profile.organization_id)
       .single();
-    if (org) orgInfo = { vertical_type: org.vertical_type, name: org.name };
+    if (org) {
+      orgInfo = { vertical_type: org.vertical_type, name: org.name };
+      // Apply org branding colors on login
+      loadAndApplyBranding(org as any);
+    }
   }
 
   // Fetch user's groups
