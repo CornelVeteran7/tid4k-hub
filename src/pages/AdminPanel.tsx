@@ -12,6 +12,7 @@ import SettingsTab from '@/components/admin/SettingsTab';
 import WorkshopsTab from '@/components/admin/WorkshopsTab';
 import DocsTab from '@/components/admin/DocsTab';
 import BrandingTab from '@/components/admin/BrandingTab';
+import UserGuideTab from '@/components/admin/UserGuideTab';
 
 const TABS = [
   { value: 'scoli', label: 'Școli', icon: School },
