@@ -26,6 +26,7 @@ import SponsorAdmin from "./pages/SponsorAdmin";
 import Infodisplay from "./pages/Infodisplay";
 import SocialMediaFacebook from "./pages/SocialMediaFacebook";
 import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
+import ConstructionDashboard from "./pages/ConstructionDashboard";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
@@ -72,6 +73,7 @@ function ProtectedRoutes() {
             <Route path="/social-facebook" element={<SocialMediaFacebook />} />
             <Route path="/social-whatsapp" element={<SocialMediaWhatsapp />} />
             <Route path="/profil" element={<MyProfile />} />
+            <Route path="/santiere" element={<ConstructionDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
