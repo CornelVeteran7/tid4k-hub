@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import type { UserSession, GroupInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
@@ -93,33 +93,47 @@ async function buildUserSession(authUser: User): Promise<UserSession> {
   };
 }
 
+const DEMO_SESSION: UserSession = {
+  id: 'demo-user-00000000',
+  nume_prenume: 'Admin Demo',
+  telefon: '',
+  email: 'demo@infodisplay.ro',
+  status: 'administrator,inky',
+  avatar_url: '',
+  grupa_clasa_copil: 'fluturasi',
+  numar_grupe_clase_utilizator: 2,
+  index_grupa_clasa_curenta: 0,
+  grupe_disponibile: [
+    { id: 'fluturasi', nume: 'Grupa Fluturași', tip: 'gradinita' },
+    { id: 'albinute', nume: 'Grupa Albinuțe', tip: 'gradinita' },
+  ],
+  organization_id: undefined,
+  vertical_type: 'kids',
+  org_name: 'Grădinița Demo',
+};
+
+function getInitialDemoState(): { user: UserSession | null; isDemo: boolean } {
+  try {
+    if (sessionStorage.getItem('demo_mode') === '1') {
+      return { user: DEMO_SESSION, isDemo: true };
+    }
+  } catch {}
+  return { user: null, isDemo: false };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserSession | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDemo, setIsDemo] = useState(false);
+  const initialDemo = getInitialDemoState();
+  const [user, setUser] = useState<UserSession | null>(initialDemo.user);
+  const [isLoading, setIsLoading] = useState(!initialDemo.isDemo);
+  const [isDemo, setIsDemo] = useState(initialDemo.isDemo);
+  const isDemoRef = useRef(initialDemo.isDemo);
 
   const setDemoUser = useCallback(() => {
-    const demoSession: UserSession = {
-      id: 'demo-user-00000000',
-      nume_prenume: 'Admin Demo',
-      telefon: '',
-      email: 'demo@infodisplay.ro',
-      status: 'administrator,inky',
-      avatar_url: '',
-      grupa_clasa_copil: 'fluturasi',
-      numar_grupe_clase_utilizator: 2,
-      index_grupa_clasa_curenta: 0,
-      grupe_disponibile: [
-        { id: 'fluturasi', nume: 'Grupa Fluturași', tip: 'gradinita' },
-        { id: 'albinute', nume: 'Grupa Albinuțe', tip: 'gradinita' },
-      ],
-      organization_id: undefined,
-      vertical_type: 'kids',
-      org_name: 'Grădinița Demo',
-    };
-    setUser(demoSession);
+    setUser(DEMO_SESSION);
     setIsDemo(true);
+    isDemoRef.current = true;
     setIsLoading(false);
+    try { sessionStorage.setItem('demo_mode', '1'); } catch {}
   }, []);
 
   useEffect(() => {
@@ -136,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           setIsLoading(false);
         }, 0);
-      } else {
+      } else if (!isDemoRef.current) {
         setUser(null);
         setIsLoading(false);
       }
@@ -144,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Then check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (isDemoRef.current) return; // Don't override demo session
       if (session?.user) {
         try {
           const userSession = await buildUserSession(session.user);
@@ -197,12 +212,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logoutFn = useCallback(async () => {
-    if (!isDemo) {
+    if (!isDemoRef.current) {
       await supabase.auth.signOut();
     }
     setUser(null);
     setIsDemo(false);
-  }, [isDemo]);
+    isDemoRef.current = false;
+    try { sessionStorage.removeItem('demo_mode'); } catch {}
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, isDemo, login, signUp, loginWithGoogle, qrLogin, logout: logoutFn, setDemoUser }}>
