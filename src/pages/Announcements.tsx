@@ -96,6 +96,10 @@ export default function Announcements() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label>Data expirare (opțional)</Label>
+                  <Input type="date" value={newExpiry} onChange={(e) => setNewExpiry(e.target.value)} />
+                </div>
                 <Button className="w-full" onClick={handleCreate}>Publică</Button>
               </div>
             </DialogContent>
