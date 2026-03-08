@@ -924,6 +924,41 @@ export type Database = {
           },
         ]
       }
+      org_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          created_at: string
+          id: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value?: Json
+          created_at?: string
+          id?: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          created_at?: string
+          id?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
@@ -933,6 +968,7 @@ export type Database = {
           nfc_enabled: boolean | null
           primary_color: string | null
           secondary_color: string | null
+          slug: string | null
           vertical_type: Database["public"]["Enums"]["vertical_type"]
         }
         Insert: {
@@ -943,6 +979,7 @@ export type Database = {
           nfc_enabled?: boolean | null
           primary_color?: string | null
           secondary_color?: string | null
+          slug?: string | null
           vertical_type?: Database["public"]["Enums"]["vertical_type"]
         }
         Update: {
@@ -953,6 +990,7 @@ export type Database = {
           nfc_enabled?: boolean | null
           primary_color?: string | null
           secondary_color?: string | null
+          slug?: string | null
           vertical_type?: Database["public"]["Enums"]["vertical_type"]
         }
         Relationships: []
