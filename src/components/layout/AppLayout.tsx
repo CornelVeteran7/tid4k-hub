@@ -104,6 +104,7 @@ const ADMIN_NAV = [
 
 
 const INKY_ITEMS = [
+{ path: '/superadmin', label: 'Super Admin', icon: Settings },
 { path: '/orar-cancelarie', label: 'Orar CANCELARIE', icon: Calendar }];
 
 
