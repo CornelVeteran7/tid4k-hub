@@ -55,7 +55,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   medicine: {
     label: 'Medicină',
     description: 'Infodisplay pentru cabinete și clinici',
-    defaultModules: ['documente', 'mesaje', 'orar', 'anunturi', 'imagini', 'coada'],
+    defaultModules: ['documente', 'mesaje', 'orar', 'anunturi', 'imagini', 'coada', 'video'],
     entityLabel: 'Cabinet',
     entityLabelPlural: 'Cabinete',
     memberLabel: 'Pacient',
