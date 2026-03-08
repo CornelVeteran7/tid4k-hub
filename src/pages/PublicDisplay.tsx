@@ -172,7 +172,7 @@ export default function PublicDisplay() {
       // Menu for today
       todayKey && dayIndex < 5
         ? supabase.from('menu_items').select('masa, continut, emoji')
-            .eq('organization_id', orgId).eq('saptamana', weekStart).eq('zi', todayKey)
+            .eq('organization_id', orgId).eq('saptamana', isoWeek).eq('zi', todayKey)
         : Promise.resolve({ data: [] as any[] }),
       // Schedule for today
       supabase.from('schedule').select('ora, materie, profesor, culoare')
