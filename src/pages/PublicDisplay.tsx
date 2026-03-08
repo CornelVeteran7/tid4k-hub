@@ -139,14 +139,11 @@ export default function PublicDisplay() {
     const todayDate = format(now, 'yyyy-MM-dd');
     const dayOfWeek = now.getDay();
     const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    const todayKey = DAYS_RO[dayIndex] || '';
-    // Convert to ISO week format to match menu_items.saptamana
-    const isoWeek = (() => {
-      const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-      const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-      return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+    const dayNum = dayIndex + 1; // 1=Mon..5=Fri
+    const mondayDate = (() => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - dayIndex);
+      return format(d, 'yyyy-MM-dd');
     })();
     const todayRO = ['duminica', 'luni', 'marti', 'miercuri', 'joi', 'vineri', 'sambata'][dayOfWeek] || '';
 
@@ -156,7 +153,7 @@ export default function PublicDisplay() {
       { data: ticker },
       { data: qr },
       { data: announcements },
-      { data: menuItems },
+      menuWeekResult,
       { data: scheduleItems },
       { data: queueData },
       { data: tasksData },
@@ -169,11 +166,29 @@ export default function PublicDisplay() {
         .eq('organization_id', orgId).eq('ascuns_banda', false)
         .or('data_expirare.is.null,data_expirare.gt.' + todayISO)
         .order('created_at', { ascending: false }).limit(15),
-      // Menu for today
-      todayKey && dayIndex < 5
-        ? supabase.from('menu_items').select('masa, continut, emoji')
-            .eq('organization_id', orgId).eq('saptamana', isoWeek).eq('zi', todayKey)
-        : Promise.resolve({ data: [] as any[] }),
+      // Menu for today — from new OMS schema
+      (async () => {
+        if (dayNum > 5) return [] as MenuSlide[];
+        const { data: mw } = await supabase.from('menu_weeks').select('id')
+          .eq('organization_id', orgId).eq('week_start_date', mondayDate).eq('status', 'published').maybeSingle();
+        if (!mw) return [] as MenuSlide[];
+        const { data: meals } = await supabase.from('menu_meals').select('id, meal_type')
+          .eq('menu_week_id', mw.id).eq('day_of_week', dayNum);
+        if (!meals || meals.length === 0) return [] as MenuSlide[];
+        const mealIds = meals.map(m => m.id);
+        const { data: dishes } = await supabase.from('menu_dishes').select('menu_meal_id, dish_name').in('menu_meal_id', mealIds).order('ordine');
+        // Group dish names by meal_type
+        const mealMap = new Map(meals.map(m => [m.id, m.meal_type]));
+        const grouped = new Map<string, string[]>();
+        (dishes || []).forEach(d => {
+          const mt = mealMap.get(d.menu_meal_id) || '';
+          if (!grouped.has(mt)) grouped.set(mt, []);
+          grouped.get(mt)!.push(d.dish_name);
+        });
+        return Array.from(grouped.entries()).map(([masa, names]) => ({
+          masa, continut: names.join(', '), emoji: null,
+        })) as MenuSlide[];
+      })(),
       // Schedule for today
       supabase.from('schedule').select('ora, materie, profesor, culoare')
         .eq('organization_id', orgId).eq('zi', todayRO).order('ora'),
