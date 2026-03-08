@@ -47,7 +47,7 @@ export default function QRCancelarie() {
       const { data: orgData } = await supabase
         .from('organizations')
         .select('id, name, logo_url, primary_color, vertical_type')
-        .eq('name', orgSlug || '')
+        .eq('slug', orgSlug || '')
         .maybeSingle();
 
       if (orgData) setOrg(orgData as OrgInfo);

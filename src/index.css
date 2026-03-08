@@ -280,11 +280,12 @@ html, body {
 
 /* Ticker: continuous scroll, GPU-accelerated */
 @keyframes display-ticker {
-  0% { transform: translate3d(100%, 0, 0); }
-  100% { transform: translate3d(-100%, 0, 0); }
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-33.333%, 0, 0); }
 }
 .display-ticker-track {
-  animation: display-ticker 35s linear infinite;
+  display: inline-block;
+  animation: display-ticker 30s linear infinite;
   will-change: transform;
   backface-visibility: hidden;
 }
