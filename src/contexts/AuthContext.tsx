@@ -8,10 +8,12 @@ interface AuthContextType {
   user: UserSession | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isDemo: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
+  setDemoUser: () => void;
   // Legacy compatibility
   qrLogin: (sessionId: string) => Promise<void>;
 }
@@ -94,6 +96,31 @@ async function buildUserSession(authUser: User): Promise<UserSession> {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDemo, setIsDemo] = useState(false);
+
+  const setDemoUser = useCallback(() => {
+    const demoSession: UserSession = {
+      id: 'demo-user-00000000',
+      nume_prenume: 'Admin Demo',
+      telefon: '',
+      email: 'demo@infodisplay.ro',
+      status: 'administrator,inky',
+      avatar_url: '',
+      grupa_clasa_copil: 'fluturasi',
+      numar_grupe_clase_utilizator: 2,
+      index_grupa_clasa_curenta: 0,
+      grupe_disponibile: [
+        { id: 'fluturasi', nume: 'Grupa Fluturași', tip: 'gradinita' },
+        { id: 'albinute', nume: 'Grupa Albinuțe', tip: 'gradinita' },
+      ],
+      organization_id: undefined,
+      vertical_type: 'kids',
+      org_name: 'Grădinița Demo',
+    };
+    setUser(demoSession);
+    setIsDemo(true);
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -170,12 +197,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logoutFn = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (!isDemo) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
-  }, []);
+    setIsDemo(false);
+  }, [isDemo]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, signUp, loginWithGoogle, qrLogin, logout: logoutFn }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, isDemo, login, signUp, loginWithGoogle, qrLogin, logout: logoutFn, setDemoUser }}>
       {children}
     </AuthContext.Provider>
   );
