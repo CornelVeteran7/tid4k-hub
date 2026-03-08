@@ -29,6 +29,8 @@ export default function Announcements() {
   const [newPriority, setNewPriority] = useState<'normal' | 'urgent'>('normal');
   const [newExpiry, setNewExpiry] = useState('');
   const [showAdmin, setShowAdmin] = useState(false);
+  const [sendWhatsapp, setSendWhatsapp] = useState(false);
+  const [sendFacebook, setSendFacebook] = useState(false);
 
   const canCreate = user && (areRol(user.status, 'profesor') || areRol(user.status, 'administrator'));
 
