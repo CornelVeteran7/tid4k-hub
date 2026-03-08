@@ -285,6 +285,45 @@ export async function getContributions(
   return { children: result, grandTotal: result.reduce((s, c) => s + c.total, 0) };
 }
 
+/** Parent-specific: only get contributions for their own children */
+export async function getParentContributions(
+  parentId: string,
+  month: number,
+  year: number,
+  dailyRate: number
+): Promise<{ children: { id: string; nume: string; zile_prezent: number; total: number }[]; grandTotal: number }> {
+  const { data: children } = await supabase
+    .from('children')
+    .select('id, nume_prenume')
+    .eq('parinte_id', parentId)
+    .order('nume_prenume');
+
+  if (!children || children.length === 0) return { children: [], grandTotal: 0 };
+
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+
+  const { data: attendance } = await supabase
+    .from('attendance')
+    .select('child_id, prezent')
+    .in('child_id', children.map(c => c.id))
+    .gte('data', startDate)
+    .lte('data', endDate)
+    .eq('prezent', true);
+
+  const countMap = new Map<string, number>();
+  (attendance || []).forEach(a => {
+    countMap.set(a.child_id, (countMap.get(a.child_id) || 0) + 1);
+  });
+
+  const result = children.map(c => {
+    const days = countMap.get(c.id) || 0;
+    return { id: c.id, nume: c.nume_prenume, zile_prezent: days, total: days * dailyRate };
+  });
+
+  return { children: result, grandTotal: result.reduce((s, c) => s + c.total, 0) };
+}
+
 export async function saveMonthlyContributions(
   groupSlugOrId: string,
   month: number,
