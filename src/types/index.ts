@@ -15,6 +15,9 @@ export interface UserSession {
   numar_grupe_clase_utilizator: number;
   index_grupa_clasa_curenta: number;
   grupe_disponibile: GroupInfo[];
+  organization_id?: string;
+  vertical_type?: string;
+  org_name?: string;
 }
 
 export type UserRole = 'parinte' | 'profesor' | 'director' | 'administrator' | 'secretara' | 'sponsor' | 'inky';

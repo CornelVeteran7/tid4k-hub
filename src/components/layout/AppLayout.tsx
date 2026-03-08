@@ -140,6 +140,8 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const userIsInky = isInky(userStatus, user.nume_prenume);
   const userRoles = getRoles(userStatus);
   const isHome = location.pathname === '/';
+  const verticalType = (user?.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
 
   const showGroupSelector =
   areRol(userStatus, 'director') ||
@@ -150,7 +152,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const canSee = (roles: string[]) =>
   roles.some((role) => areRol(userStatus, role) || userIsInky);
 
-  const visibleSecondary = SECONDARY_NAV.filter((i) => canSee(i.roles));
+  const visibleSecondary = SECONDARY_NAV.filter((i) => canSee(i.roles) && verticalDef.defaultModules.includes(i.moduleKey));
   const visibleAdmin = ADMIN_NAV.filter((i) => canSee(i.roles));
 
   const navLinkClass = "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors";

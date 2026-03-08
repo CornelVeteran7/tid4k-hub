@@ -579,6 +579,7 @@ export default function Dashboard() {
               onToggle={handleToggle}
               moduleOrder={moduleOrder}
               onReorder={(order) => { setModuleOrder(order); saveModuleOrder(order); }}
+              verticalModules={verticalDef.defaultModules}
             />
           </div>
 

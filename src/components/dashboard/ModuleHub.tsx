@@ -141,8 +141,12 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
 
   // In edit mode show ALL modules (so user can toggle hidden ones on); in normal mode filter
   let displayModules = editMode
-    ? orderedModules
-    : orderedModules.filter(m => visibility[m.key as keyof ModuleVisibility]);
+    ? orderedModules.filter(m => !verticalModules || verticalModules.includes(m.key))
+    : orderedModules.filter(m => {
+        const visible = visibility[m.key as keyof ModuleVisibility];
+        const inVertical = !verticalModules || verticalModules.includes(m.key);
+        return visible && inVertical;
+      });
 
   // Filter by search (only in normal mode)
   if (!editMode && searchQuery && searchQuery.trim()) {
