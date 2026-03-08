@@ -199,7 +199,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
                         <td
                           key={cellKey}
                           className={cn("border p-2.5 text-xs leading-relaxed cursor-pointer hover:bg-muted/30 transition-colors", isToday(zi) && "bg-primary/5 border-primary/20")}
-                          onDoubleClick={() => isAdmin && setEditingCell(cellKey)}
+                          onDoubleClick={() => canEdit && setEditingCell(cellKey)}
                         >
                           {editingCell === cellKey ? (
                             <Input
