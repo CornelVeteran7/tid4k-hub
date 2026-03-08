@@ -197,9 +197,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logoutFn = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (!isDemo) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
-  }, []);
+    setIsDemo(false);
+  }, [isDemo]);
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, signUp, loginWithGoogle, qrLogin, logout: logoutFn }}>
