@@ -156,8 +156,16 @@ export default function VideoGenerationPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  {job.status === 'ready' && (
-                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => toast.info('Download simulat')}>
+                  {job.status === 'ready' && job.download_url && (
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = job.download_url!;
+                      link.download = `video-${job.id}.mp4`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      toast.success('Descărcare inițiată!');
+                    }}>
                       <Download className="h-4 w-4" /> Descarcă
                     </Button>
                   )}

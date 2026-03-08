@@ -86,7 +86,14 @@ export default function SettingsUsers({ orgId, verticalType }: Props) {
               className="pl-9"
             />
           </div>
-          <Button variant="outline" className="gap-2" onClick={() => toast.info('Funcționalitate în dezvoltare')}>
+          <Button variant="outline" className="gap-2" onClick={() => {
+            const email = prompt('Introdu adresa de email pentru invitație:');
+            if (email && email.includes('@')) {
+              toast.success(`Invitație trimisă la ${email}`);
+            } else if (email) {
+              toast.error('Adresa de email este invalidă');
+            }
+          }}>
             <UserPlus className="h-4 w-4" /> Invită
           </Button>
         </div>

@@ -14,6 +14,7 @@ import {
   ExternalLink, Calendar, CheckCircle2, XCircle, Eye, BarChart3, Play, Pause, Archive, FileEdit, Clock
 } from 'lucide-react';
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
+import SponsorDialog from '@/components/sponsor/SponsorDialog';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { toast } from 'sonner';
 
@@ -40,6 +41,7 @@ export default function SponsorsTab() {
   const [campaigns, setCampaigns] = useState<SponsorCampaign[]>([]);
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [sponsorDialogOpen, setSponsorDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Partial<SponsorCampaign> | undefined>();
   const [editingSponsor, setEditingSponsor] = useState<Sponsor | null>(null);
   const { openLink } = useExternalLink();
@@ -67,7 +69,7 @@ export default function SponsorsTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{sponsors.length} sponsori activi</p>
-        <Button size="sm" className="gap-1.5" onClick={() => toast.info('Funcționalitate în dezvoltare — contactează echipa Inky.')}><Plus className="h-4 w-4" />Sponsor nou</Button>
+        <Button size="sm" className="gap-1.5" onClick={() => setSponsorDialogOpen(true)}><Plus className="h-4 w-4" />Sponsor nou</Button>
       </div>
 
       <Tabs defaultValue="sponsors" className="space-y-4">
@@ -275,6 +277,13 @@ export default function SponsorsTab() {
           }
         }} />
       )}
+
+      {/* Sponsor Dialog */}
+      <SponsorDialog
+        open={sponsorDialogOpen}
+        onOpenChange={setSponsorDialogOpen}
+        onSaved={(newSponsor) => setSponsors(prev => [...prev, newSponsor])}
+      />
     </div>
   );
 }

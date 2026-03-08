@@ -1,9 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ClipboardList, Image, FileText, BookOpen, UtensilsCrossed, MessageSquare, History, BarChart3, UserCircle, UserPlus, ChevronRight } from 'lucide-react';
+import { ClipboardList, Image, FileText, BookOpen, UtensilsCrossed, MessageSquare, History, BarChart3, UserCircle, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import type { ModuleVisibility } from './ModuleHub';
 
 const MODULE_ITEMS = [
@@ -18,8 +17,7 @@ const MODULE_ITEMS = [
 const NAV_LINKS = [
   { label: 'Istoric prezență', icon: History, route: '/prezenta' },
   { label: 'Statistici', icon: BarChart3, route: '/rapoarte' },
-  { label: 'Profilul meu', icon: UserCircle, route: null },
-  { label: 'Adaugă copii', icon: UserPlus, route: null },
+  { label: 'Profilul meu', icon: UserCircle, route: '/profil' },
 ];
 
 interface ConfigSidebarProps {
@@ -64,12 +62,8 @@ export default function ConfigSidebar({ open, onOpenChange, visibility, onToggle
             <button
               key={link.label}
               onClick={() => {
-                if (link.route) {
-                  navigate(link.route);
-                  onOpenChange(false);
-                } else {
-                  toast.info('În curând!');
-                }
+                navigate(link.route);
+                onOpenChange(false);
               }}
               className="w-full flex items-center gap-3 py-3 px-1 rounded-lg hover:bg-muted/50 transition-colors card-tappable"
             >

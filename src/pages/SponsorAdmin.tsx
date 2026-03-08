@@ -15,6 +15,7 @@ import {
   TrendingUp, MousePointerClick, Target
 } from 'lucide-react';
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
+import SponsorDialog from '@/components/sponsor/SponsorDialog';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -43,6 +44,7 @@ export default function SponsorAdmin() {
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
   const [stats, setStats] = useState<SponsorStats | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [sponsorDialogOpen, setSponsorDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Partial<SponsorCampaign> | undefined>();
   const { openLink } = useExternalLink();
 
@@ -122,6 +124,7 @@ export default function SponsorAdmin() {
             totalAfisari={totalAfisari}
             totalClickuri={totalClickuri}
             onSelect={openSponsorDetail}
+            onNewSponsor={() => setSponsorDialogOpen(true)}
           />
         ) : (
           <SponsorDetail
@@ -154,13 +157,20 @@ export default function SponsorAdmin() {
           onSave={handleSaveCampaign}
         />
       )}
+
+      {/* Sponsor Dialog */}
+      <SponsorDialog
+        open={sponsorDialogOpen}
+        onOpenChange={setSponsorDialogOpen}
+        onSaved={(newSponsor) => setSponsors(prev => [...prev, newSponsor])}
+      />
     </div>
   );
 }
 
 // ========== SPONSOR LIST VIEW ==========
 function SponsorList({
-  sponsors, campaigns, promos, plans, totalAfisari, totalClickuri, onSelect,
+  sponsors, campaigns, promos, plans, totalAfisari, totalClickuri, onSelect, onNewSponsor,
 }: {
   sponsors: Sponsor[];
   campaigns: SponsorCampaign[];
@@ -169,6 +179,7 @@ function SponsorList({
   totalAfisari: number;
   totalClickuri: number;
   onSelect: (s: Sponsor) => void;
+  onNewSponsor: () => void;
 }) {
   const avgCtr = totalAfisari > 0 ? ((totalClickuri / totalAfisari) * 100).toFixed(1) : '0';
 
@@ -191,7 +202,7 @@ function SponsorList({
             Selectează un sponsor pentru a vedea detaliile complete
           </p>
         </div>
-        <Button className="gap-2" onClick={() => toast.info('Funcționalitate în dezvoltare — contactează echipa Inky pentru a adăuga un sponsor nou.')}>
+        <Button className="gap-2" onClick={onNewSponsor}>
           <Plus className="h-4 w-4" />
           Sponsor nou
         </Button>
