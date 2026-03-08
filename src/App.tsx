@@ -80,6 +80,10 @@ function ProtectedRoutes() {
             <Route path="/profil" element={<MyProfile />} />
             <Route path="/santiere" element={<ConstructionDashboard />} />
             <Route path="/santiere/worker" element={<ConstructionWorker />} />
+            <Route path="/inventar" element={<InventoryPage />} />
+            <Route path="/ssm" element={<SSMPage />} />
+            <Route path="/revista" element={<MagazinePage />} />
+            <Route path="/supratitrare" element={<SurtitlesPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
