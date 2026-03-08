@@ -33,6 +33,8 @@ import SSMPage from "./pages/SSM";
 import MagazinePage from "./pages/Magazine";
 import SurtitlesPage from "./pages/Surtitles";
 import VideoGenerationPage from "./pages/VideoGeneration";
+import QueueAdmin from "./pages/QueueAdmin";
+import QueueTicket from "./pages/QueueTicket";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
@@ -86,6 +88,7 @@ function ProtectedRoutes() {
             <Route path="/revista" element={<MagazinePage />} />
             <Route path="/supratitrare" element={<SurtitlesPage />} />
             <Route path="/video" element={<VideoGenerationPage />} />
+            <Route path="/coada" element={<QueueAdmin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
@@ -108,6 +111,7 @@ const App = () => (
                 {/* Public routes — no auth required */}
                 <Route path="/display/:orgSlug" element={<PublicDisplay />} />
                 <Route path="/qr/:orgSlug" element={<QRCancelarie />} />
+                <Route path="/queue/:orgSlug" element={<QueueTicket />} />
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
             </AuthProvider>
