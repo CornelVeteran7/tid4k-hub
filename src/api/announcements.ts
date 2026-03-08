@@ -1,29 +1,76 @@
-import { USE_MOCK, apiFetch } from './config';
+import { supabase } from '@/integrations/supabase/client';
 import type { Announcement } from '@/types';
 
-const mockAnnouncements: Announcement[] = [
-  { id_info: 1, titlu: 'Excursie la Grădina Botanică', continut: 'Dragi părinți, vă anunțăm că pe data de 5 martie vom organiza o excursie la Grădina Botanică. Vă rugăm să completați acordul parental.', data_upload: '2026-02-23T08:00:00', autor: 'Maria Popescu', prioritate: 'normal', target: 'grupa_mare', citit: false, ascuns_banda: false, pozitie_banda: 1 },
-  { id_info: 2, titlu: 'Atenție! Modificare program', continut: 'Din cauza condițiilor meteo, programul de mâine va fi modificat. Grădinița se va deschide la ora 8:30 în loc de 8:00.', data_upload: '2026-02-22T14:00:00', autor: 'Vasile Georgescu', prioritate: 'urgent', target: 'scoala', citit: true, ascuns_banda: false, pozitie_banda: 2 },
-  { id_info: 3, titlu: 'Ședință cu părinții', continut: 'Vă invităm la ședința cu părinții care va avea loc joi, 27 februarie, ora 17:00.', data_upload: '2026-02-20T10:00:00', autor: 'Maria Popescu', prioritate: 'normal', target: 'grupa_mare', citit: true, ascuns_banda: true },
-  { id_info: 4, titlu: 'Meniu nou pentru luna martie', continut: 'Meniul pentru luna martie a fost actualizat. Îl puteți consulta în secțiunea Meniul Săptămânal.', data_upload: '2026-02-19T09:00:00', autor: 'Vasile Georgescu', prioritate: 'normal', target: 'scoala', citit: false, ascuns_banda: false, pozitie_banda: 3 },
-];
-
 export async function getAnnouncements(grupa?: string): Promise<Announcement[]> {
-  if (USE_MOCK) return grupa ? mockAnnouncements.filter((a) => a.target === grupa || a.target === 'scoala') : mockAnnouncements;
-  return apiFetch<Announcement[]>(`/anunturi.php?action=list${grupa ? `&grupa=${grupa}` : ''}`);
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let query = supabase.from('announcements').select('*').order('created_at', { ascending: false });
+  if (grupa) {
+    query = query.or(`target.eq.${grupa},target.eq.scoala`);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  // Check read status
+  let readIds = new Set<string>();
+  if (user) {
+    const { data: reads } = await supabase
+      .from('announcement_reads')
+      .select('announcement_id')
+      .eq('user_id', user.id);
+    readIds = new Set((reads || []).map(r => r.announcement_id));
+  }
+
+  return (data || []).map(a => ({
+    id: a.id,
+    titlu: a.titlu,
+    continut: a.continut,
+    data_upload: a.created_at,
+    autor: a.autor_nume || '',
+    prioritate: a.prioritate as 'normal' | 'urgent',
+    target: a.target || 'scoala',
+    citit: readIds.has(a.id),
+    ascuns_banda: a.ascuns_banda || false,
+    pozitie_banda: a.pozitie_banda || undefined,
+  }));
 }
 
 export async function createAnnouncement(ann: Partial<Announcement>): Promise<Announcement> {
-  if (USE_MOCK) return { ...ann, id_info: Date.now(), data_upload: new Date().toISOString(), citit: false, ascuns_banda: false } as Announcement;
-  return apiFetch<Announcement>('/anunturi.php?action=create', { method: 'POST', body: JSON.stringify(ann) });
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from('profiles').select('nume_prenume').eq('id', user?.id).single();
+
+  const { data, error } = await supabase.from('announcements').insert({
+    titlu: ann.titlu || '',
+    continut: ann.continut || '',
+    autor_id: user?.id || null,
+    autor_nume: profile?.nume_prenume || ann.autor || '',
+    prioritate: ann.prioritate || 'normal',
+    target: ann.target || 'scoala',
+    ascuns_banda: ann.ascuns_banda || false,
+    pozitie_banda: ann.pozitie_banda || null,
+  }).select().single();
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    titlu: data.titlu,
+    continut: data.continut,
+    data_upload: data.created_at,
+    autor: data.autor_nume || '',
+    prioritate: data.prioritate as 'normal' | 'urgent',
+    target: data.target || 'scoala',
+    citit: false,
+    ascuns_banda: data.ascuns_banda || false,
+    pozitie_banda: data.pozitie_banda || undefined,
+  };
 }
 
-export async function hideFromTicker(id: number): Promise<void> {
-  if (USE_MOCK) return;
-  await apiFetch(`/anunturi.php?action=hide_banda&id=${id}`, { method: 'POST' });
+export async function hideFromTicker(id: string): Promise<void> {
+  await supabase.from('announcements').update({ ascuns_banda: true, pozitie_banda: null }).eq('id', id);
 }
 
-export async function restoreToTicker(id: number): Promise<void> {
-  if (USE_MOCK) return;
-  await apiFetch(`/anunturi.php?action=restore_banda&id=${id}`, { method: 'POST' });
+export async function restoreToTicker(id: string): Promise<void> {
+  await supabase.from('announcements').update({ ascuns_banda: false }).eq('id', id);
 }

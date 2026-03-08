@@ -1,39 +1,68 @@
-import { USE_MOCK, apiFetch } from './config';
+import { supabase } from '@/integrations/supabase/client';
 import type { ScheduleCell, CancelarieTeacher } from '@/types';
 
-const mockSchedule: ScheduleCell[] = [
-  { zi: 'Luni', ora: '08:00', materie: 'Limba Română', profesor: 'Maria Popescu', culoare: '#E3F2FD' },
-  { zi: 'Luni', ora: '09:00', materie: 'Matematică', profesor: 'Ana Dumitrescu', culoare: '#FFF3E0' },
-  { zi: 'Luni', ora: '10:00', materie: 'Educație fizică', profesor: 'Dan Marin', culoare: '#E8F5E9' },
-  { zi: 'Luni', ora: '11:00', materie: 'Muzică', profesor: 'Elena Stanescu', culoare: '#F3E5F5' },
-  { zi: 'Marți', ora: '08:00', materie: 'Matematică', profesor: 'Ana Dumitrescu', culoare: '#FFF3E0' },
-  { zi: 'Marți', ora: '09:00', materie: 'Științe', profesor: 'Maria Popescu', culoare: '#E8F5E9' },
-  { zi: 'Marți', ora: '10:00', materie: 'Limba Română', profesor: 'Maria Popescu', culoare: '#E3F2FD' },
-  { zi: 'Miercuri', ora: '08:00', materie: 'Arte plastice', profesor: 'Ana Dumitrescu', culoare: '#FCE4EC' },
-  { zi: 'Miercuri', ora: '09:00', materie: 'Limba Română', profesor: 'Maria Popescu', culoare: '#E3F2FD' },
-  { zi: 'Joi', ora: '08:00', materie: 'Matematică', profesor: 'Ana Dumitrescu', culoare: '#FFF3E0' },
-  { zi: 'Joi', ora: '09:00', materie: 'Educație fizică', profesor: 'Dan Marin', culoare: '#E8F5E9' },
-  { zi: 'Vineri', ora: '08:00', materie: 'Limba Română', profesor: 'Maria Popescu', culoare: '#E3F2FD' },
-  { zi: 'Vineri', ora: '09:00', materie: 'Științe', profesor: 'Maria Popescu', culoare: '#E8F5E9' },
-];
-
-const mockTeachers: CancelarieTeacher[] = [
-  { id: 1, nume: 'Maria Popescu', avatar_url: '/placeholder.svg', qr_data: 'TEACHER_1_QR', absent_dates: ['2026-02-10'], activitati: [{ data: '2026-02-23', descriere: 'Curs formare' }] },
-  { id: 2, nume: 'Ana Dumitrescu', avatar_url: '/placeholder.svg', qr_data: 'TEACHER_2_QR', absent_dates: [], activitati: [] },
-  { id: 3, nume: 'Dan Marin', avatar_url: '/placeholder.svg', qr_data: 'TEACHER_3_QR', absent_dates: ['2026-02-05', '2026-02-06'], activitati: [{ data: '2026-02-20', descriere: 'Pregătire concurs' }] },
-];
-
 export async function getSchedule(grupa: string): Promise<ScheduleCell[]> {
-  if (USE_MOCK) return mockSchedule;
-  return apiFetch<ScheduleCell[]>(`/orar.php?action=get&grupa=${grupa}`);
+  const { data: group } = await supabase.from('groups').select('id').eq('slug', grupa).single();
+  if (!group) return [];
+
+  const { data, error } = await supabase
+    .from('schedule')
+    .select('*')
+    .eq('group_id', group.id)
+    .order('zi')
+    .order('ora');
+
+  if (error) throw error;
+
+  return (data || []).map(s => ({
+    id: s.id,
+    zi: s.zi,
+    ora: s.ora,
+    materie: s.materie,
+    profesor: s.profesor || '',
+    culoare: s.culoare || '#E3F2FD',
+  }));
 }
 
 export async function saveSchedule(grupa: string, cells: ScheduleCell[]): Promise<void> {
-  if (USE_MOCK) return;
-  await apiFetch('/orar.php?action=save', { method: 'POST', body: JSON.stringify({ grupa, cells }) });
+  const { data: group } = await supabase.from('groups').select('id').eq('slug', grupa).single();
+  if (!group) return;
+
+  // Delete existing schedule for this group
+  await supabase.from('schedule').delete().eq('group_id', group.id);
+
+  // Insert new cells
+  if (cells.length > 0) {
+    await supabase.from('schedule').insert(
+      cells.map(c => ({
+        group_id: group.id,
+        zi: c.zi,
+        ora: c.ora,
+        materie: c.materie,
+        profesor: c.profesor,
+        culoare: c.culoare,
+      }))
+    );
+  }
 }
 
 export async function getCancelarieTeachers(): Promise<CancelarieTeacher[]> {
-  if (USE_MOCK) return mockTeachers;
-  return apiFetch<CancelarieTeacher[]>('/orar.php?action=cancelarie');
+  const { data: teachers, error } = await supabase
+    .from('cancelarie_teachers')
+    .select('*, cancelarie_activities(*)')
+    .order('nume');
+
+  if (error) throw error;
+
+  return (teachers || []).map(t => ({
+    id: t.id,
+    nume: t.nume,
+    avatar_url: t.avatar_url || '/placeholder.svg',
+    qr_data: t.qr_data || '',
+    absent_dates: (t.absent_dates || []).map((d: any) => String(d)),
+    activitati: ((t.cancelarie_activities as any[]) || []).map((a: any) => ({
+      data: a.data,
+      descriere: a.descriere,
+    })),
+  }));
 }

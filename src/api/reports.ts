@@ -1,33 +1,48 @@
-import { USE_MOCK, apiFetch } from './config';
+import { supabase } from '@/integrations/supabase/client';
 import type { ReportData } from '@/types';
 
-const mockReport: ReportData = {
-  attendance_trends: Array.from({ length: 30 }, (_, i) => ({
-    data: `2026-02-${String(i + 1).padStart(2, '0')}`,
-    prezenti: Math.floor(Math.random() * 8) + 15,
-    absenti: Math.floor(Math.random() * 5) + 1,
-  })),
-  user_activity: [
-    { nume: 'Maria Popescu', actiuni: 145 },
-    { nume: 'Ion Ionescu', actiuni: 89 },
-    { nume: 'Ana Dumitrescu', actiuni: 112 },
-    { nume: 'Andrei Parinte', actiuni: 67 },
-    { nume: 'Elena Stanescu', actiuni: 34 },
-  ],
-  documents_by_category: [
-    { categorie: 'Activități', numar: 45 },
-    { categorie: 'Administrativ', numar: 23 },
-    { categorie: 'Teme', numar: 31 },
-    { categorie: 'Fotografii', numar: 67 },
-  ],
-};
-
 export async function getAttendanceReport(grupa?: string, startDate?: string, endDate?: string): Promise<ReportData> {
-  if (USE_MOCK) return mockReport;
-  return apiFetch<ReportData>(`/rapoarte.php?action=attendance${grupa ? `&grupa=${grupa}` : ''}${startDate ? `&start=${startDate}` : ''}${endDate ? `&end=${endDate}` : ''}`);
+  // Get attendance data
+  let query = supabase.from('attendance').select('*, children(nume_prenume, group_id, groups(slug))');
+
+  if (startDate) query = query.gte('data', startDate);
+  if (endDate) query = query.lte('data', endDate);
+
+  const { data: attendance } = await query;
+
+  // Filter by group if specified
+  let filtered = attendance || [];
+  if (grupa) {
+    filtered = filtered.filter(a => (a.children as any)?.groups?.slug === grupa);
+  }
+
+  // Build attendance trends
+  const dayMap = new Map<string, { prezenti: number; absenti: number }>();
+  filtered.forEach(a => {
+    const day = dayMap.get(a.data) || { prezenti: 0, absenti: 0 };
+    if (a.prezent) day.prezenti++;
+    else day.absenti++;
+    dayMap.set(a.data, day);
+  });
+  const attendance_trends = Array.from(dayMap.entries())
+    .map(([data, stats]) => ({ data, ...stats }))
+    .sort((a, b) => a.data.localeCompare(b.data));
+
+  // Get documents by category
+  const { data: docs } = await supabase.from('documents').select('categorie');
+  const catMap = new Map<string, number>();
+  (docs || []).forEach(d => {
+    catMap.set(d.categorie || 'altele', (catMap.get(d.categorie || 'altele') || 0) + 1);
+  });
+  const documents_by_category = Array.from(catMap.entries()).map(([categorie, numar]) => ({ categorie, numar }));
+
+  return {
+    attendance_trends,
+    user_activity: [], // Would need activity tracking
+    documents_by_category,
+  };
 }
 
 export async function getActivityReport(): Promise<ReportData> {
-  if (USE_MOCK) return mockReport;
-  return apiFetch<ReportData>('/rapoarte.php?action=activity');
+  return getAttendanceReport();
 }
