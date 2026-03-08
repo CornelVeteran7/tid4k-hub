@@ -108,7 +108,7 @@ export default function UserManagement() {
               </TableHeader>
               <TableBody>
                 {filtered.map((user) => (
-                  <TableRow key={user.id_utilizator}>
+                  <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.nume_prenume}</TableCell>
                     <TableCell className="font-mono text-sm">{user.telefon}</TableCell>
                     <TableCell className="text-sm">{user.email}</TableCell>
