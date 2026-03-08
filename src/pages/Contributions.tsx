@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  getContributions, getContributionConfig, saveContributionConfig,
+  getContributions, getParentContributions, getContributionConfig, saveContributionConfig,
   saveMonthlyContributions, getMonthlyContributions, updateContributionPayment,
 } from '@/api/attendance';
 import { areRol, isInky } from '@/utils/roles';
