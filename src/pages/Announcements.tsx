@@ -136,9 +136,9 @@ export default function Announcements() {
         </Card>
       )}
 
-      {/* Announcements List */}
+      {/* Announcements List (filtered) */}
       <div className="space-y-4">
-        {announcements.map((ann) => (
+        {publicAnnouncements.map((ann) => (
           <Card key={ann.id} className={`glass-card ${ann.prioritate === 'urgent' ? 'border-destructive/50' : ''}`}>
             <CardContent className="p-4 sm:p-5">
               <div className="space-y-3">
