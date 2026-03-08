@@ -135,6 +135,7 @@ export default function SponsorAdmin() {
             onBack={goBack}
             onNewCampaign={() => openEditor()}
             onEditCampaign={(c) => openEditor(c)}
+            onToggleStatus={handleToggleCampaignStatus}
             openLink={openLink}
           />
         )}
