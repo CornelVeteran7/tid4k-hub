@@ -44,9 +44,9 @@ export default function UserManagement() {
     setEditOpen(false);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     await deleteUser(id);
-    setUsers((prev) => prev.filter((u) => u.id_utilizator !== id));
+    setUsers((prev) => prev.filter((u) => u.id !== id));
     toast.success('Utilizator șters!');
   };
 
