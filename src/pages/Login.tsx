@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,15 +8,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, UserPlus, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 import logoBlack from '@/assets/logo-black.png';
+
+interface OrgBranding {
+  name: string;
+  logo_url: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+}
 
 export default function Login() {
   const { login, signUp, loginWithGoogle, isLoading } = useAuth();
+  const { orgSlug } = useParams<{ orgSlug?: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [orgBranding, setOrgBranding] = useState<OrgBranding | null>(null);
+
+  useEffect(() => {
+    if (!orgSlug) return;
+    supabase
+      .from('organizations')
+      .select('name, logo_url, primary_color, secondary_color')
+      .eq('slug', orgSlug)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setOrgBranding(data as OrgBranding);
+      });
+  }, [orgSlug]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,8 +71,17 @@ export default function Login() {
     }
   };
 
+  const primaryColor = orgBranding?.primary_color || undefined;
+  const logoSrc = orgBranding?.logo_url || logoBlack;
+  const orgName = orgBranding?.name || 'TID4K';
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div
+      className="min-h-screen flex items-center justify-center bg-background p-4"
+      style={primaryColor ? {
+        background: `linear-gradient(135deg, ${primaryColor}11 0%, transparent 50%)`,
+      } : undefined}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -58,15 +90,26 @@ export default function Login() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src={logoBlack} alt="InfoDisplay" className="h-12 mx-auto mb-3" />
-          <h1 className="text-2xl font-display font-bold text-foreground">TID4K</h1>
-          <p className="text-sm text-muted-foreground mt-1 font-serif">Talk-to-Infodisplay</p>
+          <img
+            src={logoSrc}
+            alt={orgName}
+            className="h-12 mx-auto mb-3"
+            style={orgBranding?.logo_url ? { height: 56, objectFit: 'contain' } : undefined}
+          />
+          <h1 className="text-2xl font-display font-bold text-foreground">{orgName}</h1>
+          <p className="text-sm text-muted-foreground mt-1 font-serif">
+            {orgBranding ? orgBranding.name : 'Talk-to-Infodisplay'}
+          </p>
         </div>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg" style={primaryColor ? {
+          borderTop: `3px solid ${primaryColor}`,
+        } : undefined}>
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-xl">Autentificare</CardTitle>
-            <CardDescription>Conectează-te la platforma școlară</CardDescription>
+            <CardDescription>
+              {orgBranding ? `Conectează-te la ${orgBranding.name}` : 'Conectează-te la platformă'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
@@ -107,7 +150,12 @@ export default function Login() {
                   </div>
                   {error && <p className="text-sm text-destructive">{error}</p>}
                   {message && <p className="text-sm text-green-600">{message}</p>}
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isLoading}
+                    style={primaryColor ? { backgroundColor: primaryColor } : undefined}
+                  >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Conectare
                   </Button>
@@ -152,7 +200,12 @@ export default function Login() {
                   </div>
                   {error && <p className="text-sm text-destructive">{error}</p>}
                   {message && <p className="text-sm text-green-600">{message}</p>}
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isLoading}
+                    style={primaryColor ? { backgroundColor: primaryColor } : undefined}
+                  >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Creează cont
                   </Button>

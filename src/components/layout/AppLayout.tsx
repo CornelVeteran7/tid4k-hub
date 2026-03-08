@@ -1,5 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
+import { useActiveModules } from '@/hooks/useActiveModules';
 import { useGroup } from '@/contexts/GroupContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import type { NotificationItem } from '@/contexts/NotificationContext';
@@ -154,6 +155,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const isHome = location.pathname === '/';
   const verticalType = (user?.vertical_type || 'kids') as VerticalType;
   const verticalDef = VERTICAL_DEFINITIONS[verticalType];
+  const { activeModules } = useActiveModules(user.organization_id, verticalType);
 
   const showGroupSelector =
   areRol(userStatus, 'director') ||
@@ -166,8 +168,8 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
 
   const visibleSecondary = SECONDARY_NAV.filter((i) => {
     if (!canSee(i.roles)) return false;
-    if (i.verticals) return i.verticals.includes(verticalType);
-    if (i.moduleKey) return verticalDef.defaultModules.includes(i.moduleKey);
+    if (i.verticals && !i.verticals.includes(verticalType)) return false;
+    if (i.moduleKey && !activeModules.has(i.moduleKey)) return false;
     return true;
   });
   const visibleAdmin = ADMIN_NAV.filter((i) => canSee(i.roles));

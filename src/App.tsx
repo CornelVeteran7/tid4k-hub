@@ -111,6 +111,7 @@ const App = () => (
             <AuthProvider>
               <Routes>
                 <Route path="/login" element={<LoginRoute />} />
+                <Route path="/login/:orgSlug" element={<LoginRoute />} />
                 {/* Public routes — no auth required */}
                 <Route path="/display/:orgSlug" element={<PublicDisplay />} />
                 <Route path="/qr/:orgSlug" element={<QRCancelarie />} />
