@@ -663,7 +663,7 @@ function QueueContent({ config }: { config: DisplayConfig }) {
 
 function ConstructionContent({ config }: { config: DisplayConfig }) {
   return (
-    <div className="absolute inset-0 flex" style={{ padding: '100px 48px 64px', gap: 32 }}>
+    <div className="absolute inset-0 flex" style={{ padding: '100px 48px 60px', gap: 32 }}>
       {/* Left: Tasks */}
       <div className="flex-1 flex flex-col">
         <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 20 }}>🏗️ Sarcini active</div>
