@@ -130,7 +130,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   workshops: {
     label: 'Service Auto',
     description: 'Management service auto',
-    defaultModules: ['documente', 'mesaje', 'anunturi', 'orar', 'rapoarte'],
+    defaultModules: ['documente', 'mesaje', 'anunturi', 'orar', 'rapoarte', 'inventar'],
     entityLabel: 'Service',
     entityLabelPlural: 'Service-uri',
     memberLabel: 'Client',
