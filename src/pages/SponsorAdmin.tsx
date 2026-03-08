@@ -89,10 +89,10 @@ export default function SponsorAdmin() {
           />
         ) : (
           <SponsorDetail
-            key={`detail-${selectedSponsor.id_sponsor}`}
+            key={`detail-${selectedSponsor.id}`}
             sponsor={selectedSponsor}
-            promos={promos.filter(p => p.id_sponsor === selectedSponsor.id_sponsor)}
-            campaigns={campaigns.filter(c => c.id_sponsor === selectedSponsor.id_sponsor)}
+            promos={promos.filter(p => p.sponsor_id === selectedSponsor.id)}
+            campaigns={campaigns.filter(c => c.sponsor_id === selectedSponsor.id)}
             stats={stats}
             plan={plans.find(p => p.nume_plan === selectedSponsor.plan) || null}
             schools={schools}
