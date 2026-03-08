@@ -148,7 +148,7 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
                 </div>
                 <div className="flex gap-1 mt-2">
                   <Button variant="ghost" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id_info)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

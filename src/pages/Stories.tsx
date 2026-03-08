@@ -229,7 +229,7 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
                   <Badge className={`text-xs ${AGE_COLORS[story.varsta]}`}>{story.varsta} ani</Badge>
                 </div>
                 <button
-                  onClick={(e) => { e.stopPropagation(); toggleFavorite(story.id_poveste); }}
+                  onClick={(e) => { e.stopPropagation(); toggleFavorite(story.id); }}
                   className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
                 >
                   <Heart className={`h-4 w-4 ${story.favorit ? 'fill-destructive text-destructive' : ''}`} />

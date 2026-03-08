@@ -188,7 +188,7 @@ export default function SponsorDashboard() {
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-3 mt-3">
             {archivedCampaigns.map(campaign => (
-              <Card key={campaign.id_campanie} className="opacity-60">
+              <Card key={campaign.id} className="opacity-60">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>

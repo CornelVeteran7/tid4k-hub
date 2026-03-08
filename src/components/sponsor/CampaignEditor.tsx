@@ -281,17 +281,17 @@ export default function CampaignEditor({ open, onOpenChange, campaign, sponsorNu
                 </label>
                 {!form.scoli_target?.includes('all') && schools.length > 0 && (
                   <div className="pl-4 space-y-1.5 border-l-2 border-muted ml-2">
-                    {schools.map(school => (
-                      <label key={school.id_scoala} className="flex items-center gap-2 text-sm">
+                     {schools.map(school => (
+                      <label key={school.id} className="flex items-center gap-2 text-sm">
                         <input
                           type="checkbox"
-                          checked={form.scoli_target?.includes(school.id_scoala.toString()) || false}
+                          checked={form.scoli_target?.includes(school.id.toString()) || false}
                           onChange={e => {
                             const current = form.scoli_target || [];
                             if (e.target.checked) {
-                              update('scoli_target', [...current, school.id_scoala.toString()]);
+                              update('scoli_target', [...current, school.id.toString()]);
                             } else {
-                              update('scoli_target', current.filter(s => s !== school.id_scoala.toString()));
+                              update('scoli_target', current.filter(s => s !== school.id.toString()));
                             }
                           }}
                           className="rounded"

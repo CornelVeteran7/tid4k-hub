@@ -56,7 +56,7 @@ export default function AdminPanel() {
           <SelectContent>
             <SelectItem value="all">Toate unitățile</SelectItem>
             {schools.map(s => (
-              <SelectItem key={s.id_scoala} value={s.id_scoala.toString()}>
+              <SelectItem key={s.id} value={s.id.toString()}>
                 {s.nume}
               </SelectItem>
             ))}

@@ -309,7 +309,7 @@ export default function MyProfile() {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>ID utilizator: {user.id_utilizator}</span>
+              <span>ID utilizator: {user.id}</span>
               <span>{availableGroups.length} {availableGroups.length === 1 ? 'grupă' : 'grupe'} disponibile</span>
             </div>
           </CardContent>

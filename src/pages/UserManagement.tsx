@@ -136,7 +136,7 @@ export default function UserManagement() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Anulează</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(user.id_utilizator)}>Șterge</AlertDialogAction>
+                              <AlertDialogAction onClick={() => handleDelete(user.id)}>Șterge</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>

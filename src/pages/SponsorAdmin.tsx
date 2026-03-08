@@ -228,7 +228,7 @@ function SponsorList({
                     const meta = PROMO_TYPE_LABELS[p.tip];
                     return (
                       <span
-                        key={p.id_promo}
+                        key={p.id}
                         className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full text-white font-medium"
                         style={{ backgroundColor: meta.color }}
                         title={meta.label}
