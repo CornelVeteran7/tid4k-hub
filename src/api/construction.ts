@@ -176,8 +176,10 @@ export async function getCosts(orgId: string, siteId?: string): Promise<Construc
   return (data || []) as ConstructionCost[];
 }
 
-export async function createCost(cost: Omit<ConstructionCost, 'id' | 'total'>) {
-  const { error } = await supabase.from('construction_costs').insert(cost);
+export async function createCost(cost: Omit<ConstructionCost, 'id'>) {
+  // Ensure total is computed
+  const total = cost.cantitate * cost.pret_unitar;
+  const { error } = await supabase.from('construction_costs').insert({ ...cost, total });
   if (error) throw error;
 }
 

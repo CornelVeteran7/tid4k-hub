@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { getTasks, updateTask, type ConstructionTask } from '@/api/construction';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { ro } from 'date-fns/locale';
 
 export default function ConstructionWorker() {
   const { user } = useAuth();
