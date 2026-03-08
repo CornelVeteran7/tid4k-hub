@@ -127,6 +127,24 @@ export default function SettingsTab({ schoolId, schools }: Props) {
         </Card>
       </Collapsible>
 
+      {/* NFC */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Bell className="h-4 w-4" /> NFC
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">Activare NFC</p>
+              <p className="text-xs text-muted-foreground">Permite scanarea NFC pe paginile relevante</p>
+            </div>
+            <Switch id="nfc-toggle" onCheckedChange={() => toast.success('NFC actualizat!')} />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Notifications */}
       <Collapsible open={openSections.includes('notif')} onOpenChange={() => toggle('notif')}>
         <Card>

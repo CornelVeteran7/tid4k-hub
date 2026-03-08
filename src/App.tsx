@@ -28,6 +28,8 @@ import SocialMediaFacebook from "./pages/SocialMediaFacebook";
 import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
 import NotFound from "./pages/NotFound";
 import MyProfile from "./pages/MyProfile";
+import PublicDisplay from "./pages/PublicDisplay";
+import QRCancelarie from "./pages/QRCancelarie";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +90,9 @@ const App = () => (
             <AuthProvider>
               <Routes>
                 <Route path="/login" element={<LoginRoute />} />
+                {/* Public routes — no auth required */}
+                <Route path="/display/:orgSlug" element={<PublicDisplay />} />
+                <Route path="/qr/:orgSlug" element={<QRCancelarie />} />
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
             </AuthProvider>

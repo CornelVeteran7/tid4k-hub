@@ -26,6 +26,8 @@ export default function Announcements() {
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newPriority, setNewPriority] = useState<'normal' | 'urgent'>('normal');
+  const [newExpiry, setNewExpiry] = useState('');
+  const [showAdmin, setShowAdmin] = useState(false);
 
   const canCreate = user && (areRol(user.status, 'profesor') || areRol(user.status, 'administrator'));
 
@@ -36,6 +38,13 @@ export default function Announcements() {
     });
   }, [currentGroup]);
 
+  // Filter: hide expired from public feed, show all in admin
+  const publicAnnouncements = announcements.filter(a => {
+    if ((a as any).data_expirare && new Date((a as any).data_expirare) < new Date()) return false;
+    if (a.ascuns_banda && !showAdmin) return false;
+    return true;
+  });
+
   const handleCreate = async () => {
     const ann = await createAnnouncement({
       titlu: newTitle, continut: newContent, prioritate: newPriority,
@@ -43,7 +52,7 @@ export default function Announcements() {
     });
     setAnnouncements((prev) => [ann, ...prev]);
     setCreateOpen(false);
-    setNewTitle(''); setNewContent('');
+    setNewTitle(''); setNewContent(''); setNewExpiry('');
     toast.success('Anunț creat!');
   };
 
@@ -87,6 +96,10 @@ export default function Announcements() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label>Data expirare (opțional)</Label>
+                  <Input type="date" value={newExpiry} onChange={(e) => setNewExpiry(e.target.value)} />
+                </div>
                 <Button className="w-full" onClick={handleCreate}>Publică</Button>
               </div>
             </DialogContent>
@@ -123,9 +136,9 @@ export default function Announcements() {
         </Card>
       )}
 
-      {/* Announcements List */}
+      {/* Announcements List (filtered) */}
       <div className="space-y-4">
-        {announcements.map((ann) => (
+        {publicAnnouncements.map((ann) => (
           <Card key={ann.id} className={`glass-card ${ann.prioritate === 'urgent' ? 'border-destructive/50' : ''}`}>
             <CardContent className="p-4 sm:p-5">
               <div className="space-y-3">

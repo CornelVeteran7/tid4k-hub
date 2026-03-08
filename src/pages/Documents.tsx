@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
-import { getDocuments, deleteDocument } from '@/api/documents';
+import { getDocuments, deleteDocument, uploadDocument } from '@/api/documents';
+import { supabase } from '@/integrations/supabase/client';
 import type { DocumentItem } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,27 +73,13 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
               <DialogHeader>
                 <DialogTitle>Încarcă document</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                  <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">Trage fișierele aici sau apasă pentru a selecta</p>
-                  <Input type="file" className="mt-3" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Categorie</Label>
-                  <Select defaultValue="activitati">
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button className="w-full" onClick={() => { setUploadOpen(false); toast.success('Document încărcat!'); }}>
-                  Încarcă
-                </Button>
-              </div>
+              <UploadForm
+                groupId={currentGroup?.id || ''}
+                onUploaded={(doc) => {
+                  setDocuments(prev => [doc, ...prev]);
+                  setUploadOpen(false);
+                }}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -157,6 +144,69 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function UploadForm({ groupId, onUploaded }: { groupId: string; onUploaded: (doc: DocumentItem) => void }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [cat, setCat] = useState('activitati');
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async () => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      // Upload to Supabase Storage
+      const path = `${groupId}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage.from('documents').upload(path, file);
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path);
+
+      const doc = await uploadDocument(groupId, file, cat);
+      // Update with real URL
+      await supabase.from('documents').update({ url: urlData.publicUrl }).eq('id', doc.id);
+      doc.url = urlData.publicUrl;
+
+      onUploaded(doc);
+      toast.success('Document încărcat!');
+    } catch (err: any) {
+      toast.error(err.message || 'Eroare la upload');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+        <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+        <p className="text-sm text-muted-foreground">Trage fișierele aici sau apasă pentru a selecta</p>
+        <Input
+          type="file"
+          className="mt-3"
+          accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
+          onChange={e => setFile(e.target.files?.[0] || null)}
+        />
+      </div>
+      {file && (
+        <p className="text-sm text-muted-foreground">Selectat: <strong>{file.name}</strong> ({(file.size / 1024).toFixed(0)} KB)</p>
+      )}
+      <div className="space-y-2">
+        <Label>Categorie</Label>
+        <Select value={cat} onValueChange={setCat}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {CATEGORIES.map((c) => (
+              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button className="w-full" onClick={handleUpload} disabled={!file || uploading}>
+        {uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Se încarcă...</> : 'Încarcă'}
+      </Button>
     </div>
   );
 }
