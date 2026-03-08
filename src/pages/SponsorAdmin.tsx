@@ -477,12 +477,12 @@ function SponsorDetail({
                           <FileEdit className="h-3 w-3 mr-1" />Editează
                         </Button>
                         {campaign.status === 'activ' && (
-                          <Button variant="outline" size="sm" className="text-xs h-7 text-amber-600">
+                          <Button variant="outline" size="sm" className="text-xs h-7 text-amber-600" onClick={() => onToggleStatus(campaign)}>
                             <Pause className="h-3 w-3 mr-1" />Pauză
                           </Button>
                         )}
                         {campaign.status === 'pauza' && (
-                          <Button variant="outline" size="sm" className="text-xs h-7 text-emerald-600">
+                          <Button variant="outline" size="sm" className="text-xs h-7 text-emerald-600" onClick={() => onToggleStatus(campaign)}>
                             <Play className="h-3 w-3 mr-1" />Activează
                           </Button>
                         )}
