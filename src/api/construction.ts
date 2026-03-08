@@ -90,12 +90,14 @@ export async function getAssignments(orgId: string): Promise<TeamAssignment[]> {
   return (data || []) as TeamAssignment[];
 }
 
-export async function upsertAssignment(a: Partial<TeamAssignment> & { organization_id: string; team_id: string; site_id: string }) {
+export async function upsertAssignment(a: Partial<TeamAssignment> & { organization_id: string; team_id: string; site_id: string; saptamana_start: string; saptamana_end: string }) {
   if (a.id) {
-    const { error } = await supabase.from('construction_team_assignments').update(a).eq('id', a.id);
+    const { id, ...rest } = a;
+    const { error } = await supabase.from('construction_team_assignments').update(rest).eq('id', id);
     if (error) throw error;
   } else {
-    const { error } = await supabase.from('construction_team_assignments').insert(a);
+    const { id, ...rest } = a;
+    const { error } = await supabase.from('construction_team_assignments').insert(rest);
     if (error) throw error;
   }
 }
