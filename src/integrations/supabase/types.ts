@@ -1804,6 +1804,7 @@ export type Database = {
           ora: string
           organization_id: string | null
           profesor: string | null
+          sala: string | null
           zi: string
         }
         Insert: {
@@ -1815,6 +1816,7 @@ export type Database = {
           ora: string
           organization_id?: string | null
           profesor?: string | null
+          sala?: string | null
           zi: string
         }
         Update: {
@@ -1826,6 +1828,7 @@ export type Database = {
           ora?: string
           organization_id?: string | null
           profesor?: string | null
+          sala?: string | null
           zi?: string
         }
         Relationships: [

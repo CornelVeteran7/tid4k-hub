@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Calendar, Printer, Save, Edit2, QrCode, X } from 'lucide-react';
+import { Calendar, Printer, Save, Edit2, QrCode, X, DoorOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -24,8 +24,9 @@ export default function Schedule() {
   const [cells, setCells] = useState<ScheduleCell[]>([]);
   const [editing, setEditing] = useState(false);
   const [editCell, setEditCell] = useState<{ zi: string; ora: string } | null>(null);
-  const [editForm, setEditForm] = useState({ materie: '', profesor: '', culoare: '#E3F2FD' });
+  const [editForm, setEditForm] = useState({ materie: '', profesor: '', sala: '', culoare: '#E3F2FD' });
   const [showQR, setShowQR] = useState<string | null>(null);
+  const [showRoomQR, setShowRoomQR] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
 
   const canEdit = user && (areRol(user.status, 'profesor') || areRol(user.status, 'director') || areRol(user.status, 'administrator') || isInky(user.status, user.nume_prenume));
@@ -43,6 +44,7 @@ export default function Schedule() {
     setEditForm({
       materie: existing?.materie || '',
       profesor: existing?.profesor || '',
+      sala: existing?.sala || '',
       culoare: existing?.culoare || COLORS[Math.floor(Math.random() * COLORS.length)],
     });
   };
@@ -51,12 +53,11 @@ export default function Schedule() {
     if (!editCell) return;
     const { zi, ora } = editCell;
     if (!editForm.materie) {
-      // Remove cell
       setCells(prev => prev.filter(c => !(c.zi === zi && c.ora === ora)));
     } else {
       setCells(prev => {
         const existing = prev.findIndex(c => c.zi === zi && c.ora === ora);
-        const newCell: ScheduleCell = { zi, ora, materie: editForm.materie, profesor: editForm.profesor, culoare: editForm.culoare };
+        const newCell: ScheduleCell = { zi, ora, materie: editForm.materie, profesor: editForm.profesor, sala: editForm.sala, culoare: editForm.culoare };
         if (existing >= 0) {
           const updated = [...prev];
           updated[existing] = newCell;
@@ -88,11 +89,15 @@ export default function Schedule() {
     }
   };
 
-  // Get unique teachers for QR generation
+  // Get unique teachers and rooms for QR generation
   const uniqueTeachers = [...new Set(cells.map(c => c.profesor).filter(Boolean))];
+  const uniqueRooms = [...new Set(cells.map(c => c.sala).filter(Boolean))];
 
-  // Get teacher schedule for QR view
+  // Get teacher/room schedule for QR view
   const getTeacherSchedule = (profesor: string) => cells.filter(c => c.profesor === profesor);
+  const getRoomSchedule = (sala: string) => cells.filter(c => c.sala === sala);
+
+  const baseUrl = window.location.origin;
 
   return (
     <div className="space-y-5 min-w-0">
@@ -120,7 +125,7 @@ export default function Schedule() {
               )}
             </>
           )}
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => window.print()}>
             <Printer className="h-4 w-4" /> Printează
           </Button>
         </div>
@@ -128,17 +133,39 @@ export default function Schedule() {
 
       {/* Teacher QR codes */}
       {uniqueTeachers.length > 0 && (
-        <div className="flex gap-2 flex-wrap">
-          {uniqueTeachers.map(t => (
-            <Badge
-              key={t}
-              variant="outline"
-              className="cursor-pointer gap-1.5 hover:bg-muted"
-              onClick={() => setShowQR(t)}
-            >
-              <QrCode className="h-3 w-3" /> {t}
-            </Badge>
-          ))}
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-1.5">QR Profesori</p>
+          <div className="flex gap-2 flex-wrap">
+            {uniqueTeachers.map(t => (
+              <Badge
+                key={t}
+                variant="outline"
+                className="cursor-pointer gap-1.5 hover:bg-muted"
+                onClick={() => setShowQR(t)}
+              >
+                <QrCode className="h-3 w-3" /> {t}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Room QR codes (Cancelarie QR) */}
+      {uniqueRooms.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-1.5">QR Săli (Cancelarie)</p>
+          <div className="flex gap-2 flex-wrap">
+            {uniqueRooms.map(r => (
+              <Badge
+                key={r}
+                variant="secondary"
+                className="cursor-pointer gap-1.5 hover:bg-muted"
+                onClick={() => setShowRoomQR(r)}
+              >
+                <DoorOpen className="h-3 w-3" /> {r}
+              </Badge>
+            ))}
+          </div>
         </div>
       )}
 
@@ -177,6 +204,7 @@ export default function Schedule() {
                             <div>
                               <p className="font-medium text-xs">{cell.materie}</p>
                               <p className="text-[10px] text-muted-foreground">{cell.profesor}</p>
+                              {cell.sala && <p className="text-[9px] text-muted-foreground/70">📍 {cell.sala}</p>}
                             </div>
                           ) : editing ? (
                             <span className="text-[10px] text-muted-foreground/50">+</span>
@@ -240,6 +268,14 @@ export default function Schedule() {
               })()}
             </div>
             <div>
+              <Label>Sală / Cabinet</Label>
+              <Input
+                value={editForm.sala}
+                onChange={e => setEditForm(p => ({ ...p, sala: e.target.value }))}
+                placeholder="Ex: Sala 101, Cabinet B"
+              />
+            </div>
+            <div>
               <Label>Culoare</Label>
               <div className="flex gap-2 flex-wrap mt-1">
                 {COLORS.map(c => (
@@ -285,7 +321,7 @@ export default function Schedule() {
                     teacher: showQR,
                     group: currentGroup?.nume,
                     schedule: getTeacherSchedule(showQR).map(c => ({
-                      zi: c.zi, ora: c.ora, materie: c.materie
+                      zi: c.zi, ora: c.ora, materie: c.materie, sala: c.sala
                     }))
                   })}
                   size={180}
@@ -300,13 +336,63 @@ export default function Schedule() {
                       <p className="text-xs font-semibold text-muted-foreground">{zi}</p>
                       {dayCells.map(c => (
                         <p key={`${c.zi}-${c.ora}`} className="text-sm ml-3">
-                          {c.ora} — {c.materie}
+                          {c.ora} — {c.materie} {c.sala && <span className="text-muted-foreground text-xs">({c.sala})</span>}
                         </p>
                       ))}
                     </div>
                   );
                 })}
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Room QR Dialog (Cancelarie QR) */}
+      <Dialog open={!!showRoomQR} onOpenChange={() => setShowRoomQR(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base flex items-center gap-2">
+              <DoorOpen className="h-5 w-5" /> Orar sală — {showRoomQR}
+            </DialogTitle>
+          </DialogHeader>
+          {showRoomQR && (
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground text-center">
+                Scanează QR-ul de pe ușa sălii pentru a vedea programul
+              </p>
+              <div className="flex justify-center">
+                <QRCodeSVG
+                  value={JSON.stringify({
+                    type: 'room_schedule',
+                    room: showRoomQR,
+                    group: currentGroup?.nume,
+                    schedule: getRoomSchedule(showRoomQR).map(c => ({
+                      zi: c.zi, ora: c.ora, materie: c.materie, profesor: c.profesor
+                    }))
+                  })}
+                  size={180}
+                />
+              </div>
+              <div className="space-y-1">
+                {DAYS.map(zi => {
+                  const dayCells = getRoomSchedule(showRoomQR).filter(c => c.zi === zi);
+                  if (!dayCells.length) return null;
+                  return (
+                    <div key={zi}>
+                      <p className="text-xs font-semibold text-muted-foreground">{zi}</p>
+                      {dayCells.map(c => (
+                        <p key={`${c.zi}-${c.ora}`} className="text-sm ml-3">
+                          {c.ora} — {c.materie} <span className="text-muted-foreground text-xs">({c.profesor})</span>
+                        </p>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center">
+                Printează acest QR și lipește-l pe ușa sălii {showRoomQR}
+              </p>
             </div>
           )}
         </DialogContent>

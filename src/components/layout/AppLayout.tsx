@@ -79,6 +79,7 @@ const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; 
 { path: '/prezenta', label: 'Prezența', icon: ClipboardList, roles: ['profesor', 'parinte', 'director', 'administrator', 'secretara'], verticals: ['kids', 'schools'] },
 { path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'orar' },
 { path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'anunturi' },
+{ path: '/povesti', label: 'Povești', icon: BookOpen, roles: ['profesor', 'parinte', 'director', 'administrator'], verticals: ['kids'] },
 { path: '/santiere', label: 'Șantiere', icon: HardHat, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },
 { path: '/inventar', label: 'Inventar QR', icon: Package, roles: ['profesor', 'director', 'administrator'], verticals: ['workshops', 'construction', 'kids'] },
 { path: '/ssm', label: 'SSM', icon: ShieldCheck, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },

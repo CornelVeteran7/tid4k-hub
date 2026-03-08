@@ -20,6 +20,7 @@ export async function getSchedule(grupa: string): Promise<ScheduleCell[]> {
     ora: s.ora,
     materie: s.materie,
     profesor: s.profesor || '',
+    sala: (s as any).sala || '',
     culoare: s.culoare || '#E3F2FD',
   }));
 }
@@ -40,8 +41,9 @@ export async function saveSchedule(grupa: string, cells: ScheduleCell[]): Promis
         ora: c.ora,
         materie: c.materie,
         profesor: c.profesor,
+        sala: c.sala || null,
         culoare: c.culoare,
-      }))
+      } as any))
     );
   }
 }

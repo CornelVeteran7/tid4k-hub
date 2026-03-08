@@ -25,7 +25,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   kids: {
     label: 'Grădinițe',
     description: 'Digital signage & comunicare pentru grădinițe',
-    defaultModules: ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje', 'orar', 'anunturi'],
+    defaultModules: ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje', 'orar', 'anunturi', 'video', 'social'],
     entityLabel: 'Grupă',
     entityLabelPlural: 'Grupe',
     memberLabel: 'Copil',
@@ -40,7 +40,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   schools: {
     label: 'Școli',
     description: 'Platformă de comunicare pentru școli',
-    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte', 'imagini'],
+    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte', 'imagini', 'video', 'social'],
     entityLabel: 'Clasă',
     entityLabelPlural: 'Clase',
     memberLabel: 'Elev',
@@ -55,7 +55,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   medicine: {
     label: 'Medicină',
     description: 'Infodisplay pentru cabinete și clinici',
-    defaultModules: ['documente', 'mesaje', 'orar', 'anunturi', 'imagini', 'coada'],
+    defaultModules: ['documente', 'mesaje', 'orar', 'anunturi', 'imagini', 'coada', 'video'],
     entityLabel: 'Cabinet',
     entityLabelPlural: 'Cabinete',
     memberLabel: 'Pacient',
@@ -85,7 +85,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   culture: {
     label: 'Cultură',
     description: 'Digital signage pentru teatre și muzee',
-    defaultModules: ['anunturi', 'documente', 'imagini', 'orar'],
+    defaultModules: ['anunturi', 'documente', 'imagini', 'orar', 'video'],
     entityLabel: 'Sală',
     entityLabelPlural: 'Săli',
     memberLabel: 'Vizitator',

@@ -24,6 +24,9 @@ const CATEGORIES = [
 ];
 
 const AGE_COLORS: Record<string, string> = {
+  '3-4': 'bg-success/10 text-success',
+  '4-5': 'bg-accent/10 text-accent',
+  '5-6': 'bg-warning/10 text-warning',
   '3-5': 'bg-success/10 text-success',
   '5-7': 'bg-accent/10 text-accent',
   '7-10': 'bg-warning/10 text-warning',
@@ -41,7 +44,7 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [progress, setProgress] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
-  const [newStory, setNewStory] = useState({ titlu: '', continut: '', categorie: 'educative', varsta: '3-5' });
+  const [newStory, setNewStory] = useState({ titlu: '', continut: '', categorie: 'educative', varsta: '3-4' });
   const [selectedCharacter, setSelectedCharacter] = useState<StoryCharacter>(storyCharacters[0]);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const progressIntervalRef = useRef<number | null>(null);
@@ -291,9 +294,9 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
                     <Select value={newStory.varsta} onValueChange={v => setNewStory({ ...newStory, varsta: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="3-5">3-5 ani</SelectItem>
-                        <SelectItem value="5-7">5-7 ani</SelectItem>
-                        <SelectItem value="7-10">7-10 ani</SelectItem>
+                        <SelectItem value="3-4">3-4 ani</SelectItem>
+                        <SelectItem value="4-5">4-5 ani</SelectItem>
+                        <SelectItem value="5-6">5-6 ani</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
