@@ -26,6 +26,8 @@ export default function Announcements() {
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newPriority, setNewPriority] = useState<'normal' | 'urgent'>('normal');
+  const [newExpiry, setNewExpiry] = useState('');
+  const [showAdmin, setShowAdmin] = useState(false);
 
   const canCreate = user && (areRol(user.status, 'profesor') || areRol(user.status, 'administrator'));
 
