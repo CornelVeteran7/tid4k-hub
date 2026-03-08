@@ -27,6 +27,7 @@ import Infodisplay from "./pages/Infodisplay";
 import SocialMediaFacebook from "./pages/SocialMediaFacebook";
 import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
 import ConstructionDashboard from "./pages/ConstructionDashboard";
+import ConstructionWorker from "./pages/ConstructionWorker";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
@@ -74,6 +75,7 @@ function ProtectedRoutes() {
             <Route path="/social-whatsapp" element={<SocialMediaWhatsapp />} />
             <Route path="/profil" element={<MyProfile />} />
             <Route path="/santiere" element={<ConstructionDashboard />} />
+            <Route path="/santiere/worker" element={<ConstructionWorker />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
