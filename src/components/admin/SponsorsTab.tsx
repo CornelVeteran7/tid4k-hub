@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSponsors, getActivePromos, getSponsorPlans, getAllCampaigns } from '@/api/sponsors';
+import { getSponsors, getActivePromos, getSponsorPlans, getAllCampaigns, createCampaign, updateCampaign } from '@/api/sponsors';
 import { getSchools } from '@/api/schools';
 import type { Sponsor, SponsorPromo, SponsorPlan, SponsorCampaign } from '@/types/sponsor';
 import type { School } from '@/types';
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import CampaignEditor from '@/components/sponsor/CampaignEditor';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
+import { toast } from 'sonner';
 
 const PROMO_TYPE_LABELS: Record<SponsorPromo['tip'], { label: string; icon: React.ElementType; color: string }> = {
   card_dashboard: { label: 'Card Dashboard', icon: Layout, color: '#2ECC71' },
@@ -66,7 +67,7 @@ export default function SponsorsTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{sponsors.length} sponsori activi</p>
-        <Button size="sm" className="gap-1.5"><Plus className="h-4 w-4" />Sponsor nou</Button>
+        <Button size="sm" className="gap-1.5" onClick={() => toast.info('Funcționalitate în dezvoltare — contactează echipa Inky.')}><Plus className="h-4 w-4" />Sponsor nou</Button>
       </div>
 
       <Tabs defaultValue="sponsors" className="space-y-4">
@@ -133,7 +134,7 @@ export default function SponsorsTab() {
                         <h3 className="text-sm font-semibold">{promo.titlu}</h3>
                         {promo.link_url && <button onClick={() => openLink(promo.link_url!)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline"><ExternalLink className="h-3 w-3" />{promo.link_url}</button>}
                       </div>
-                      <Switch checked={promo.activ} />
+                      <Switch checked={promo.activ} onCheckedChange={() => toast.info('Modificarea statusului promoției necesită permisiuni de admin.')} />
                     </div>
                   </div>
                 </div>
@@ -258,7 +259,21 @@ export default function SponsorsTab() {
       </Tabs>
 
       {editingSponsor && (
-        <CampaignEditor open={editorOpen} onOpenChange={setEditorOpen} campaign={editingCampaign} sponsorNume={editingSponsor.nume} sponsorLogo={editingSponsor.logo_url} sponsorCuloare={editingSponsor.culoare_brand} schools={schools} onSave={data => console.log('Save:', data)} />
+        <CampaignEditor open={editorOpen} onOpenChange={setEditorOpen} campaign={editingCampaign} sponsorNume={editingSponsor.nume} sponsorLogo={editingSponsor.logo_url} sponsorCuloare={editingSponsor.culoare_brand} schools={schools} onSave={async (data) => {
+          try {
+            if (data.id) {
+              const updated = await updateCampaign(data.id, data);
+              setCampaigns(prev => prev.map(c => c.id === updated.id ? updated : c));
+              toast.success('Campanie actualizată!');
+            } else {
+              const created = await createCampaign({ ...data, sponsor_id: editingSponsor.id, status: 'draft', statistici: { afisari: 0, clickuri: 0, ctr: 0 }, documente_atasate: [] } as any);
+              setCampaigns(prev => [created, ...prev]);
+              toast.success('Campanie creată!');
+            }
+          } catch (err: any) {
+            toast.error('Eroare: ' + (err.message || 'necunoscută'));
+          }
+        }} />
       )}
     </div>
   );

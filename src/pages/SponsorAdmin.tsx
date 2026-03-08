@@ -191,7 +191,7 @@ function SponsorList({
             Selectează un sponsor pentru a vedea detaliile complete
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => toast.info('Funcționalitate în dezvoltare — contactează echipa Inky pentru a adăuga un sponsor nou.')}>
           <Plus className="h-4 w-4" />
           Sponsor nou
         </Button>
@@ -529,7 +529,7 @@ function SponsorDetail({
                             <ExternalLink className="h-3.5 w-3.5" />
                           </button>
                         )}
-                        <Switch checked={promo.activ} />
+                        <Switch checked={promo.activ} onCheckedChange={() => toast.info('Modificarea statusului promoției necesită permisiuni de admin.')} />
                       </div>
                     </div>
                   </div>
