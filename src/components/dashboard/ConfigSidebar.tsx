@@ -63,12 +63,8 @@ export default function ConfigSidebar({ open, onOpenChange, visibility, onToggle
             <button
               key={link.label}
               onClick={() => {
-                if (link.route) {
-                  navigate(link.route);
-                  onOpenChange(false);
-                } else {
-                  toast.info('În curând!');
-                }
+                navigate(link.route);
+                onOpenChange(false);
               }}
               className="w-full flex items-center gap-3 py-3 px-1 rounded-lg hover:bg-muted/50 transition-colors card-tappable"
             >
