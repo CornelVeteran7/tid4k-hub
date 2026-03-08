@@ -14,16 +14,270 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance: {
+        Row: {
+          child_id: string
+          created_at: string | null
+          data: string
+          id: string
+          marked_by: string | null
+          observatii: string | null
+          prezent: boolean | null
+        }
+        Insert: {
+          child_id: string
+          created_at?: string | null
+          data: string
+          id?: string
+          marked_by?: string | null
+          observatii?: string | null
+          prezent?: boolean | null
+        }
+        Update: {
+          child_id?: string
+          created_at?: string | null
+          data?: string
+          id?: string
+          marked_by?: string | null
+          observatii?: string | null
+          prezent?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          created_at: string | null
+          data_nasterii: string | null
+          group_id: string | null
+          id: string
+          nume_prenume: string
+          parinte_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_nasterii?: string | null
+          group_id?: string | null
+          id?: string
+          nume_prenume: string
+          parinte_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_nasterii?: string | null
+          group_id?: string | null
+          id?: string
+          nume_prenume?: string
+          parinte_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "children_parinte_id_fkey"
+            columns: ["parinte_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string | null
+          id: string
+          nume: string
+          school_id: string | null
+          slug: string
+          tip: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nume: string
+          school_id?: string | null
+          slug: string
+          tip?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nume?: string
+          school_id?: string | null
+          slug?: string
+          tip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "groups_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          nume_prenume: string
+          status: string | null
+          telefon: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id: string
+          nume_prenume?: string
+          status?: string | null
+          telefon?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nume_prenume?: string
+          status?: string | null
+          telefon?: string | null
+        }
+        Relationships: []
+      }
+      schools: {
+        Row: {
+          activ: boolean | null
+          adresa: string | null
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          nr_copii: number | null
+          nr_profesori: number | null
+          nume: string
+          sponsori_activi: string[] | null
+          tip: string | null
+        }
+        Insert: {
+          activ?: boolean | null
+          adresa?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          nr_copii?: number | null
+          nr_profesori?: number | null
+          nume: string
+          sponsori_activi?: string[] | null
+          tip?: string | null
+        }
+        Update: {
+          activ?: boolean | null
+          adresa?: string | null
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          nr_copii?: number | null
+          nr_profesori?: number | null
+          nume?: string
+          sponsori_activi?: string[] | null
+          tip?: string | null
+        }
+        Relationships: []
+      }
+      user_groups: {
+        Row: {
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_groups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "parinte"
+        | "profesor"
+        | "director"
+        | "administrator"
+        | "secretara"
+        | "sponsor"
+        | "inky"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +404,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "parinte",
+        "profesor",
+        "director",
+        "administrator",
+        "secretara",
+        "sponsor",
+        "inky",
+      ],
+    },
   },
 } as const
