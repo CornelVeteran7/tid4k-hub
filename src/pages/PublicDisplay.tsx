@@ -234,7 +234,7 @@ export default function PublicDisplay() {
       primary_color: org?.primary_color || '#4F46E5',
       secondary_color: org?.secondary_color || '#7C3AED',
       vertical_type: org?.vertical_type || 'kids',
-      menu_today: ((menuItems || []) as MenuSlide[]).sort(
+      menu_today: ((menuWeekResult || []) as MenuSlide[]).sort(
         (a, b) => MEAL_ORDER.indexOf(a.masa) - MEAL_ORDER.indexOf(b.masa)
       ),
       schedule_today: (scheduleItems || []) as ScheduleSlide[],
