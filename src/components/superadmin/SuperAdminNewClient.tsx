@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { ArrowLeft, ArrowRight, Check, Plus, Trash2 } from 'lucide-react';
 
-// Seed data templates (from seed-demo-orgs)
 const SEED_TEMPLATES: Record<VerticalType, { groups: { nume: string; slug: string; tip: string }[]; vertical_config: Record<string, any> }> = {
   kids: {
     groups: [
@@ -28,33 +27,23 @@ const SEED_TEMPLATES: Record<VerticalType, { groups: { nume: string; slug: strin
     vertical_config: { timetable_periods: 7, grading_system: '1-10', magazine_enabled: true },
   },
   medicine: {
-    groups: [
-      { nume: 'Cabinet General', slug: 'general', tip: 'scoala' },
-    ],
+    groups: [{ nume: 'Cabinet General', slug: 'general', tip: 'scoala' }],
     vertical_config: { specialties: 'general', service_list_enabled: true, avg_consultation_minutes: 30 },
   },
   living: {
-    groups: [
-      { nume: 'Scara A', slug: 'scara-a', tip: 'scoala' },
-    ],
+    groups: [{ nume: 'Scara A', slug: 'scara-a', tip: 'scoala' }],
     vertical_config: { apartments_count: 40, expense_categories: 'intretinere,reparatii,fond_rulment' },
   },
   culture: {
-    groups: [
-      { nume: 'Sala Mare', slug: 'sala-mare', tip: 'scoala' },
-    ],
+    groups: [{ nume: 'Sala Mare', slug: 'sala-mare', tip: 'scoala' }],
     vertical_config: { shows_per_week: 5, surtitle_languages: 'ro,en,fr' },
   },
   students: {
-    groups: [
-      { nume: 'Facultatea de Informatică', slug: 'info', tip: 'scoala' },
-    ],
+    groups: [{ nume: 'Facultatea de Informatică', slug: 'info', tip: 'scoala' }],
     vertical_config: { faculties: 'Informatică', secretariat_windows: 4, queue_enabled: true },
   },
   construction: {
-    groups: [
-      { nume: 'Șantier Central', slug: 'santier-central', tip: 'scoala' },
-    ],
+    groups: [{ nume: 'Șantier Central', slug: 'santier-central', tip: 'scoala' }],
     vertical_config: { active_sites_max: 5, team_count: 8, budget_tracking: true, ssm_daily_required: true },
   },
   workshops: {
@@ -85,23 +74,23 @@ function slugify(text: string): string {
     .replace(/^-|-$/g, '');
 }
 
-export default function SuperAdminNewClient() {
+interface SuperAdminNewClientProps {
+  preFilledVertical?: VerticalType | null;
+  onPreFillConsumed?: () => void;
+}
+
+export default function SuperAdminNewClient({ preFilledVertical, onPreFillConsumed }: SuperAdminNewClientProps) {
   const [step, setStep] = useState(0);
   const [creating, setCreating] = useState(false);
   const [createdOrg, setCreatedOrg] = useState<{ id: string; slug: string } | null>(null);
 
-  // Step 0: Vertical
   const [vertical, setVertical] = useState<VerticalType | null>(null);
-  // Step 1: Details
   const [orgName, setOrgName] = useState('');
   const [orgSlug, setOrgSlug] = useState('');
   const [orgAddress, setOrgAddress] = useState('');
-  // Step 2: Branding
   const [primaryColor, setPrimaryColor] = useState('#1E3A4C');
   const [secondaryColor, setSecondaryColor] = useState('#2D5F7A');
-  // Step 3: Modules
   const [activeModules, setActiveModules] = useState<string[]>([]);
-  // Step 4: Groups
   const [groups, setGroups] = useState<{ nume: string; slug: string; tip: string }[]>([]);
 
   const allModules = [
@@ -109,6 +98,14 @@ export default function SuperAdminNewClient() {
     'mesaje', 'orar', 'anunturi', 'video', 'social', 'inventar',
     'rapoarte', 'coada', 'ssm', 'supratitrare', 'revista',
   ];
+
+  // Handle pre-fill from templates tab
+  useEffect(() => {
+    if (preFilledVertical) {
+      selectVertical(preFilledVertical);
+      onPreFillConsumed?.();
+    }
+  }, [preFilledVertical]);
 
   function selectVertical(v: VerticalType) {
     setVertical(v);
@@ -129,7 +126,6 @@ export default function SuperAdminNewClient() {
     try {
       const slug = orgSlug || slugify(orgName);
 
-      // 1. Create organization
       const { data: org, error: orgErr } = await supabase
         .from('organizations')
         .insert({
@@ -145,15 +141,10 @@ export default function SuperAdminNewClient() {
 
       if (orgErr) throw orgErr;
 
-      // 2. Create groups
       for (const g of groups) {
-        await supabase.from('groups').insert({
-          ...g,
-          organization_id: org.id,
-        });
+        await supabase.from('groups').insert({ ...g, organization_id: org.id });
       }
 
-      // 3. Store vertical config
       const tmpl = SEED_TEMPLATES[vertical];
       await supabase.from('org_config').insert({
         organization_id: org.id,
@@ -161,14 +152,12 @@ export default function SuperAdminNewClient() {
         config_value: tmpl.vertical_config,
       });
 
-      // 4. Store display settings
       await supabase.from('org_config').insert({
         organization_id: org.id,
         config_key: 'display_settings',
         config_value: { slide_duration: 8, ticker_speed: 30, show_menu: vertical === 'kids', show_schedule: true, show_qr: true },
       });
 
-      // 5. Store active modules
       for (const mod of activeModules) {
         await supabase.from('modules_config').insert({
           organization_id: org.id,
@@ -177,7 +166,6 @@ export default function SuperAdminNewClient() {
         });
       }
 
-      // 6. Create welcome announcement
       await supabase.from('announcements').insert({
         organization_id: org.id,
         titlu: `Bine ați venit la ${orgName}!`,
@@ -196,7 +184,6 @@ export default function SuperAdminNewClient() {
     }
   }
 
-  // Success screen
   if (createdOrg) {
     return (
       <Card className="max-w-lg mx-auto">
