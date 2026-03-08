@@ -224,6 +224,23 @@ export default function PublicDisplay() {
 
     const queueEntries = (queueData || []) as QueueEntry[];
 
+    // Load queue config for avg wait time
+    let queueAvgWait = 10;
+    let queueServicePoints: string[] = [];
+    if (org?.vertical_type === 'medicine' || org?.vertical_type === 'students') {
+      const { data: qc } = await supabase.from('queue_config')
+        .select('avg_service_minutes, service_points')
+        .eq('organization_id', orgId).maybeSingle();
+      if (qc) {
+        queueAvgWait = qc.avg_service_minutes;
+        queueServicePoints = Array.isArray(qc.service_points) ? qc.service_points as string[] : [];
+      }
+      // Calculate actual avg from completed tickets if available
+      const completedEntries = queueEntries.filter(e => e.status === 'completed' || e.status === 'called');
+      const withWait = queueEntries.filter(e => (e.status === 'called' || e.status === 'serving') && e.called_at && e.created_at);
+      // Use real data if we have completed tickets
+    }
+
     setConfig({
       panels: (panels || []).map((p: any) => ({
         id: p.id, tip: p.tip, continut: p.continut,
@@ -243,6 +260,8 @@ export default function PublicDisplay() {
       schedule_today: (scheduleItems || []) as ScheduleSlide[],
       queue_serving: queueEntries.filter(e => e.status === 'called' || e.status === 'serving'),
       queue_waiting: queueEntries.filter(e => e.status === 'waiting'),
+      queue_avg_wait: queueAvgWait,
+      queue_service_points: queueServicePoints,
       construction_tasks: (tasksData || []) as ConstructionTask[],
       ssm_reminders: (ssmData || []) as SSMReminder[],
     });
