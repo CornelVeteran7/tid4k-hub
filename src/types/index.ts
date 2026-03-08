@@ -66,6 +66,7 @@ export interface WeeklyAttendanceRecord {
   nume_prenume_copil: string;
   zile: { [date: string]: boolean };
   observatii?: string;
+  observatii_zile?: { [date: string]: string };
 }
 
 export interface WeeklyAttendanceData {
