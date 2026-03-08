@@ -74,7 +74,7 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
 
   useEffect(() => {
     if (selectedConvo && user) {
-      getMessages(selectedConvo.grupa, user.id_utilizator, selectedConvo.id).then(setMessages);
+      getMessages(selectedConvo.grupa, user.id, selectedConvo.id).then(setMessages);
     }
   }, [selectedConvo, user]);
 
