@@ -93,35 +93,47 @@ async function buildUserSession(authUser: User): Promise<UserSession> {
   };
 }
 
+const DEMO_SESSION: UserSession = {
+  id: 'demo-user-00000000',
+  nume_prenume: 'Admin Demo',
+  telefon: '',
+  email: 'demo@infodisplay.ro',
+  status: 'administrator,inky',
+  avatar_url: '',
+  grupa_clasa_copil: 'fluturasi',
+  numar_grupe_clase_utilizator: 2,
+  index_grupa_clasa_curenta: 0,
+  grupe_disponibile: [
+    { id: 'fluturasi', nume: 'Grupa Fluturași', tip: 'gradinita' },
+    { id: 'albinute', nume: 'Grupa Albinuțe', tip: 'gradinita' },
+  ],
+  organization_id: undefined,
+  vertical_type: 'kids',
+  org_name: 'Grădinița Demo',
+};
+
+function getInitialDemoState(): { user: UserSession | null; isDemo: boolean } {
+  try {
+    if (sessionStorage.getItem('demo_mode') === '1') {
+      return { user: DEMO_SESSION, isDemo: true };
+    }
+  } catch {}
+  return { user: null, isDemo: false };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserSession | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDemo, setIsDemo] = useState(false);
-  const isDemoRef = useRef(false);
+  const initialDemo = getInitialDemoState();
+  const [user, setUser] = useState<UserSession | null>(initialDemo.user);
+  const [isLoading, setIsLoading] = useState(!initialDemo.isDemo);
+  const [isDemo, setIsDemo] = useState(initialDemo.isDemo);
+  const isDemoRef = useRef(initialDemo.isDemo);
 
   const setDemoUser = useCallback(() => {
-    const demoSession: UserSession = {
-      id: 'demo-user-00000000',
-      nume_prenume: 'Admin Demo',
-      telefon: '',
-      email: 'demo@infodisplay.ro',
-      status: 'administrator,inky',
-      avatar_url: '',
-      grupa_clasa_copil: 'fluturasi',
-      numar_grupe_clase_utilizator: 2,
-      index_grupa_clasa_curenta: 0,
-      grupe_disponibile: [
-        { id: 'fluturasi', nume: 'Grupa Fluturași', tip: 'gradinita' },
-        { id: 'albinute', nume: 'Grupa Albinuțe', tip: 'gradinita' },
-      ],
-      organization_id: undefined,
-      vertical_type: 'kids',
-      org_name: 'Grădinița Demo',
-    };
-    setUser(demoSession);
+    setUser(DEMO_SESSION);
     setIsDemo(true);
     isDemoRef.current = true;
     setIsLoading(false);
+    try { sessionStorage.setItem('demo_mode', '1'); } catch {}
   }, []);
 
   useEffect(() => {
