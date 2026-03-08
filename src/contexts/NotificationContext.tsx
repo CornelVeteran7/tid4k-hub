@@ -65,7 +65,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     try {
       const [conversations, announcements, workshopOfMonth] = await Promise.all([
-        getConversations(user.id_utilizator),
+        getConversations(user.id),
         getAnnouncements(),
         getWorkshopOfMonth(),
       ]);
