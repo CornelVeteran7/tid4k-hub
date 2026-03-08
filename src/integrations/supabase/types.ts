@@ -1107,6 +1107,80 @@ export type Database = {
           },
         ]
       }
+      menu_dish_ingredients: {
+        Row: {
+          created_at: string
+          id: string
+          ingredient_name: string
+          ingredient_ref_id: string | null
+          menu_dish_id: string
+          quantity_grams: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ingredient_name: string
+          ingredient_ref_id?: string | null
+          menu_dish_id: string
+          quantity_grams?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ingredient_name?: string
+          ingredient_ref_id?: string | null
+          menu_dish_id?: string
+          quantity_grams?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_dish_ingredients_ingredient_ref_id_fkey"
+            columns: ["ingredient_ref_id"]
+            isOneToOne: false
+            referencedRelation: "nutritional_reference"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_dish_ingredients_menu_dish_id_fkey"
+            columns: ["menu_dish_id"]
+            isOneToOne: false
+            referencedRelation: "menu_dishes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_dishes: {
+        Row: {
+          created_at: string
+          dish_name: string
+          id: string
+          menu_meal_id: string
+          ordine: number
+        }
+        Insert: {
+          created_at?: string
+          dish_name: string
+          id?: string
+          menu_meal_id: string
+          ordine?: number
+        }
+        Update: {
+          created_at?: string
+          dish_name?: string
+          id?: string
+          menu_meal_id?: string
+          ordine?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_dishes_menu_meal_id_fkey"
+            columns: ["menu_meal_id"]
+            isOneToOne: false
+            referencedRelation: "menu_meals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_items: {
         Row: {
           continut: string
@@ -1148,6 +1222,38 @@ export type Database = {
           },
         ]
       }
+      menu_meals: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          id: string
+          meal_type: string
+          menu_week_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          id?: string
+          meal_type: string
+          menu_week_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          meal_type?: string
+          menu_week_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_meals_menu_week_id_fkey"
+            columns: ["menu_week_id"]
+            isOneToOne: false
+            referencedRelation: "menu_weeks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_metadata: {
         Row: {
           alergeni: string[] | null
@@ -1182,6 +1288,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "menu_metadata_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      menu_weeks: {
+        Row: {
+          age_group: string
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string | null
+          status: string
+          updated_at: string
+          week_start_date: string
+        }
+        Insert: {
+          age_group?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          status?: string
+          updated_at?: string
+          week_start_date: string
+        }
+        Update: {
+          age_group?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          status?: string
+          updated_at?: string
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_weeks_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1309,6 +1456,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      nutritional_reference: {
+        Row: {
+          ban_reason: string | null
+          calories_per_100g: number
+          carbs: number
+          category: string
+          created_at: string
+          fat: number
+          fiber: number
+          id: string
+          ingredient_name: string
+          is_banned: boolean
+          protein: number
+        }
+        Insert: {
+          ban_reason?: string | null
+          calories_per_100g?: number
+          carbs?: number
+          category?: string
+          created_at?: string
+          fat?: number
+          fiber?: number
+          id?: string
+          ingredient_name: string
+          is_banned?: boolean
+          protein?: number
+        }
+        Update: {
+          ban_reason?: string | null
+          calories_per_100g?: number
+          carbs?: number
+          category?: string
+          created_at?: string
+          fat?: number
+          fiber?: number
+          id?: string
+          ingredient_name?: string
+          is_banned?: boolean
+          protein?: number
+        }
+        Relationships: []
       }
       org_config: {
         Row: {
