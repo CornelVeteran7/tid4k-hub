@@ -63,8 +63,8 @@ function ProtectedRoutes() {
             <Route path="/rapoarte" element={<Reports />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/utilizatori" element={<Navigate to="/admin" replace />} />
-            <Route path="/configurari" element={<Navigate to="/admin" replace />} />
-            <Route path="/settings" element={<Navigate to="/admin" replace />} />
+            <Route path="/configurari" element={<SettingsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="/sponsori" element={<SponsorAdmin />} />
             <Route path="/sponsor-dashboard" element={<Navigate to="/sponsori" replace />} />
             <Route path="/infodisplay" element={<Infodisplay />} />
