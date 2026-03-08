@@ -553,7 +553,7 @@ function QueueContent({ config }: { config: DisplayConfig }) {
   const estimatedWaitNew = config.queue_waiting.length * config.queue_avg_wait;
 
   return (
-    <div className="absolute inset-0 flex flex-col" style={{ padding: '100px 60px 80px' }}>
+    <div className="absolute inset-0 flex flex-col" style={{ padding: '100px 60px 60px' }}>
       {config.queue_serving.length > 0 ? (
         <>
           {/* Multi-cabinet serving — split layout */}
