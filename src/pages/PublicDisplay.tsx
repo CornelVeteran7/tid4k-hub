@@ -68,6 +68,8 @@ interface DisplayConfig {
   schedule_today: ScheduleSlide[];
   queue_serving: QueueEntry[];
   queue_waiting: QueueEntry[];
+  queue_avg_wait: number;
+  queue_service_points: string[];
   construction_tasks: ConstructionTask[];
   ssm_reminders: SSMReminder[];
 }
