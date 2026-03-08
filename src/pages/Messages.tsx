@@ -54,7 +54,7 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user) getConversations(user.id_utilizator).then(c => {
+    if (user) getConversations(user.id).then(c => {
       setConversations(c);
       setFilteredConvos(c);
     });
