@@ -85,7 +85,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   culture: {
     label: 'Cultură',
     description: 'Digital signage pentru teatre și muzee',
-    defaultModules: ['anunturi', 'documente', 'imagini', 'orar'],
+    defaultModules: ['anunturi', 'documente', 'imagini', 'orar', 'video'],
     entityLabel: 'Sală',
     entityLabelPlural: 'Săli',
     memberLabel: 'Vizitator',

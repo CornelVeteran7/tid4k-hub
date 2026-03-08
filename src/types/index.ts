@@ -131,6 +131,7 @@ export interface ScheduleCell {
   ora: string;
   materie: string;
   profesor: string;
+  sala?: string;
   culoare: string;
 }
 
