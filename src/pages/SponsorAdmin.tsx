@@ -202,7 +202,7 @@ function SponsorList({
             Selectează un sponsor pentru a vedea detaliile complete
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setSponsorDialogOpen(true)}>
+        <Button className="gap-2" onClick={onNewSponsor}>
           <Plus className="h-4 w-4" />
           Sponsor nou
         </Button>
