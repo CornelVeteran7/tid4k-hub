@@ -40,7 +40,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   schools: {
     label: 'Școli',
     description: 'Platformă de comunicare pentru școli',
-    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte', 'imagini'],
+    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte', 'imagini', 'video', 'social'],
     entityLabel: 'Clasă',
     entityLabelPlural: 'Clase',
     memberLabel: 'Elev',
