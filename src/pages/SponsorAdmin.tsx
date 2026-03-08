@@ -423,7 +423,7 @@ function SponsorDetail({
                             {campaign.scoli_target.includes('all') ? (
                               <Badge variant="outline" className="text-[10px]">Toate școlile</Badge>
                             ) : campaign.scoli_target.map(sid => {
-                              const school = schools.find(s => s.id_scoala.toString() === sid);
+                              const school = schools.find(s => s.id.toString() === sid);
                               return <Badge key={sid} variant="outline" className="text-[10px]">{school?.nume || `Școala ${sid}`}</Badge>;
                             })}
                           </div>
