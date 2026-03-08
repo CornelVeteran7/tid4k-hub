@@ -49,14 +49,14 @@ export default function Announcements() {
 
   const handleTickerToggle = async (ann: Announcement) => {
     if (ann.ascuns_banda) {
-      await restoreToTicker(ann.id_info);
+      await restoreToTicker(ann.id);
       toast.success('Repus pe bandă');
     } else {
-      await hideFromTicker(ann.id_info);
+      await hideFromTicker(ann.id);
       toast.success('Scos de pe bandă');
     }
     setAnnouncements((prev) =>
-      prev.map((a) => a.id_info === ann.id_info ? { ...a, ascuns_banda: !a.ascuns_banda } : a)
+      prev.map((a) => a.id === ann.id ? { ...a, ascuns_banda: !a.ascuns_banda } : a)
     );
   };
 
