@@ -38,7 +38,7 @@ export default function UserManagement() {
       toast.success('Utilizator creat!');
     } else {
       await updateUser(editingUser);
-      setUsers((prev) => prev.map((u) => u.id_utilizator === editingUser.id_utilizator ? { ...u, ...editingUser } : u));
+      setUsers((prev) => prev.map((u) => u.id === editingUser.id ? { ...u, ...editingUser } : u));
       toast.success('Utilizator actualizat!');
     }
     setEditOpen(false);
