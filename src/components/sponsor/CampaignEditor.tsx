@@ -64,7 +64,7 @@ export default function CampaignEditor({ open, onOpenChange, campaign, sponsorNu
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Megaphone className="h-5 w-5 text-primary" />
-            {campaign?.id_campanie ? 'Editare campanie' : 'Campanie nouă'}
+            {campaign?.id ? 'Editare campanie' : 'Campanie nouă'}
           </DialogTitle>
         </DialogHeader>
 
