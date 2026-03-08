@@ -27,6 +27,7 @@ import Infodisplay from "./pages/Infodisplay";
 import SocialMediaFacebook from "./pages/SocialMediaFacebook";
 import SocialMediaWhatsapp from "./pages/SocialMediaWhatsapp";
 import NotFound from "./pages/NotFound";
+import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
 import PublicDisplay from "./pages/PublicDisplay";
 import QRCancelarie from "./pages/QRCancelarie";

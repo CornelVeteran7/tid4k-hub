@@ -23,7 +23,7 @@ export default function SettingsIntegrations({ orgId }: Props) {
               <p className="font-medium text-sm">Sincronizare activă</p>
               <p className="text-xs text-muted-foreground">Bidirecțională cu grupurile de părinți</p>
             </div>
-            <Badge className="bg-emerald-500 text-white">Activ</Badge>
+            <Badge className="bg-success text-success-foreground">Activ</Badge>
           </div>
           <Separator />
           <div className="flex items-center gap-2">
