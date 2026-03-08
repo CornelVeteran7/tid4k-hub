@@ -418,8 +418,8 @@ function KidsContent({ config, isPortrait }: { config: DisplayConfig; isPortrait
 
       {/* Bottom info strip — above ticker */}
       <div className="absolute left-0 right-0 z-10 flex" style={{
-        bottom: config.ticker_messages.length > 0 ? 56 : 0,
-        padding: '0 48px 16px',
+        bottom: config.ticker_messages.length > 0 ? 60 : 12,
+        padding: '0 48px',
         gap: 24,
       }}>
         {/* Menu of the day */}
