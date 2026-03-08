@@ -32,6 +32,7 @@ import InventoryPage from "./pages/Inventory";
 import SSMPage from "./pages/SSM";
 import MagazinePage from "./pages/Magazine";
 import SurtitlesPage from "./pages/Surtitles";
+import VideoGenerationPage from "./pages/VideoGeneration";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
