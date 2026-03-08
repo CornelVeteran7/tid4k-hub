@@ -42,6 +42,7 @@ import MyProfile from "./pages/MyProfile";
 import PublicDisplay from "./pages/PublicDisplay";
 import QRCancelarie from "./pages/QRCancelarie";
 import SurtitleAudiencePage from "./pages/SurtitleAudience";
+import SuperAdmin from "./pages/SuperAdmin";
 
 const queryClient = new QueryClient();
 
