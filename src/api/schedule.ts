@@ -31,9 +31,14 @@ export async function getSchedule(groupId: string): Promise<ScheduleCell[]> {
   }));
 }
 
-export async function saveSchedule(grupa: string, cells: ScheduleCell[]): Promise<void> {
-  const { data: group } = await supabase.from('groups').select('id').eq('slug', grupa).single();
-  if (!group) return;
+export async function saveSchedule(groupId: string, cells: ScheduleCell[]): Promise<void> {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
+  let resolvedId = groupId;
+  if (!isUuid) {
+    const { data: group } = await supabase.from('groups').select('id').eq('slug', groupId).single();
+    if (!group) return;
+    resolvedId = group.id;
+  }
 
   // Delete existing schedule for this group
   await supabase.from('schedule').delete().eq('group_id', group.id);
