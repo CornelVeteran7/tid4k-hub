@@ -33,10 +33,9 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
     getSponsors().then(setAllSponsors);
   }, []);
 
-  // Auto-expand when a specific school is selected globally
   useEffect(() => {
     if (selectedSchoolId !== 'all') {
-      const school = schools.find(s => s.id_scoala.toString() === selectedSchoolId);
+      const school = schools.find(s => s.id.toString() === selectedSchoolId);
       setDetailSchool(school || null);
     } else {
       setDetailSchool(null);
@@ -45,7 +44,7 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
 
   const displayedSchools = selectedSchoolId === 'all'
     ? schools
-    : schools.filter(s => s.id_scoala.toString() === selectedSchoolId);
+    : schools.filter(s => s.id.toString() === selectedSchoolId);
 
   const handleCreate = async () => {
     const s = await createSchool(newSchool);
@@ -105,7 +104,7 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
         <Label className="text-sm font-medium flex items-center gap-1.5"><Award className="h-4 w-4" />Sponsori activi</Label>
         <div className="flex flex-wrap gap-1.5 mt-2">
           {detailSchool.sponsori_activi.map(sid => {
-            const sponsor = allSponsors.find(s => s.id_sponsor === sid);
+            const sponsor = allSponsors.find(s => s.id === sid);
             return sponsor ? (
               <Badge
                 key={sid}
@@ -118,7 +117,7 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
                   onClick={() => {
                     const updated = { ...detailSchool, sponsori_activi: detailSchool.sponsori_activi.filter(id => id !== sid) };
                     setDetailSchool(updated);
-                    onSchoolsChange(schools.map(s => s.id_scoala === updated.id_scoala ? updated : s));
+                    onSchoolsChange(schools.map(s => s.id === updated.id ? updated : s));
                   }}
                 >
                   <X className="h-3 w-3" />
@@ -126,18 +125,18 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
               </Badge>
             ) : null;
           })}
-          {allSponsors.filter(s => !detailSchool.sponsori_activi.includes(s.id_sponsor)).length > 0 && (
+          {allSponsors.filter(s => !detailSchool.sponsori_activi.includes(s.id)).length > 0 && (
             <Select onValueChange={v => {
-              const updated = { ...detailSchool, sponsori_activi: [...detailSchool.sponsori_activi, Number(v)] };
+              const updated = { ...detailSchool, sponsori_activi: [...detailSchool.sponsori_activi, v] };
               setDetailSchool(updated);
-              onSchoolsChange(schools.map(s => s.id_scoala === updated.id_scoala ? updated : s));
+              onSchoolsChange(schools.map(s => s.id === updated.id ? updated : s));
             }}>
               <SelectTrigger className="h-6 w-auto text-xs gap-1 px-2">
                 <Plus className="h-3 w-3" />Adaugă
               </SelectTrigger>
               <SelectContent>
-                {allSponsors.filter(s => !detailSchool.sponsori_activi.includes(s.id_sponsor)).map(s => (
-                  <SelectItem key={s.id_sponsor} value={s.id_sponsor.toString()}>
+                {allSponsors.filter(s => !detailSchool.sponsori_activi.includes(s.id)).map(s => (
+                  <SelectItem key={s.id} value={s.id.toString()}>
                     {s.nume}
                   </SelectItem>
                 ))}
@@ -161,9 +160,9 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {displayedSchools.map(school => (
           <Card
-            key={school.id_scoala}
-            className={`cursor-pointer transition-all hover:shadow-md ${detailSchool?.id_scoala === school.id_scoala ? 'ring-2 ring-primary' : ''}`}
-            onClick={() => setDetailSchool(detailSchool?.id_scoala === school.id_scoala ? null : school)}
+            key={school.id}
+            className={`cursor-pointer transition-all hover:shadow-md ${detailSchool?.id === school.id ? 'ring-2 ring-primary' : ''}`}
+            onClick={() => setDetailSchool(detailSchool?.id === school.id ? null : school)}
           >
             <CardHeader className="pb-2">
               <div className="flex items-center gap-3">
@@ -202,7 +201,6 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
         )}
       </div>
 
-      {/* Detail panel */}
       {isMobile ? (
         <Sheet open={!!detailSchool} onOpenChange={open => !open && setDetailSchool(null)}>
           <SheetContent side="bottom" className="max-h-[70vh] overflow-y-auto">
@@ -216,7 +214,6 @@ export default function SchoolsTab({ selectedSchoolId, schools, onSchoolsChange 
         )
       )}
 
-      {/* Create dialog */}
       {isMobile ? (
         <Sheet open={createOpen} onOpenChange={setCreateOpen}>
           <SheetContent side="bottom" className="max-h-[70vh] overflow-y-auto">

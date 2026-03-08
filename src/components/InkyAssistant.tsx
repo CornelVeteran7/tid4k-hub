@@ -129,7 +129,7 @@ export default function InkyAssistant() {
   const handleAction = (action: QuickAction) => {
     if (action.isSponsor && action.linkUrl) {
       if (currentPromo) {
-        logClick({ id_promo: currentPromo.id_promo, tip: 'inky_popup' });
+        logClick({ id_promo: currentPromo.id, tip: 'inky_popup' });
       }
       openLink(action.linkUrl);
       setOpen(false);

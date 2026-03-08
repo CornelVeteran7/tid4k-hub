@@ -36,28 +36,22 @@ export default function ChildrenScroller() {
   return (
     <div className="space-y-2">
       <h2 className="text-sm font-semibold text-muted-foreground px-1">Copiii grupei</h2>
-      {/* Mobile: horizontal scroll, Desktop: wrap grid */}
       <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:grid-cols-3 xl:grid-cols-4 lg:overflow-x-visible lg:snap-none">
         {children.map((child, i) => (
           <div
-            key={child.id_copil}
+            key={child.id}
             onClick={() => { setSelectedChild(child); setSelectedColor(PASTEL_COLORS[i % PASTEL_COLORS.length]); }}
             className="snap-start shrink-0 w-[110px] lg:w-auto rounded-2xl border border-border/60 shadow-sm p-3 flex flex-col items-center gap-2 bg-card card-tappable active:scale-95 transition-transform cursor-pointer hover:shadow-md hover:border-primary/30"
           >
-            {/* Avatar */}
             <div
               className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-foreground/80"
               style={{ backgroundColor: PASTEL_COLORS[i % PASTEL_COLORS.length] }}
             >
-              {getInitials(child.nume_prenume_copil)}
+              {getInitials(child.nume_prenume)}
             </div>
-
-            {/* Name */}
             <p className="text-xs font-bold text-foreground text-center leading-tight truncate w-full">
-              {child.nume_prenume_copil.split(' ')[0]}
+              {child.nume_prenume.split(' ')[0]}
             </p>
-
-            {/* Parent info */}
             {child.parinte_nume && (
               <div className="w-full space-y-0.5">
                 <p className="text-[10px] text-muted-foreground text-center truncate">{child.parinte_nume}</p>
@@ -78,8 +72,6 @@ export default function ChildrenScroller() {
           </div>
         ))}
       </div>
-
-      {/* Child detail dialog */}
       <ChildDetailDialog
         child={selectedChild}
         open={!!selectedChild}

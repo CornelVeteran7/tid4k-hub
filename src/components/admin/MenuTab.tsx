@@ -56,7 +56,7 @@ export default function MenuTab({ schoolId, schools }: Props) {
   const [selectedGrupa, setSelectedGrupa] = useState('');
   const week = getWeekString(weekOffset);
 
-  const currentSchool = schools.find(s => s.id_scoala.toString() === schoolId);
+  const currentSchool = schools.find(s => s.id.toString() === schoolId);
   const grupe = currentSchool?.grupe || [];
 
   // Reset group when school changes

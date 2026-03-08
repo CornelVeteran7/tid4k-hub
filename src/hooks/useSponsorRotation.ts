@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getRotationConfig, logImpression } from '@/api/sponsors';
 import type { SponsorPromo } from '@/types/sponsor';
 import type { RotationConfig } from '@/types/sponsor';
@@ -20,9 +20,8 @@ export function useSponsorRotation(
   const [timeRemaining, setTimeRemaining] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const impressionLogged = useRef<number | null>(null);
+  const impressionLogged = useRef<string | null>(null);
 
-  // Fetch rotation config
   useEffect(() => {
     getRotationConfig(tip, schoolId).then(cfg => {
       setConfig(cfg);
@@ -30,7 +29,6 @@ export function useSponsorRotation(
     });
   }, [tip, schoolId]);
 
-  // Log impression when current promo changes
   const currentSlot = config?.sloturi?.[currentIndex] ?? null;
 
   useEffect(() => {
@@ -40,7 +38,6 @@ export function useSponsorRotation(
     logImpression({ id_promo: currentSlot.id_promo, tip, school_id: schoolId });
   }, [currentSlot, tip, schoolId]);
 
-  // Rotation timer
   useEffect(() => {
     if (!config || config.sloturi.length <= 1) return;
 
@@ -50,17 +47,14 @@ export function useSponsorRotation(
     const durationMs = slot.durata_secunde * 1000;
     setTimeRemaining(slot.durata_secunde);
 
-    // Countdown
     countdownRef.current = setInterval(() => {
       setTimeRemaining(prev => Math.max(0, prev - 1));
     }, 1000);
 
-    // Transition trigger (300ms before switch)
     const transitionTimeout = setTimeout(() => {
       setIsTransitioning(true);
     }, Math.max(0, durationMs - 300));
 
-    // Actual switch
     timerRef.current = setTimeout(() => {
       setIsTransitioning(false);
       impressionLogged.current = null;
