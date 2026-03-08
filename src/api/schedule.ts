@@ -1,9 +1,15 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { ScheduleCell, CancelarieTeacher } from '@/types';
 
-export async function getSchedule(grupa: string): Promise<ScheduleCell[]> {
-  const { data: group } = await supabase.from('groups').select('id').eq('slug', grupa).single();
-  if (!group) return [];
+export async function getSchedule(groupId: string): Promise<ScheduleCell[]> {
+  // groupId can be a UUID (from GroupContext) or a slug
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
+  let resolvedId = groupId;
+  if (!isUuid) {
+    const { data: group } = await supabase.from('groups').select('id').eq('slug', groupId).single();
+    if (!group) return [];
+    resolvedId = group.id;
+  }
 
   const { data, error } = await supabase
     .from('schedule')
