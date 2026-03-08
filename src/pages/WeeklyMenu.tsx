@@ -82,7 +82,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
   const [hasChanges, setHasChanges] = useState(false);
   const [editingCell, setEditingCell] = useState<string | null>(null);
 
-  const isAdmin = user && areRol(user.status, 'administrator');
+  const canEdit = user && (areRol(user.status, 'administrator') || areRol(user.status, 'director') || areRol(user.status, 'profesor'));
 
   useEffect(() => { getMenu(week).then(setMenu); }, [week]);
 
