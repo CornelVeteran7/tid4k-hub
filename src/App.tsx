@@ -33,6 +33,8 @@ import SSMPage from "./pages/SSM";
 import MagazinePage from "./pages/Magazine";
 import SurtitlesPage from "./pages/Surtitles";
 import VideoGenerationPage from "./pages/VideoGeneration";
+import QueueAdmin from "./pages/QueueAdmin";
+import QueueTicket from "./pages/QueueTicket";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
