@@ -286,7 +286,7 @@ function SponsorList({
 
 // ========== SPONSOR DETAIL VIEW ==========
 function SponsorDetail({
-  sponsor, promos, campaigns, stats, plan, schools, onBack, onNewCampaign, onEditCampaign, openLink,
+  sponsor, promos, campaigns, stats, plan, schools, onBack, onNewCampaign, onEditCampaign, onToggleStatus, openLink,
 }: {
   sponsor: Sponsor;
   promos: SponsorPromo[];
@@ -297,6 +297,7 @@ function SponsorDetail({
   onBack: () => void;
   onNewCampaign: () => void;
   onEditCampaign: (c: Partial<SponsorCampaign>) => void;
+  onToggleStatus: (c: SponsorCampaign) => void;
   openLink: (url: string) => void;
 }) {
   return (
