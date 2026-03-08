@@ -41,7 +41,7 @@ export async function saveSchedule(groupId: string, cells: ScheduleCell[]): Prom
   }
 
   // Delete existing schedule for this group
-  await supabase.from('schedule').delete().eq('group_id', group.id);
+  await supabase.from('schedule').delete().eq('group_id', resolvedId);
 
   // Insert new cells
   if (cells.length > 0) {
