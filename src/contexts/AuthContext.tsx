@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(false);
+  const isDemoRef = useRef(false);
 
   const setDemoUser = useCallback(() => {
     const demoSession: UserSession = {
@@ -119,6 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     setUser(demoSession);
     setIsDemo(true);
+    isDemoRef.current = true;
     setIsLoading(false);
   }, []);
 
