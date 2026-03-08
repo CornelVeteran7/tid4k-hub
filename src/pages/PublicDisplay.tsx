@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { QRCodeSVG } from 'qrcode.react';
-import { format, startOfWeek } from 'date-fns';
+import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
 /* ═══════════════════════════════════════════════════
