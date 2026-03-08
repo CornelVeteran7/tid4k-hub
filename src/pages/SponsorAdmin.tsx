@@ -403,7 +403,7 @@ function SponsorDetail({
               const statusCfg = STATUS_CONFIG[campaign.status] || STATUS_CONFIG.draft;
               const meta = PROMO_TYPE_LABELS[campaign.tip];
               return (
-                <Card key={campaign.id_campanie} className="overflow-hidden">
+                <Card key={campaign.id} className="overflow-hidden">
                   <div className="flex items-stretch">
                     <div className="w-1.5 shrink-0" style={{ backgroundColor: meta.color }} />
                     <div className="flex-1 p-4">
