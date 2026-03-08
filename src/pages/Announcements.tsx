@@ -38,6 +38,13 @@ export default function Announcements() {
     });
   }, [currentGroup]);
 
+  // Filter: hide expired from public feed, show all in admin
+  const publicAnnouncements = announcements.filter(a => {
+    if ((a as any).data_expirare && new Date((a as any).data_expirare) < new Date()) return false;
+    if (a.ascuns_banda && !showAdmin) return false;
+    return true;
+  });
+
   const handleCreate = async () => {
     const ann = await createAnnouncement({
       titlu: newTitle, continut: newContent, prioritate: newPriority,
@@ -45,7 +52,7 @@ export default function Announcements() {
     });
     setAnnouncements((prev) => [ann, ...prev]);
     setCreateOpen(false);
-    setNewTitle(''); setNewContent('');
+    setNewTitle(''); setNewContent(''); setNewExpiry('');
     toast.success('Anunț creat!');
   };
 
