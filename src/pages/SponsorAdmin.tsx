@@ -54,7 +54,7 @@ export default function SponsorAdmin() {
   // Fetch stats when sponsor selected
   useEffect(() => {
     if (selectedSponsor) {
-      getSponsorStats(selectedSponsor.id_sponsor).then(setStats);
+      getSponsorStats(selectedSponsor.id).then(setStats);
     } else {
       setStats(null);
     }
