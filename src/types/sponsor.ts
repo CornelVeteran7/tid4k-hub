@@ -1,6 +1,6 @@
 // ===== Sponsors =====
 export interface Sponsor {
-  id_sponsor: number;
+  id: string;
   nume: string;
   logo_url: string;
   website: string;
@@ -44,8 +44,8 @@ export interface SponsorStyleInky {
 export type CampaignStatus = 'draft' | 'activ' | 'pauza' | 'expirat' | 'arhivat';
 
 export interface SponsorCampaign {
-  id_campanie: number;
-  id_sponsor: number;
+  id: string;
+  sponsor_id: string;
   sponsor_nume?: string;
   sponsor_logo?: string;
   sponsor_culoare?: string;
@@ -71,10 +71,10 @@ export interface SponsorCampaign {
   };
 }
 
-// ===== Promos (legacy, kept for compatibility) =====
+// ===== Promos =====
 export interface SponsorPromo {
-  id_promo: number;
-  id_sponsor: number;
+  id: string;
+  sponsor_id: string;
   sponsor_nume?: string;
   sponsor_logo?: string;
   sponsor_culoare?: string;
@@ -87,14 +87,13 @@ export interface SponsorPromo {
   prioritate: number;
   activ: boolean;
   scoli_target: string[];
-  // Custom styles
   stil_card?: SponsorStyleCard;
   stil_ticker?: SponsorStyleTicker;
   stil_inky?: SponsorStyleInky;
 }
 
 export interface SponsorPlan {
-  id_plan: number;
+  id: string;
   nume_plan: string;
   pret: number;
   include_dashboard: boolean;
@@ -122,8 +121,8 @@ export interface RotationConfig {
 }
 
 export interface RotationSlot {
-  id_sponsor: number;
-  id_promo: number;
+  id_sponsor: string;
+  id_promo: string;
   durata_secunde: number;
   pondere: number;
   promo: SponsorPromo;

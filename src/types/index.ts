@@ -1,15 +1,16 @@
 // ===== Authentication =====
 export interface LoginCredentials {
-  telefon: string;
-  pin: string;
+  email: string;
+  password: string;
 }
 
 export interface UserSession {
-  id_utilizator: number;
+  id: string;
   nume_prenume: string;
   telefon: string;
   email: string;
   status: string; // CSV: "profesor,director", "parinte", "administrator", etc.
+  avatar_url: string;
   grupa_clasa_copil: string;
   numar_grupe_clase_utilizator: number;
   index_grupa_clasa_curenta: number;
@@ -26,11 +27,11 @@ export interface GroupInfo {
 }
 
 export interface Child {
-  id_copil: number;
-  nume_prenume_copil: string;
-  grupa_clasa_copil: string;
+  id: string;
+  nume_prenume: string;
+  group_id: string;
   data_nasterii?: string;
-  parinte_id?: number;
+  parinte_id?: string;
   parinte_nume?: string;
   parinte_telefon?: string;
   parinte_email?: string;
@@ -38,7 +39,8 @@ export interface Child {
 
 // ===== Attendance =====
 export interface AttendanceRecord {
-  id_copil: number;
+  id?: string;
+  child_id: string;
   nume_prenume_copil: string;
   prezent: boolean;
   observatii: string;
@@ -53,11 +55,11 @@ export interface AttendanceStats {
   luna: number;
   an: number;
   zile: { data: string; prezenti: number; absenti: number }[];
-  per_copil: { id_copil: number; nume: string; zile_prezent: number; zile_absent: number; procent: number }[];
+  per_copil: { id_copil: string; nume: string; zile_prezent: number; zile_absent: number; procent: number }[];
 }
 
 export interface WeeklyAttendanceRecord {
-  id_copil: number;
+  id_copil: string;
   nume_prenume_copil: string;
   zile: { [date: string]: boolean };
   observatii?: string;
@@ -71,9 +73,9 @@ export interface WeeklyAttendanceData {
 
 // ===== Messages =====
 export interface Conversation {
-  id: number;
+  id: string;
   contact_nume: string;
-  contact_id: number;
+  contact_id: string;
   ultimul_mesaj: string;
   data_ultimul_mesaj: string;
   necitite: number;
@@ -81,10 +83,10 @@ export interface Conversation {
 }
 
 export interface Message {
-  id_mesaj: number;
-  expeditor: number;
+  id: string;
+  expeditor: string;
   expeditor_nume: string;
-  destinatar: number;
+  destinatar: string;
   mesaj: string;
   data: string;
   citit: boolean;
@@ -92,13 +94,13 @@ export interface Message {
 
 // ===== Announcements =====
 export interface Announcement {
-  id_info: number;
+  id: string;
   titlu: string;
   continut: string;
   data_upload: string;
   autor: string;
   prioritate: 'normal' | 'urgent';
-  target: string; // 'scoala' or group name
+  target: string;
   citit: boolean;
   ascuns_banda: boolean;
   pozitie_banda?: number;
@@ -106,13 +108,13 @@ export interface Announcement {
 
 // ===== Documents =====
 export interface DocumentItem {
-  id_info: number;
+  id: string;
   nume_fisier: string;
   tip_fisier: 'pdf' | 'jpg' | 'png' | 'gif' | 'webp';
   categorie: 'activitati' | 'administrativ' | 'teme' | 'fotografii';
   data_upload: string;
   uploadat_de: string;
-  uploadat_de_id: number;
+  uploadat_de_id: string;
   url: string;
   thumbnail_url?: string;
   marime: number;
@@ -120,6 +122,7 @@ export interface DocumentItem {
 
 // ===== Schedule =====
 export interface ScheduleCell {
+  id?: string;
   zi: string;
   ora: string;
   materie: string;
@@ -128,7 +131,7 @@ export interface ScheduleCell {
 }
 
 export interface CancelarieTeacher {
-  id: number;
+  id: string;
   nume: string;
   avatar_url: string;
   qr_data: string;
@@ -167,7 +170,7 @@ export interface WeeklyMenu {
 
 // ===== Stories =====
 export interface Story {
-  id_poveste: number;
+  id: string;
   titlu: string;
   continut: string;
   categorie: 'educative' | 'morale' | 'distractive';
@@ -186,7 +189,7 @@ export interface ReportData {
 
 // ===== Users =====
 export interface User {
-  id_utilizator: number;
+  id: string;
   nume_prenume: string;
   telefon: string;
   email: string;
@@ -198,7 +201,7 @@ export interface User {
 
 // ===== Schools =====
 export interface School {
-  id_scoala: number;
+  id: string;
   nume: string;
   adresa: string;
   tip: 'gradinita' | 'scoala';
@@ -207,7 +210,7 @@ export interface School {
   nr_copii: number;
   nr_profesori: number;
   activ: boolean;
-  sponsori_activi: number[];
+  sponsori_activi: string[];
 }
 
 // ===== Settings =====
@@ -238,7 +241,7 @@ export interface SchoolSettings {
 
 // ===== Infodisplay =====
 export interface InfodisplayPanel {
-  id: number;
+  id: string;
   tip: string;
   continut: string;
   durata: number;
