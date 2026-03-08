@@ -159,7 +159,12 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const canSee = (roles: string[]) =>
   roles.some((role) => areRol(userStatus, role) || userIsInky);
 
-  const visibleSecondary = SECONDARY_NAV.filter((i) => canSee(i.roles) && verticalDef.defaultModules.includes(i.moduleKey));
+  const visibleSecondary = SECONDARY_NAV.filter((i) => {
+    if (!canSee(i.roles)) return false;
+    if (i.verticals) return i.verticals.includes(verticalType);
+    if (i.moduleKey) return verticalDef.defaultModules.includes(i.moduleKey);
+    return true;
+  });
   const visibleAdmin = ADMIN_NAV.filter((i) => canSee(i.roles));
 
   const navLinkClass = "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors";
