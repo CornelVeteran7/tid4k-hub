@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
-import { getAnnouncements, createAnnouncement, hideFromTicker, restoreToTicker } from '@/api/announcements';
+import { getAnnouncements, createAnnouncement, hideFromTicker, restoreToTicker, markAsRead } from '@/api/announcements';
 import type { Announcement } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
