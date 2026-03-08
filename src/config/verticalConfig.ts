@@ -115,7 +115,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   construction: {
     label: 'Construcții',
     description: 'Comunicare pentru șantiere',
-    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte'],
+    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte', 'inventar', 'ssm'],
     entityLabel: 'Șantier',
     entityLabelPlural: 'Șantiere',
     memberLabel: 'Muncitor',
