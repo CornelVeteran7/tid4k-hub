@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { QRCodeSVG } from 'qrcode.react';
-import { format, startOfWeek } from 'date-fns';
+import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
 /* ═══════════════════════════════════════════════════
@@ -77,7 +77,7 @@ interface DisplayConfig {
 const DESIGN_W = 1920;
 const DESIGN_H = 1080;
 const REFRESH_INTERVAL = 60_000; // 60 seconds
-const DAYS_RO = ['luni', 'marti', 'miercuri', 'joi', 'vineri'];
+const DAYS_RO = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri'];
 const MEAL_LABELS: Record<string, string> = {
   mic_dejun: '🌅 Mic dejun',
   gustare_1: '🍎 Gustare',
@@ -140,7 +140,14 @@ export default function PublicDisplay() {
     const dayOfWeek = now.getDay();
     const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     const todayKey = DAYS_RO[dayIndex] || '';
-    const weekStart = format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    // Convert to ISO week format to match menu_items.saptamana
+    const isoWeek = (() => {
+      const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+      return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+    })();
     const todayRO = ['duminica', 'luni', 'marti', 'miercuri', 'joi', 'vineri', 'sambata'][dayOfWeek] || '';
 
     // Parallel fetch all data
@@ -165,7 +172,7 @@ export default function PublicDisplay() {
       // Menu for today
       todayKey && dayIndex < 5
         ? supabase.from('menu_items').select('masa, continut, emoji')
-            .eq('organization_id', orgId).eq('saptamana', weekStart).eq('zi', todayKey)
+            .eq('organization_id', orgId).eq('saptamana', isoWeek).eq('zi', todayKey)
         : Promise.resolve({ data: [] as any[] }),
       // Schedule for today
       supabase.from('schedule').select('ora, materie, profesor, culoare')

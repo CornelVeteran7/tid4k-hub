@@ -73,7 +73,7 @@ function isoWeekToMonday(weekStr: string): Date {
 export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
   const [menu, setMenu] = useState<WeeklyMenuType | null>(null);
-  const [week, setWeek] = useState('2026-W09');
+  const [week, setWeek] = useState(() => dateToISOWeek(new Date()));
   const [showEmoji, setShowEmoji] = useState(() => localStorage.getItem('tid4k_emoji') !== 'false');
   const [showNutrients, setShowNutrients] = useState(() => localStorage.getItem('tid4k_nutrients') !== 'false');
   const [showKcal, setShowKcal] = useState(() => localStorage.getItem('tid4k_kcal') !== 'false');
@@ -82,7 +82,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
   const [hasChanges, setHasChanges] = useState(false);
   const [editingCell, setEditingCell] = useState<string | null>(null);
 
-  const isAdmin = user && areRol(user.status, 'administrator');
+  const canEdit = user && (areRol(user.status, 'administrator') || areRol(user.status, 'director') || areRol(user.status, 'profesor'));
 
   useEffect(() => { getMenu(week).then(setMenu); }, [week]);
 
@@ -199,7 +199,7 @@ export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
                         <td
                           key={cellKey}
                           className={cn("border p-2.5 text-xs leading-relaxed cursor-pointer hover:bg-muted/30 transition-colors", isToday(zi) && "bg-primary/5 border-primary/20")}
-                          onDoubleClick={() => isAdmin && setEditingCell(cellKey)}
+                          onDoubleClick={() => canEdit && setEditingCell(cellKey)}
                         >
                           {editingCell === cellKey ? (
                             <Input
