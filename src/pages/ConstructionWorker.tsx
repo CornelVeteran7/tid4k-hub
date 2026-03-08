@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { getTasks, updateTask, type ConstructionTask } from '@/api/construction';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { ro } from 'date-fns/locale';
 
 export default function ConstructionWorker() {
   const { user } = useAuth();
@@ -111,7 +112,7 @@ export default function ConstructionWorker() {
       <div className="text-center pt-2">
         <HardHat className="h-10 w-10 text-primary mx-auto" />
         <h1 className="text-2xl font-bold mt-2">Taskurile Mele</h1>
-        <p className="text-base text-muted-foreground">{format(new Date(), 'EEEE, d MMMM yyyy', { locale: undefined })}</p>
+        <p className="text-base text-muted-foreground">{format(new Date(), 'EEEE, d MMMM yyyy', { locale: ro })}</p>
       </div>
 
       {/* Overdue warning */}
@@ -207,7 +208,7 @@ export default function ConstructionWorker() {
                     {uploading === task.id ? (
                       <><Loader2 className="h-7 w-7 animate-spin" /> Se încarcă...</>
                     ) : (
-                      <><Camera className="h-7 w-7" /> FAȘ POZĂ</>
+                      <><Camera className="h-7 w-7" /> 📸 POZĂ</>
                     )}
                   </Button>
 

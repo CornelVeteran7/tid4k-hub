@@ -62,12 +62,13 @@ export default function ConstructionDashboard() {
   const totalOverdue = tasks.filter(t => t.status !== 'done' && t.data_limita && t.data_limita < today).length;
   const totalActive = tasks.filter(t => t.status !== 'done').length;
   const totalDoneToday = tasks.filter(t => t.status === 'done' && t.completed_at && t.completed_at.startsWith(today)).length;
-  const totalCostAll = costs.reduce((s, c) => s + c.total, 0);
+  const costTotal = (c: ConstructionCost) => c.total ?? (c.cantitate * c.pret_unitar);
+  const totalCostAll = costs.reduce((s, c) => s + costTotal(c), 0);
 
   // Burn rate: avg daily cost over last 30 days
   const thirtyDaysAgo = format(addDays(new Date(), -30), 'yyyy-MM-dd');
   const recentCosts = costs.filter(c => c.data_inregistrare >= thirtyDaysAgo);
-  const burnRate = recentCosts.length > 0 ? Math.round(recentCosts.reduce((s, c) => s + c.total, 0) / 30) : 0;
+  const burnRate = recentCosts.length > 0 ? Math.round(recentCosts.reduce((s, c) => s + costTotal(c), 0) / 30) : 0;
 
   const workerUrl = `${window.location.origin}/santiere/worker`;
 
@@ -229,7 +230,7 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
   isSelected: boolean;
   onRefresh: () => void;
 }) {
-  const totalCost = costs.reduce((s, c) => s + c.total, 0);
+  const totalCost = costs.reduce((s, c) => s + (c.total ?? (c.cantitate * c.pret_unitar)), 0);
   const budgetPct = site.buget > 0 ? Math.round((totalCost / site.buget) * 100) : 0;
   const overdueTasks = tasks.filter(t => t.status !== 'done' && t.data_limita && t.data_limita < today);
   const activeTasks = tasks.filter(t => t.status !== 'done');
@@ -696,6 +697,7 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
         descriere: newCost.descriere,
         cantitate: newCost.cantitate,
         pret_unitar: newCost.pret_unitar,
+        total: newCost.cantitate * newCost.pret_unitar,
         furnizor: newCost.furnizor,
         suma_platita: newCost.suma_platita,
         data_inregistrare: format(new Date(), 'yyyy-MM-dd'),
@@ -715,13 +717,15 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
     } catch (e: any) { toast.error(e.message); }
   };
 
+  const ct = (c: ConstructionCost) => c.total ?? (c.cantitate * c.pret_unitar);
+
   const byCategory = useMemo(() => {
     const map: Record<string, number> = {};
-    costs.forEach(c => { map[c.categorie] = (map[c.categorie] || 0) + c.total; });
+    costs.forEach(c => { map[c.categorie] = (map[c.categorie] || 0) + ct(c); });
     return map;
   }, [costs]);
 
-  const totalSpent = costs.reduce((s, c) => s + c.total, 0);
+  const totalSpent = costs.reduce((s, c) => s + ct(c), 0);
   const totalPaid = costs.reduce((s, c) => s + c.suma_platita, 0);
   const site = selectedSite ? sites.find(s => s.id === selectedSite) : null;
   const budgetPct = site && site.buget > 0 ? Math.round((totalSpent / site.buget) * 100) : 0;
@@ -729,7 +733,7 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
   // Burn rate for this site/selection
   const thirtyAgo = format(addDays(new Date(), -30), 'yyyy-MM-dd');
   const recentSiteCosts = costs.filter(c => c.data_inregistrare >= thirtyAgo);
-  const siteBurnRate = recentSiteCosts.length > 0 ? Math.round(recentSiteCosts.reduce((s, c) => s + c.total, 0) / 30) : 0;
+  const siteBurnRate = recentSiteCosts.length > 0 ? Math.round(recentSiteCosts.reduce((s, c) => s + ct(c), 0) / 30) : 0;
   const daysLeft = site && siteBurnRate > 0 && site.buget > totalSpent ? Math.round((site.buget - totalSpent) / siteBurnRate) : null;
 
   const categoryLabels: Record<string, string> = {
@@ -847,8 +851,8 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <div className="text-right">
-                  <p className="text-sm font-semibold">{c.total.toLocaleString('ro-RO')} lei</p>
-                  {c.suma_platita < c.total && (
+                  <p className="text-sm font-semibold">{ct(c).toLocaleString('ro-RO')} lei</p>
+                  {c.suma_platita < ct(c) && (
                     <p className="text-[10px] text-orange-500">Plătit: {c.suma_platita.toLocaleString('ro-RO')}</p>
                   )}
                 </div>
