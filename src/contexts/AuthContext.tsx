@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import type { UserSession, GroupInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { loadAndApplyBranding } from '@/utils/branding';
 
 interface AuthContextType {
   user: UserSession | null;
