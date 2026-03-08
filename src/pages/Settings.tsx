@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Palette, LayoutGrid, Users, Monitor, Link2 } from 'lucide-react';
+import { Building2, Palette, LayoutGrid, Users, Monitor, Link2, Wrench } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { isAdmin as checkIsAdmin } from '@/utils/roles';
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
@@ -11,10 +10,12 @@ import SettingsModules from '@/components/settings/SettingsModules';
 import SettingsUsers from '@/components/settings/SettingsUsers';
 import SettingsDisplay from '@/components/settings/SettingsDisplay';
 import SettingsIntegrations from '@/components/settings/SettingsIntegrations';
+import SettingsVerticalConfig from '@/components/settings/SettingsVerticalConfig';
 
 const TABS = [
   { value: 'general', label: 'General', icon: Building2 },
   { value: 'branding', label: 'Branding', icon: Palette },
+  { value: 'vertical', label: 'Vertical', icon: Wrench },
   { value: 'modules', label: 'Module', icon: LayoutGrid },
   { value: 'users', label: 'Utilizatori', icon: Users },
   { value: 'display', label: 'Display', icon: Monitor },
@@ -66,6 +67,9 @@ export default function Settings() {
         </TabsContent>
         <TabsContent value="branding">
           <SettingsBranding orgId={orgId} />
+        </TabsContent>
+        <TabsContent value="vertical">
+          <SettingsVerticalConfig orgId={orgId} verticalType={verticalType} />
         </TabsContent>
         <TabsContent value="modules">
           <SettingsModules orgId={orgId} verticalType={verticalType} />

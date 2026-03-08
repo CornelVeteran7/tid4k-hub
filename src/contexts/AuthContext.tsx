@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import type { UserSession, GroupInfo } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { loadAndApplyBranding } from '@/utils/branding';
 
 interface AuthContextType {
   user: UserSession | null;
@@ -41,7 +42,11 @@ async function buildUserSession(authUser: User): Promise<UserSession> {
       .select('vertical_type, name')
       .eq('id', profile.organization_id)
       .single();
-    if (org) orgInfo = { vertical_type: org.vertical_type, name: org.name };
+    if (org) {
+      orgInfo = { vertical_type: org.vertical_type, name: org.name };
+      // Apply org branding colors on login
+      loadAndApplyBranding(org as any);
+    }
   }
 
   // Fetch user's groups
