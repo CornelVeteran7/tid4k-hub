@@ -111,6 +111,7 @@ const App = () => (
                 {/* Public routes — no auth required */}
                 <Route path="/display/:orgSlug" element={<PublicDisplay />} />
                 <Route path="/qr/:orgSlug" element={<QRCancelarie />} />
+                <Route path="/queue/:orgSlug" element={<QueueTicket />} />
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
             </AuthProvider>
