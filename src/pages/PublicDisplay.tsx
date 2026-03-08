@@ -22,6 +22,8 @@ interface QueueEntry {
   numar_tichet: number;
   status: string;
   cabinet: string | null;
+  created_at: string;
+  called_at: string | null;
 }
 
 interface MenuSlide {
