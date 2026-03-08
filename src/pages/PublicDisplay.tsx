@@ -357,11 +357,15 @@ export default function PublicDisplay() {
         {/* ── TICKER BAR ── */}
         {config.ticker_messages.length > 0 && (
           <div className="absolute bottom-0 left-0 right-0 z-20 overflow-hidden"
-            style={{ backgroundColor: config.primary_color, padding: '12px 0' }}>
-            <div className="display-ticker-track whitespace-nowrap">
-              {[...config.ticker_messages, ...config.ticker_messages, ...config.ticker_messages].map((msg, i) => (
-                <span key={i} style={{ margin: '0 64px', fontSize: 20, fontWeight: 500 }}>
-                  {msg} ●
+            style={{ backgroundColor: config.primary_color, height: 48, display: 'flex', alignItems: 'center' }}>
+            <div className="display-ticker-track whitespace-nowrap" style={{ fontSize: 20, fontWeight: 500 }}>
+              {Array.from({ length: 3 }).map((_, rep) => (
+                <span key={rep}>
+                  {config.ticker_messages.map((msg, i) => (
+                    <span key={`${rep}-${i}`} style={{ margin: '0 64px' }}>
+                      {msg} ●
+                    </span>
+                  ))}
                 </span>
               ))}
             </div>

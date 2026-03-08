@@ -290,18 +290,10 @@ html, body {
   backface-visibility: hidden;
 }
 
-/* Font rendering: block until loaded for screenshot consistency */
-@font-face {
-  font-family: 'Poppins';
-  font-display: block;
-}
-@font-face {
-  font-family: 'Playfair Display';
-  font-display: block;
-}
-@font-face {
-  font-family: 'Space Mono';
-  font-display: block;
+/* Font rendering: fonts loaded via Google Fonts with display=block in index.html */
+/* Additional rendering hints for display pages */
+.display-slide-wrapper {
+  text-rendering: geometricPrecision;
 }
 
 /* Display slide wrapper — prevent subpixel rendering artifacts */
