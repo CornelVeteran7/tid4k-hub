@@ -1,5 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
+import { useActiveModules } from '@/hooks/useActiveModules';
 import { useGroup } from '@/contexts/GroupContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import type { NotificationItem } from '@/contexts/NotificationContext';
