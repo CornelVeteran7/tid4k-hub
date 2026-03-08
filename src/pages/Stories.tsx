@@ -218,7 +218,7 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((story) => (
           <Card
-            key={story.id_poveste}
+            key={story.id}
             className="glass-card cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5"
             onClick={() => setSelectedStory(story)}
           >
