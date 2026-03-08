@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles, getRoleLabel } from '@/utils/roles';
 import { Badge } from '@/components/ui/badge';
+import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 import { Users, Camera, FileText, Clock, CalendarDays, Utensils, BookOpen, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useModuleConfig, type ModuleConfig } from '@/config/moduleConfig';
@@ -498,6 +499,8 @@ export default function Dashboard() {
   if (!user) return null;
 
   const roles = getRoles(user.status);
+  const verticalType = (user.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
 
   return (
     <div className="relative isolate min-w-0 pb-32">
@@ -576,6 +579,7 @@ export default function Dashboard() {
               onToggle={handleToggle}
               moduleOrder={moduleOrder}
               onReorder={(order) => { setModuleOrder(order); saveModuleOrder(order); }}
+              verticalModules={verticalDef.defaultModules}
             />
           </div>
 

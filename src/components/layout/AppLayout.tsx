@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 import { useGroup } from '@/contexts/GroupContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import type { NotificationItem } from '@/contexts/NotificationContext';
@@ -75,8 +76,8 @@ function SidebarDecoration() {
 
 // Secondary nav — items NOT on the dashboard
 const SECONDARY_NAV = [
-{ path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'] },
-{ path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'] }];
+{ path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'orar' },
+{ path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'anunturi' }];
 
 
 // Admin nav — role-gated
@@ -139,6 +140,8 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const userIsInky = isInky(userStatus, user.nume_prenume);
   const userRoles = getRoles(userStatus);
   const isHome = location.pathname === '/';
+  const verticalType = (user?.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
 
   const showGroupSelector =
   areRol(userStatus, 'director') ||
@@ -149,7 +152,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const canSee = (roles: string[]) =>
   roles.some((role) => areRol(userStatus, role) || userIsInky);
 
-  const visibleSecondary = SECONDARY_NAV.filter((i) => canSee(i.roles));
+  const visibleSecondary = SECONDARY_NAV.filter((i) => canSee(i.roles) && verticalDef.defaultModules.includes(i.moduleKey));
   const visibleAdmin = ADMIN_NAV.filter((i) => canSee(i.roles));
 
   const navLinkClass = "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors";

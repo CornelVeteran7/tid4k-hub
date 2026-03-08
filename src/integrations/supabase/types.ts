@@ -59,6 +59,7 @@ export type Database = {
           created_at: string | null
           data_expirare: string | null
           id: string
+          organization_id: string | null
           pozitie_banda: number | null
           prioritate: string | null
           target: string | null
@@ -72,6 +73,7 @@ export type Database = {
           created_at?: string | null
           data_expirare?: string | null
           id?: string
+          organization_id?: string | null
           pozitie_banda?: number | null
           prioritate?: string | null
           target?: string | null
@@ -85,6 +87,7 @@ export type Database = {
           created_at?: string | null
           data_expirare?: string | null
           id?: string
+          organization_id?: string | null
           pozitie_banda?: number | null
           prioritate?: string | null
           target?: string | null
@@ -96,6 +99,13 @@ export type Database = {
             columns: ["autor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -151,6 +161,7 @@ export type Database = {
           data: string
           descriere: string
           id: string
+          organization_id: string | null
           teacher_id: string
         }
         Insert: {
@@ -158,6 +169,7 @@ export type Database = {
           data: string
           descriere: string
           id?: string
+          organization_id?: string | null
           teacher_id: string
         }
         Update: {
@@ -165,9 +177,17 @@ export type Database = {
           data?: string
           descriere?: string
           id?: string
+          organization_id?: string | null
           teacher_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "cancelarie_activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cancelarie_activities_teacher_id_fkey"
             columns: ["teacher_id"]
@@ -184,6 +204,7 @@ export type Database = {
           created_at: string | null
           id: string
           nume: string
+          organization_id: string | null
           profile_id: string | null
           qr_data: string | null
         }
@@ -193,6 +214,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           nume: string
+          organization_id?: string | null
           profile_id?: string | null
           qr_data?: string | null
         }
@@ -202,10 +224,18 @@ export type Database = {
           created_at?: string | null
           id?: string
           nume?: string
+          organization_id?: string | null
           profile_id?: string | null
           qr_data?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cancelarie_teachers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cancelarie_teachers_profile_id_fkey"
             columns: ["profile_id"]
@@ -225,6 +255,7 @@ export type Database = {
           info_extra: Json | null
           note_medicale: string | null
           nume_prenume: string
+          organization_id: string | null
           parinte_id: string | null
         }
         Insert: {
@@ -236,6 +267,7 @@ export type Database = {
           info_extra?: Json | null
           note_medicale?: string | null
           nume_prenume: string
+          organization_id?: string | null
           parinte_id?: string | null
         }
         Update: {
@@ -247,6 +279,7 @@ export type Database = {
           info_extra?: Json | null
           note_medicale?: string | null
           nume_prenume?: string
+          organization_id?: string | null
           parinte_id?: string | null
         }
         Relationships: [
@@ -255,6 +288,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "children_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -271,6 +311,7 @@ export type Database = {
           created_at: string | null
           grupa: string | null
           id: string
+          organization_id: string | null
           participant_1: string
           participant_2: string
           updated_at: string | null
@@ -279,6 +320,7 @@ export type Database = {
           created_at?: string | null
           grupa?: string | null
           id?: string
+          organization_id?: string | null
           participant_1: string
           participant_2: string
           updated_at?: string | null
@@ -287,11 +329,19 @@ export type Database = {
           created_at?: string | null
           grupa?: string | null
           id?: string
+          organization_id?: string | null
           participant_1?: string
           participant_2?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_participant_1_fkey"
             columns: ["participant_1"]
@@ -316,6 +366,7 @@ export type Database = {
           id: string
           marime: number | null
           nume_fisier: string
+          organization_id: string | null
           thumbnail_url: string | null
           tip_fisier: string | null
           uploadat_de_id: string | null
@@ -329,6 +380,7 @@ export type Database = {
           id?: string
           marime?: number | null
           nume_fisier: string
+          organization_id?: string | null
           thumbnail_url?: string | null
           tip_fisier?: string | null
           uploadat_de_id?: string | null
@@ -342,6 +394,7 @@ export type Database = {
           id?: string
           marime?: number | null
           nume_fisier?: string
+          organization_id?: string | null
           thumbnail_url?: string | null
           tip_fisier?: string | null
           uploadat_de_id?: string | null
@@ -354,6 +407,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -370,6 +430,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          organization_id: string | null
           posted_at: string | null
           status: string | null
         }
@@ -377,6 +438,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           posted_at?: string | null
           status?: string | null
         }
@@ -384,15 +446,25 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           posted_at?: string | null
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "facebook_posts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       facebook_settings: {
         Row: {
           created_at: string | null
           id: string
+          organization_id: string | null
           page_id: string | null
           posting_format: string | null
           token_status: string | null
@@ -400,6 +472,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           page_id?: string | null
           posting_format?: string | null
           token_status?: string | null
@@ -407,17 +480,27 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           page_id?: string | null
           posting_format?: string | null
           token_status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "facebook_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       groups: {
         Row: {
           created_at: string | null
           id: string
           nume: string
+          organization_id: string | null
           school_id: string | null
           slug: string
           tip: string | null
@@ -426,6 +509,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           nume: string
+          organization_id?: string | null
           school_id?: string | null
           slug: string
           tip?: string | null
@@ -434,11 +518,19 @@ export type Database = {
           created_at?: string | null
           id?: string
           nume?: string
+          organization_id?: string | null
           school_id?: string | null
           slug?: string
           tip?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "groups_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "groups_school_id_fkey"
             columns: ["school_id"]
@@ -455,6 +547,7 @@ export type Database = {
           durata: number | null
           id: string
           ordine: number | null
+          organization_id: string | null
           tip: string
         }
         Insert: {
@@ -463,6 +556,7 @@ export type Database = {
           durata?: number | null
           id?: string
           ordine?: number | null
+          organization_id?: string | null
           tip: string
         }
         Update: {
@@ -471,48 +565,79 @@ export type Database = {
           durata?: number | null
           id?: string
           ordine?: number | null
+          organization_id?: string | null
           tip?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "infodisplay_panels_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       infodisplay_qr: {
         Row: {
           created_at: string | null
           id: string
           label: string
+          organization_id: string | null
           url: string
         }
         Insert: {
           created_at?: string | null
           id?: string
           label: string
+          organization_id?: string | null
           url: string
         }
         Update: {
           created_at?: string | null
           id?: string
           label?: string
+          organization_id?: string | null
           url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "infodisplay_qr_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       infodisplay_settings: {
         Row: {
           created_at: string | null
           id: string
+          organization_id: string | null
           transition: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           transition?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           transition?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "infodisplay_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       infodisplay_ticker: {
         Row: {
@@ -520,20 +645,31 @@ export type Database = {
           id: string
           mesaj: string
           ordine: number | null
+          organization_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           mesaj: string
           ordine?: number | null
+          organization_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           mesaj?: string
           ordine?: number | null
+          organization_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "infodisplay_ticker_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       menu_items: {
         Row: {
@@ -542,6 +678,7 @@ export type Database = {
           emoji: string | null
           id: string
           masa: string
+          organization_id: string | null
           saptamana: string
           zi: string
         }
@@ -551,6 +688,7 @@ export type Database = {
           emoji?: string | null
           id?: string
           masa: string
+          organization_id?: string | null
           saptamana: string
           zi: string
         }
@@ -560,16 +698,26 @@ export type Database = {
           emoji?: string | null
           id?: string
           masa?: string
+          organization_id?: string | null
           saptamana?: string
           zi?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       menu_metadata: {
         Row: {
           alergeni: string[] | null
           created_at: string | null
           id: string
+          organization_id: string | null
           saptamana: string
           semnatura_administrator: string | null
           semnatura_asistent: string | null
@@ -579,6 +727,7 @@ export type Database = {
           alergeni?: string[] | null
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           saptamana: string
           semnatura_administrator?: string | null
           semnatura_asistent?: string | null
@@ -588,12 +737,21 @@ export type Database = {
           alergeni?: string[] | null
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           saptamana?: string
           semnatura_administrator?: string | null
           semnatura_asistent?: string | null
           semnatura_director?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "menu_metadata_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -679,6 +837,7 @@ export type Database = {
           grasimi: number | null
           id: string
           kcal: number | null
+          organization_id: string | null
           proteine: number | null
           saptamana: string
           zi: string
@@ -689,6 +848,7 @@ export type Database = {
           grasimi?: number | null
           id?: string
           kcal?: number | null
+          organization_id?: string | null
           proteine?: number | null
           saptamana: string
           zi: string
@@ -699,11 +859,20 @@ export type Database = {
           grasimi?: number | null
           id?: string
           kcal?: number | null
+          organization_id?: string | null
           proteine?: number | null
           saptamana?: string
           zi?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nutritional_data_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organizations: {
         Row: {
@@ -787,6 +956,7 @@ export type Database = {
           id: string
           materie: string
           ora: string
+          organization_id: string | null
           profesor: string | null
           zi: string
         }
@@ -797,6 +967,7 @@ export type Database = {
           id?: string
           materie: string
           ora: string
+          organization_id?: string | null
           profesor?: string | null
           zi: string
         }
@@ -807,6 +978,7 @@ export type Database = {
           id?: string
           materie?: string
           ora?: string
+          organization_id?: string | null
           profesor?: string | null
           zi?: string
         }
@@ -816,6 +988,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -830,6 +1009,7 @@ export type Database = {
           nr_copii: number | null
           nr_profesori: number | null
           nume: string
+          organization_id: string | null
           sponsori_activi: string[] | null
           tip: string | null
         }
@@ -842,6 +1022,7 @@ export type Database = {
           nr_copii?: number | null
           nr_profesori?: number | null
           nume: string
+          organization_id?: string | null
           sponsori_activi?: string[] | null
           tip?: string | null
         }
@@ -854,10 +1035,19 @@ export type Database = {
           nr_copii?: number | null
           nr_profesori?: number | null
           nume?: string
+          organization_id?: string | null
           sponsori_activi?: string[] | null
           tip?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "schools_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sponsor_campaigns: {
         Row: {
@@ -872,6 +1062,7 @@ export type Database = {
           documente_atasate: string[] | null
           id: string
           link_url: string | null
+          organization_id: string | null
           prioritate: number | null
           scoli_target: string[] | null
           sponsor_id: string
@@ -894,6 +1085,7 @@ export type Database = {
           documente_atasate?: string[] | null
           id?: string
           link_url?: string | null
+          organization_id?: string | null
           prioritate?: number | null
           scoli_target?: string[] | null
           sponsor_id: string
@@ -916,6 +1108,7 @@ export type Database = {
           documente_atasate?: string[] | null
           id?: string
           link_url?: string | null
+          organization_id?: string | null
           prioritate?: number | null
           scoli_target?: string[] | null
           sponsor_id?: string
@@ -927,6 +1120,13 @@ export type Database = {
           titlu?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sponsor_campaigns_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sponsor_campaigns_sponsor_id_fkey"
             columns: ["sponsor_id"]
@@ -1025,6 +1225,7 @@ export type Database = {
           descriere: string | null
           id: string
           link_url: string | null
+          organization_id: string | null
           prioritate: number | null
           scoli_target: string[] | null
           sponsor_id: string
@@ -1041,6 +1242,7 @@ export type Database = {
           descriere?: string | null
           id?: string
           link_url?: string | null
+          organization_id?: string | null
           prioritate?: number | null
           scoli_target?: string[] | null
           sponsor_id: string
@@ -1057,6 +1259,7 @@ export type Database = {
           descriere?: string | null
           id?: string
           link_url?: string | null
+          organization_id?: string | null
           prioritate?: number | null
           scoli_target?: string[] | null
           sponsor_id?: string
@@ -1067,6 +1270,13 @@ export type Database = {
           titlu?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sponsor_promos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sponsor_promos_sponsor_id_fkey"
             columns: ["sponsor_id"]
@@ -1087,6 +1297,7 @@ export type Database = {
           id: string
           logo_url: string | null
           nume: string
+          organization_id: string | null
           plan: string | null
           website: string | null
         }
@@ -1100,6 +1311,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nume: string
+          organization_id?: string | null
           plan?: string | null
           website?: string | null
         }
@@ -1113,10 +1325,19 @@ export type Database = {
           id?: string
           logo_url?: string | null
           nume?: string
+          organization_id?: string | null
           plan?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sponsors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stories: {
         Row: {
@@ -1125,6 +1346,7 @@ export type Database = {
           continut: string
           created_at: string | null
           id: string
+          organization_id: string | null
           thumbnail: string | null
           titlu: string
           varsta: string | null
@@ -1135,6 +1357,7 @@ export type Database = {
           continut: string
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           thumbnail?: string | null
           titlu: string
           varsta?: string | null
@@ -1145,11 +1368,20 @@ export type Database = {
           continut?: string
           created_at?: string | null
           id?: string
+          organization_id?: string | null
           thumbnail?: string | null
           titlu?: string
           varsta?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       story_favorites: {
         Row: {
@@ -1241,6 +1473,7 @@ export type Database = {
           created_at: string | null
           grupa: string
           id: string
+          organization_id: string | null
           sync_type: string | null
           whatsapp_group: string
         }
@@ -1249,6 +1482,7 @@ export type Database = {
           created_at?: string | null
           grupa: string
           id?: string
+          organization_id?: string | null
           sync_type?: string | null
           whatsapp_group: string
         }
@@ -1257,10 +1491,19 @@ export type Database = {
           created_at?: string | null
           grupa?: string
           id?: string
+          organization_id?: string | null
           sync_type?: string | null
           whatsapp_group?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_mappings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workshops: {
         Row: {
@@ -1274,6 +1517,7 @@ export type Database = {
           instructor: string | null
           luna: string
           materiale: string[] | null
+          organization_id: string | null
           publicat: boolean | null
           scoli_target: string[] | null
           titlu: string
@@ -1289,6 +1533,7 @@ export type Database = {
           instructor?: string | null
           luna: string
           materiale?: string[] | null
+          organization_id?: string | null
           publicat?: boolean | null
           scoli_target?: string[] | null
           titlu: string
@@ -1304,11 +1549,20 @@ export type Database = {
           instructor?: string | null
           luna?: string
           materiale?: string[] | null
+          organization_id?: string | null
           publicat?: boolean | null
           scoli_target?: string[] | null
           titlu?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "workshops_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1323,6 +1577,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_org_match: { Args: { _org_id: string }; Returns: boolean }
     }
     Enums: {
       app_role:

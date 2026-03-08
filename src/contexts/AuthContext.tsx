@@ -33,6 +33,17 @@ async function buildUserSession(authUser: User): Promise<UserSession> {
 
   const status = roles?.map(r => r.role).join(',') || 'parinte';
 
+  // Fetch organization info
+  let orgInfo: { vertical_type: string; name: string } | null = null;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('vertical_type, name')
+      .eq('id', profile.organization_id)
+      .single();
+    if (org) orgInfo = { vertical_type: org.vertical_type, name: org.name };
+  }
+
   // Fetch user's groups
   const { data: userGroups } = await supabase
     .from('user_groups')
@@ -69,6 +80,9 @@ async function buildUserSession(authUser: User): Promise<UserSession> {
     numar_grupe_clase_utilizator: grupe_disponibile.length,
     index_grupa_clasa_curenta: 0,
     grupe_disponibile,
+    organization_id: profile?.organization_id || undefined,
+    vertical_type: orgInfo?.vertical_type || 'kids',
+    org_name: orgInfo?.name || '',
   };
 }
 
