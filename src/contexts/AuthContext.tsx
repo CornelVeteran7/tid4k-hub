@@ -130,10 +130,10 @@ function getInitialDemoState(): { user: UserSession | null; isDemo: boolean } {
         if (brandingStr) {
           const { primary, secondary } = JSON.parse(brandingStr);
           if (primary && secondary) {
-            // Defer to avoid SSR issues
             setTimeout(() => {
-              const { applyBrandingColors } = require('@/utils/branding');
-              applyBrandingColors(primary, secondary);
+              import('@/utils/branding').then(({ applyBrandingColors }) => {
+                applyBrandingColors(primary, secondary);
+              });
             }, 0);
           }
         }
