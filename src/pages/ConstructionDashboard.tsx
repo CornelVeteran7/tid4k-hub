@@ -13,19 +13,21 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   HardHat, MapPin, DollarSign, Users, AlertTriangle, CheckCircle2,
   Clock, Plus, Calendar, TrendingUp, ArrowRight, Trash2, Building2,
-  Camera, Loader2, BarChart3, Edit2
+  Camera, Loader2, BarChart3, Edit2, Phone, ShieldCheck, Sun, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   getSites, getTeams, getTasks, getCosts, getAssignments,
   createTask, updateTask, createCost, deleteCost, upsertSite, deleteSite,
-  upsertTeam, upsertAssignment, deleteAssignment,
+  upsertTeam, deleteTeam, upsertAssignment, deleteAssignment,
   type ConstructionSite, type ConstructionTeam, type ConstructionTask,
-  type ConstructionCost, type TeamAssignment
+  type ConstructionCost, type TeamAssignment, type TeamMember
 } from '@/api/construction';
+import { getChecklists, type SSMChecklist } from '@/api/ssm';
 import { supabase } from '@/integrations/supabase/client';
-import { format, startOfWeek, addDays, addWeeks, parseISO } from 'date-fns';
+import { format, startOfWeek, addDays, addWeeks, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 import { ro } from 'date-fns/locale';
+import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 
 export default function ConstructionDashboard() {
   const { user } = useAuth();
@@ -35,15 +37,17 @@ export default function ConstructionDashboard() {
   const [tasks, setTasks] = useState<ConstructionTask[]>([]);
   const [costs, setCosts] = useState<ConstructionCost[]>([]);
   const [assignments, setAssignments] = useState<TeamAssignment[]>([]);
+  const [ssmChecklists, setSsmChecklists] = useState<SSMChecklist[]>([]);
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const reload = async () => {
     if (!orgId) return;
-    const [s, t, tk, c, a] = await Promise.all([
+    const [s, t, tk, c, a, ssm] = await Promise.all([
       getSites(orgId), getTeams(orgId), getTasks(orgId), getCosts(orgId), getAssignments(orgId),
+      getChecklists(orgId),
     ]);
-    setSites(s); setTeams(t); setTasks(tk); setCosts(c); setAssignments(a);
+    setSites(s); setTeams(t); setTasks(tk); setCosts(c); setAssignments(a); setSsmChecklists(ssm);
   };
 
   useEffect(() => {
@@ -58,14 +62,10 @@ export default function ConstructionDashboard() {
   const thisWeekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
   const thisWeekEnd = format(addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), 6), 'yyyy-MM-dd');
 
-  // Morning summary — solves "I call 15 people every morning"
   const totalOverdue = tasks.filter(t => t.status !== 'done' && t.data_limita && t.data_limita < today).length;
   const totalActive = tasks.filter(t => t.status !== 'done').length;
   const totalDoneToday = tasks.filter(t => t.status === 'done' && t.completed_at && t.completed_at.startsWith(today)).length;
   const costTotal = (c: ConstructionCost) => c.total ?? (c.cantitate * c.pret_unitar);
-  const totalCostAll = costs.reduce((s, c) => s + costTotal(c), 0);
-
-  // Burn rate: avg daily cost over last 30 days
   const thirtyDaysAgo = format(addDays(new Date(), -30), 'yyyy-MM-dd');
   const recentCosts = costs.filter(c => c.data_inregistrare >= thirtyDaysAgo);
   const burnRate = recentCosts.length > 0 ? Math.round(recentCosts.reduce((s, c) => s + costTotal(c), 0) / 30) : 0;
@@ -143,13 +143,18 @@ export default function ConstructionDashboard() {
       </div>
 
       {/* Detail Tabs */}
-      <Tabs defaultValue="tasks" className="space-y-4">
-        <TabsList>
+      <Tabs defaultValue="morning" className="space-y-4">
+        <TabsList className="flex-wrap h-auto">
+          <TabsTrigger value="morning" className="gap-1.5"><Sun className="h-4 w-4" /> Azi pe șantiere</TabsTrigger>
           <TabsTrigger value="tasks" className="gap-1.5"><CheckCircle2 className="h-4 w-4" /> Taskuri</TabsTrigger>
           <TabsTrigger value="teams" className="gap-1.5"><Users className="h-4 w-4" /> Echipe</TabsTrigger>
           <TabsTrigger value="costs" className="gap-1.5"><DollarSign className="h-4 w-4" /> Costuri</TabsTrigger>
+          <TabsTrigger value="ssm" className="gap-1.5"><ShieldCheck className="h-4 w-4" /> SSM</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="morning">
+          <MorningView sites={sites} teams={teams} assignments={assignments} tasks={tasks} today={today} thisWeekStart={thisWeekStart} thisWeekEnd={thisWeekEnd} />
+        </TabsContent>
         <TabsContent value="tasks">
           <TasksPanel orgId={orgId} tasks={selectedSite ? tasks.filter(t => t.site_id === selectedSite) : tasks}
             teams={teams} sites={sites} selectedSite={selectedSite} onRefresh={reload} />
@@ -160,7 +165,10 @@ export default function ConstructionDashboard() {
         <TabsContent value="costs">
           <CostsPanel orgId={orgId} costs={selectedSite ? costs.filter(c => c.site_id === selectedSite) : costs}
             sites={sites} selectedSite={selectedSite}
-            onRefresh={reload} />
+            onRefresh={reload} allCosts={costs} />
+        </TabsContent>
+        <TabsContent value="ssm">
+          <SSMCompliancePanel checklists={ssmChecklists} sites={sites} />
         </TabsContent>
       </Tabs>
     </div>
@@ -172,7 +180,7 @@ export default function ConstructionDashboard() {
    ════════════════════════════════════════════════ */
 function AddSiteDialog({ orgId, onDone }: { orgId: string; onDone: () => void }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ nume: '', adresa: '', buget: 0, data_start: '', data_estimare_finalizare: '' });
+  const [form, setForm] = useState({ nume: '', adresa: '', buget: 0, data_start: '', data_estimare_finalizare: '', beneficiar: '', contractor: '', numar_autorizatie: '' });
 
   const handleSave = async () => {
     if (!form.nume) { toast.error('Numele e obligatoriu'); return; }
@@ -184,12 +192,15 @@ function AddSiteDialog({ orgId, onDone }: { orgId: string; onDone: () => void })
         buget: form.buget,
         data_start: form.data_start || null,
         data_estimare_finalizare: form.data_estimare_finalizare || null,
+        beneficiar: form.beneficiar || null,
+        contractor: form.contractor || null,
+        numar_autorizatie: form.numar_autorizatie || null,
         status: 'activ',
         progress_pct: 0,
       });
       toast.success('Șantier creat!');
       setOpen(false);
-      setForm({ nume: '', adresa: '', buget: 0, data_start: '', data_estimare_finalizare: '' });
+      setForm({ nume: '', adresa: '', buget: 0, data_start: '', data_estimare_finalizare: '', beneficiar: '', contractor: '', numar_autorizatie: '' });
       onDone();
     } catch (e: any) { toast.error(e.message); }
   };
@@ -199,7 +210,7 @@ function AddSiteDialog({ orgId, onDone }: { orgId: string; onDone: () => void })
       <DialogTrigger asChild>
         <Button className="gap-1.5"><Plus className="h-4 w-4" /> Șantier nou</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Șantier nou</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div><Label>Nume</Label><Input value={form.nume} onChange={e => setForm(p => ({ ...p, nume: e.target.value }))} placeholder="Ex: Bloc Residentialul Nou" /></div>
@@ -208,6 +219,14 @@ function AddSiteDialog({ orgId, onDone }: { orgId: string; onDone: () => void })
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Data start</Label><Input type="date" value={form.data_start} onChange={e => setForm(p => ({ ...p, data_start: e.target.value }))} /></div>
             <div><Label>Finalizare estimată</Label><Input type="date" value={form.data_estimare_finalizare} onChange={e => setForm(p => ({ ...p, data_estimare_finalizare: e.target.value }))} /></div>
+          </div>
+          <div className="pt-2 border-t border-border">
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Identificare șantier (Legea 50/1991)</p>
+            <div className="space-y-2">
+              <div><Label>Beneficiar</Label><Input value={form.beneficiar} onChange={e => setForm(p => ({ ...p, beneficiar: e.target.value }))} /></div>
+              <div><Label>Constructor/Antreprenor</Label><Input value={form.contractor} onChange={e => setForm(p => ({ ...p, contractor: e.target.value }))} /></div>
+              <div><Label>Nr. autorizație construire</Label><Input value={form.numar_autorizatie} onChange={e => setForm(p => ({ ...p, numar_autorizatie: e.target.value }))} /></div>
+            </div>
           </div>
           <Button onClick={handleSave} className="w-full">Creează</Button>
         </div>
@@ -254,7 +273,6 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Progress — editable */}
         <div>
           <div className="flex justify-between text-xs mb-1">
             <span>Progres</span>
@@ -274,7 +292,6 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
           />
         </div>
 
-        {/* Budget */}
         <div className="flex items-center justify-between text-sm">
           <span className="flex items-center gap-1 text-muted-foreground"><DollarSign className="h-3.5 w-3.5" /> Buget</span>
           <span className={`font-semibold ${budgetPct >= 100 ? 'text-destructive' : budgetPct >= 80 ? 'text-orange-500' : 'text-green-600'}`}>
@@ -282,7 +299,6 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
           </span>
         </div>
 
-        {/* Budget alert */}
         {budgetPct >= 80 && (
           <div className={`flex items-center gap-2 text-xs font-semibold rounded-lg px-3 py-2 ${
             budgetPct >= 100 ? 'bg-destructive/10 text-destructive' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
@@ -292,7 +308,6 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
           </div>
         )}
 
-        {/* Teams */}
         <div className="flex flex-wrap gap-1">
           {assignedTeams.map(t => t && (
             <Badge key={t.id} variant="secondary" className="text-[10px]">
@@ -302,7 +317,6 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
           {assignedTeams.length === 0 && <span className="text-xs text-muted-foreground">Nicio echipă asignată</span>}
         </div>
 
-        {/* Stats row */}
         <div className="flex gap-3 text-xs">
           <span className="flex items-center gap-1">
             <CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> {tasks.filter(t => t.status === 'done').length} finalizate
@@ -317,7 +331,6 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
           )}
         </div>
 
-        {/* Recent photos */}
         {recentPhotos.length > 0 && (
           <div className="flex gap-2">
             {recentPhotos.map(t => (
@@ -327,6 +340,114 @@ function SiteCard({ site, tasks, costs, teams, assignments, today, onSelect, isS
         )}
       </CardContent>
     </Card>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   Morning View — "Azi pe șantiere"
+   ════════════════════════════════════════════════ */
+function MorningView({ sites, teams, assignments, tasks, today, thisWeekStart, thisWeekEnd }: {
+  sites: ConstructionSite[];
+  teams: ConstructionTeam[];
+  assignments: TeamAssignment[];
+  tasks: ConstructionTask[];
+  today: string;
+  thisWeekStart: string;
+  thisWeekEnd: string;
+}) {
+  const activeSites = sites.filter(s => s.status === 'activ');
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Sun className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-display font-semibold">Azi pe șantiere — {format(new Date(), 'EEEE, d MMMM', { locale: ro })}</h2>
+      </div>
+
+      {activeSites.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-8">Niciun șantier activ</p>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {activeSites.map(site => {
+          const siteAssignments = assignments.filter(a => a.site_id === site.id && a.saptamana_start <= thisWeekEnd && a.saptamana_end >= thisWeekStart);
+          const siteTeams = siteAssignments.map(a => teams.find(t => t.id === a.team_id)).filter(Boolean) as ConstructionTeam[];
+          const totalWorkers = siteTeams.reduce((sum, t) => sum + (t.members?.length || t.nr_membri || 0), 0);
+          const siteTasks = tasks.filter(t => t.site_id === site.id && t.status !== 'done');
+          const urgentTasks = siteTasks.filter(t => t.prioritate === 'urgent');
+          const overdueTasks = siteTasks.filter(t => t.data_limita && t.data_limita < today);
+
+          return (
+            <Card key={site.id} className="overflow-hidden">
+              <div className="h-1.5 w-full" style={{
+                background: overdueTasks.length > 0 ? 'hsl(var(--destructive))' :
+                  urgentTasks.length > 0 ? '#f97316' : 'hsl(var(--primary))'
+              }} />
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-display font-bold">{site.nume}</h3>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <MapPin className="h-3 w-3" /> {site.adresa || '—'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-primary">{totalWorkers}</p>
+                    <p className="text-[10px] text-muted-foreground">muncitori</p>
+                  </div>
+                </div>
+
+                {/* Teams */}
+                {siteTeams.length > 0 ? (
+                  <div className="space-y-2">
+                    {siteTeams.map(team => (
+                      <div key={team.id} className="rounded-lg bg-muted/50 px-3 py-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-sm font-semibold">{team.nume}</span>
+                            {team.leader_name && (
+                              <span className="text-xs text-muted-foreground ml-2">Șef: {team.leader_name}</span>
+                            )}
+                          </div>
+                          <Badge variant="secondary" className="text-[10px]">{team.members?.length || team.nr_membri} pers.</Badge>
+                        </div>
+                        {team.members && team.members.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {team.members.slice(0, 4).map((m, i) => (
+                              <span key={i} className="text-[10px] text-muted-foreground">{m.name}{i < Math.min(team.members.length, 4) - 1 ? ',' : ''}</span>
+                            ))}
+                            {team.members.length > 4 && <span className="text-[10px] text-muted-foreground">+{team.members.length - 4}</span>}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">Nicio echipă asignată săptămâna aceasta</p>
+                )}
+
+                {/* Today's key stats */}
+                <div className="flex gap-3 text-xs pt-1">
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" /> {siteTasks.length} taskuri active
+                  </span>
+                  {overdueTasks.length > 0 && (
+                    <span className="flex items-center gap-1 text-destructive font-semibold">
+                      <AlertTriangle className="h-3.5 w-3.5" /> {overdueTasks.length} întârziate
+                    </span>
+                  )}
+                  {urgentTasks.length > 0 && (
+                    <span className="flex items-center gap-1 text-orange-500 font-semibold">
+                      ⚡ {urgentTasks.length} urgente
+                    </span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -405,17 +526,8 @@ function TasksPanel({ orgId, tasks, teams, sites, selectedSite, onRefresh }: {
 
   return (
     <Card>
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={e => {
-          const file = e.target.files?.[0];
-          if (file && photoTaskId) handlePhotoUpload(photoTaskId, file);
-          e.target.value = '';
-        }}
-      />
+      <input ref={fileRef} type="file" accept="image/*" className="hidden"
+        onChange={e => { const file = e.target.files?.[0]; if (file && photoTaskId) handlePhotoUpload(photoTaskId, file); e.target.value = ''; }} />
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Taskuri {selectedSite ? `— ${sites.find(s => s.id === selectedSite)?.nume}` : '— Toate'}</CardTitle>
@@ -454,7 +566,9 @@ function TasksPanel({ orgId, tasks, teams, sites, selectedSite, onRefresh }: {
                     <Select value={newTask.prioritate} onValueChange={v => setNewTask(p => ({ ...p, prioritate: v }))}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="low">Scăzută</SelectItem>
                         <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="high">Ridicată</SelectItem>
                         <SelectItem value="urgent">Urgent</SelectItem>
                       </SelectContent>
                     </Select>
@@ -478,8 +592,10 @@ function TasksPanel({ orgId, tasks, teams, sites, selectedSite, onRefresh }: {
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className={`text-sm font-medium ${task.status === 'done' ? 'line-through' : ''}`}>{task.titlu}</p>
                     {task.prioritate === 'urgent' && <Badge variant="destructive" className="text-[10px]">URGENT</Badge>}
+                    {task.prioritate === 'high' && <Badge className="text-[10px] bg-orange-500">RIDICATĂ</Badge>}
                     {isOverdue && <Badge variant="destructive" className="text-[10px] gap-1"><AlertTriangle className="h-3 w-3" /> ÎNTÂRZIAT</Badge>}
                     {task.status === 'in_progress' && <Badge className="text-[10px] bg-blue-500">ÎN LUCRU</Badge>}
+                    {task.status === 'blocked' && <Badge className="text-[10px] bg-red-700">BLOCAT</Badge>}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {task.assignee && `👷 ${task.assignee} · `}
@@ -525,7 +641,7 @@ function TasksPanel({ orgId, tasks, teams, sites, selectedSite, onRefresh }: {
 }
 
 /* ════════════════════════════════════════════════
-   Teams Panel (M13)
+   Teams Panel (M13) — with members CRUD
    ════════════════════════════════════════════════ */
 function TeamsPanel({ orgId, teams, sites, assignments, onRefresh }: {
   orgId: string;
@@ -538,7 +654,9 @@ function TeamsPanel({ orgId, teams, sites, assignments, onRefresh }: {
   const [addSiteId, setAddSiteId] = useState('');
   const [addWeek, setAddWeek] = useState(format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [showAddTeam, setShowAddTeam] = useState(false);
-  const [newTeam, setNewTeam] = useState({ nume: '', nr_membri: 0, specialitate: '' });
+  const [editTeam, setEditTeam] = useState<ConstructionTeam | null>(null);
+  const [newTeam, setNewTeam] = useState({ nume: '', specialitate: '', leader_name: '', members: [] as TeamMember[] });
+  const [newMember, setNewMember] = useState({ name: '', phone: '', role: '' });
 
   const handleAssign = async () => {
     if (!addTeamId || !addSiteId) { toast.error('Selectează echipa și șantierul'); return; }
@@ -563,18 +681,50 @@ function TeamsPanel({ orgId, teams, sites, assignments, onRefresh }: {
     onRefresh();
   };
 
-  const handleAddTeam = async () => {
-    if (!newTeam.nume) { toast.error('Numele e obligatoriu'); return; }
+  const handleSaveTeam = async () => {
+    const data = editTeam || newTeam;
+    if (!data.nume) { toast.error('Numele e obligatoriu'); return; }
     try {
-      await upsertTeam({ organization_id: orgId, ...newTeam });
-      toast.success('Echipă creată!');
+      await upsertTeam({
+        ...(editTeam ? { id: editTeam.id } : {}),
+        organization_id: orgId,
+        nume: data.nume,
+        specialitate: data.specialitate || (editTeam?.specialitate ?? ''),
+        leader_name: data.leader_name || (editTeam?.leader_name ?? null),
+        members: data.members || (editTeam?.members ?? []),
+        nr_membri: (data.members || editTeam?.members || []).length,
+      });
+      toast.success(editTeam ? 'Echipă actualizată!' : 'Echipă creată!');
       setShowAddTeam(false);
-      setNewTeam({ nume: '', nr_membri: 0, specialitate: '' });
+      setEditTeam(null);
+      setNewTeam({ nume: '', specialitate: '', leader_name: '', members: [] });
       onRefresh();
     } catch (e: any) { toast.error(e.message); }
   };
 
-  // Calendar view — 3 weeks
+  const addMemberToList = () => {
+    if (!newMember.name) return;
+    const target = editTeam || newTeam;
+    const updated = [...(target.members || []), { ...newMember }];
+    if (editTeam) {
+      setEditTeam({ ...editTeam, members: updated });
+    } else {
+      setNewTeam({ ...newTeam, members: updated });
+    }
+    setNewMember({ name: '', phone: '', role: '' });
+  };
+
+  const removeMember = (idx: number) => {
+    const target = editTeam || newTeam;
+    const updated = [...(target.members || [])];
+    updated.splice(idx, 1);
+    if (editTeam) {
+      setEditTeam({ ...editTeam, members: updated });
+    } else {
+      setNewTeam({ ...newTeam, members: updated });
+    }
+  };
+
   const weeks = [0, 1, 2].map(offset => {
     const start = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), offset);
     const end = addDays(start, 6);
@@ -585,34 +735,72 @@ function TeamsPanel({ orgId, teams, sites, assignments, onRefresh }: {
     return { startStr, endStr, label, assignments: weekAssignments };
   });
 
+  const teamDialogData = editTeam || newTeam;
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Echipe & Calendar</CardTitle>
-          <Dialog open={showAddTeam} onOpenChange={setShowAddTeam}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="gap-1.5"><Plus className="h-4 w-4" /> Echipă nouă</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Echipă nouă</DialogTitle></DialogHeader>
-              <div className="space-y-3">
-                <div><Label>Nume echipă</Label><Input value={newTeam.nume} onChange={e => setNewTeam(p => ({ ...p, nume: e.target.value }))} placeholder="Ex: Echipa Zidari" /></div>
-                <div><Label>Nr. membri</Label><Input type="number" value={newTeam.nr_membri} onChange={e => setNewTeam(p => ({ ...p, nr_membri: Number(e.target.value) }))} /></div>
-                <div><Label>Specialitate</Label><Input value={newTeam.specialitate} onChange={e => setNewTeam(p => ({ ...p, specialitate: e.target.value }))} placeholder="Ex: Zidărie, Instalații" /></div>
-                <Button onClick={handleAddTeam} className="w-full">Creează echipă</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => { setEditTeam(null); setNewTeam({ nume: '', specialitate: '', leader_name: '', members: [] }); setShowAddTeam(true); }}>
+            <Plus className="h-4 w-4" /> Echipă nouă
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Team dialog */}
+        <Dialog open={showAddTeam || !!editTeam} onOpenChange={v => { if (!v) { setShowAddTeam(false); setEditTeam(null); } }}>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>{editTeam ? 'Editare echipă' : 'Echipă nouă'}</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div><Label>Nume echipă</Label><Input value={teamDialogData.nume} onChange={e => editTeam ? setEditTeam({ ...editTeam, nume: e.target.value }) : setNewTeam({ ...newTeam, nume: e.target.value })} placeholder="Ex: Echipa Zidari" /></div>
+              <div><Label>Șef echipă</Label><Input value={teamDialogData.leader_name || ''} onChange={e => editTeam ? setEditTeam({ ...editTeam, leader_name: e.target.value }) : setNewTeam({ ...newTeam, leader_name: e.target.value })} placeholder="Nume șef echipă" /></div>
+              <div><Label>Specialitate</Label><Input value={teamDialogData.specialitate || ''} onChange={e => editTeam ? setEditTeam({ ...editTeam, specialitate: e.target.value }) : setNewTeam({ ...newTeam, specialitate: e.target.value })} placeholder="Zidărie, Instalații..." /></div>
+
+              {/* Members list */}
+              <div className="border-t border-border pt-3">
+                <Label className="text-sm font-semibold">Membri echipă ({(teamDialogData.members || []).length})</Label>
+                <div className="space-y-1 mt-2">
+                  {(teamDialogData.members || []).map((m, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg px-3 py-1.5">
+                      <span className="flex-1 font-medium">{m.name}</span>
+                      <span className="text-xs text-muted-foreground">{m.role}</span>
+                      {m.phone && <span className="text-xs text-muted-foreground flex items-center gap-0.5"><Phone className="h-3 w-3" />{m.phone}</span>}
+                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => removeMember(i)}><X className="h-3 w-3 text-destructive" /></Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <Input placeholder="Nume" value={newMember.name} onChange={e => setNewMember(p => ({ ...p, name: e.target.value }))} />
+                  <Input placeholder="Telefon" value={newMember.phone} onChange={e => setNewMember(p => ({ ...p, phone: e.target.value }))} />
+                  <div className="flex gap-1">
+                    <Input placeholder="Rol" value={newMember.role} onChange={e => setNewMember(p => ({ ...p, role: e.target.value }))} />
+                    <Button size="sm" variant="outline" onClick={addMemberToList}><Plus className="h-4 w-4" /></Button>
+                  </div>
+                </div>
+              </div>
+
+              <Button onClick={handleSaveTeam} className="w-full">{editTeam ? 'Salvează' : 'Creează echipă'}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Teams list */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {teams.map(team => (
-            <div key={team.id} className="rounded-lg border border-border p-3">
-              <p className="text-sm font-semibold">{team.nume}</p>
-              <p className="text-xs text-muted-foreground">{team.nr_membri} membri · {team.specialitate}</p>
+            <div key={team.id} className="rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => { setEditTeam(team); }}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-semibold">{team.nume}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {team.members?.length || team.nr_membri} membri · {team.specialitate}
+                  </p>
+                  {team.leader_name && <p className="text-xs text-muted-foreground">Șef: {team.leader_name}</p>}
+                </div>
+                <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); deleteTeam(team.id).then(onRefresh); }}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
             </div>
           ))}
           {teams.length === 0 && <p className="text-sm text-muted-foreground">Nicio echipă. Creează una!</p>}
@@ -640,6 +828,7 @@ function TeamsPanel({ orgId, teams, sites, assignments, onRefresh }: {
                           <Badge variant="secondary" className="text-[10px]">{team?.nume}</Badge>
                           <ArrowRight className="h-3 w-3 text-muted-foreground" />
                           <span className="text-sm">{site?.nume}</span>
+                          {a.notes && <span className="text-xs text-muted-foreground ml-2">— {a.notes}</span>}
                         </div>
                         <Button size="sm" variant="ghost" onClick={() => handleRemove(a.id)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
@@ -675,46 +864,47 @@ function TeamsPanel({ orgId, teams, sites, assignments, onRefresh }: {
 }
 
 /* ════════════════════════════════════════════════
-   Costs Panel (M14)
+   Costs Panel (M14) — with charts
    ════════════════════════════════════════════════ */
-function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
+const PIE_COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+
+function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh, allCosts }: {
   orgId: string;
   costs: ConstructionCost[];
   sites: ConstructionSite[];
   selectedSite: string | null;
   onRefresh: () => void;
+  allCosts: ConstructionCost[];
 }) {
   const [showAdd, setShowAdd] = useState(false);
-  const [newCost, setNewCost] = useState({ site_id: selectedSite || '', categorie: 'materiale', descriere: '', cantitate: 1, pret_unitar: 0, furnizor: '', suma_platita: 0 });
+  const [quickMode, setQuickMode] = useState(false);
+  const [newCost, setNewCost] = useState({ site_id: selectedSite || '', categorie: 'materiale', descriere: '', cantitate: 1, pret_unitar: 0, furnizor: '', suma_platita: 0, total_direct: 0 });
 
   const handleAdd = async () => {
     if (!newCost.site_id || !newCost.descriere) { toast.error('Completează câmpurile'); return; }
+    const total = quickMode ? newCost.total_direct : newCost.cantitate * newCost.pret_unitar;
     try {
       await createCost({
         organization_id: orgId,
         site_id: newCost.site_id,
         categorie: newCost.categorie,
         descriere: newCost.descriere,
-        cantitate: newCost.cantitate,
-        pret_unitar: newCost.pret_unitar,
-        total: newCost.cantitate * newCost.pret_unitar,
+        cantitate: quickMode ? 1 : newCost.cantitate,
+        pret_unitar: quickMode ? total : newCost.pret_unitar,
+        total,
         furnizor: newCost.furnizor,
         suma_platita: newCost.suma_platita,
         data_inregistrare: format(new Date(), 'yyyy-MM-dd'),
       });
       toast.success('Cost adăugat!');
       setShowAdd(false);
-      setNewCost({ site_id: selectedSite || '', categorie: 'materiale', descriere: '', cantitate: 1, pret_unitar: 0, furnizor: '', suma_platita: 0 });
+      setNewCost({ site_id: selectedSite || '', categorie: 'materiale', descriere: '', cantitate: 1, pret_unitar: 0, furnizor: '', suma_platita: 0, total_direct: 0 });
       onRefresh();
     } catch (e: any) { toast.error(e.message); }
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      await deleteCost(id);
-      toast.success('Cost șters');
-      onRefresh();
-    } catch (e: any) { toast.error(e.message); }
+    try { await deleteCost(id); toast.success('Cost șters'); onRefresh(); } catch (e: any) { toast.error(e.message); }
   };
 
   const ct = (c: ConstructionCost) => c.total ?? (c.cantitate * c.pret_unitar);
@@ -725,24 +915,44 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
     return map;
   }, [costs]);
 
+  const pieData = useMemo(() =>
+    Object.entries(byCategory).map(([name, value]) => ({ name: categoryLabels[name] || name, value })),
+  [byCategory]);
+
+  // Burn rate chart data — cumulative costs over time
+  const burnRateData = useMemo(() => {
+    const sorted = [...costs].sort((a, b) => a.data_inregistrare.localeCompare(b.data_inregistrare));
+    let cumulative = 0;
+    const points: { date: string; cost: number; budget: number }[] = [];
+    const site = selectedSite ? sites.find(s => s.id === selectedSite) : null;
+    const budget = site?.buget || 0;
+    sorted.forEach(c => {
+      cumulative += ct(c);
+      points.push({ date: c.data_inregistrare, cost: cumulative, budget });
+    });
+    return points;
+  }, [costs, selectedSite, sites]);
+
   const totalSpent = costs.reduce((s, c) => s + ct(c), 0);
   const totalPaid = costs.reduce((s, c) => s + c.suma_platita, 0);
   const site = selectedSite ? sites.find(s => s.id === selectedSite) : null;
   const budgetPct = site && site.buget > 0 ? Math.round((totalSpent / site.buget) * 100) : 0;
 
-  // Burn rate for this site/selection
   const thirtyAgo = format(addDays(new Date(), -30), 'yyyy-MM-dd');
   const recentSiteCosts = costs.filter(c => c.data_inregistrare >= thirtyAgo);
   const siteBurnRate = recentSiteCosts.length > 0 ? Math.round(recentSiteCosts.reduce((s, c) => s + ct(c), 0) / 30) : 0;
   const daysLeft = site && siteBurnRate > 0 && site.buget > totalSpent ? Math.round((site.buget - totalSpent) / siteBurnRate) : null;
 
-  const categoryLabels: Record<string, string> = {
-    materiale: '🧱 Materiale',
-    manopera: '👷 Manoperă',
-    subcontractare: '🏢 Subcontractare',
-    utilaje: '🚜 Utilaje',
-    altele: '📦 Altele',
-  };
+  // All-sites overview
+  const allSitesOverview = useMemo(() => {
+    return sites.map(s => {
+      const siteCosts = allCosts.filter(c => c.site_id === s.id);
+      const spent = siteCosts.reduce((sum, c) => sum + ct(c), 0);
+      const remaining = s.buget - spent;
+      const pct = s.buget > 0 ? Math.round((spent / s.buget) * 100) : 0;
+      return { ...s, spent, remaining, pct };
+    });
+  }, [sites, allCosts]);
 
   return (
     <Card>
@@ -756,6 +966,10 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
             <DialogContent>
               <DialogHeader><DialogTitle>Cost nou</DialogTitle></DialogHeader>
               <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant={quickMode ? 'default' : 'outline'} onClick={() => setQuickMode(true)}>⚡ Rapid</Button>
+                  <Button size="sm" variant={!quickMode ? 'default' : 'outline'} onClick={() => setQuickMode(false)}>📋 Detaliat</Button>
+                </div>
                 <div>
                   <Label>Șantier</Label>
                   <Select value={newCost.site_id} onValueChange={v => setNewCost(p => ({ ...p, site_id: v }))}>
@@ -777,16 +991,22 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
                   </Select>
                 </div>
                 <div><Label>Descriere</Label><Input value={newCost.descriere} onChange={e => setNewCost(p => ({ ...p, descriere: e.target.value }))} placeholder="Ex: Ciment Holcim 50kg" /></div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><Label>Cantitate</Label><Input type="number" value={newCost.cantitate} onChange={e => setNewCost(p => ({ ...p, cantitate: Number(e.target.value) }))} /></div>
-                  <div><Label>Preț unitar (lei)</Label><Input type="number" value={newCost.pret_unitar} onChange={e => setNewCost(p => ({ ...p, pret_unitar: Number(e.target.value) }))} /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><Label>Furnizor</Label><Input value={newCost.furnizor} onChange={e => setNewCost(p => ({ ...p, furnizor: e.target.value }))} /></div>
-                  <div><Label>Sumă plătită (lei)</Label><Input type="number" value={newCost.suma_platita} onChange={e => setNewCost(p => ({ ...p, suma_platita: Number(e.target.value) }))} /></div>
-                </div>
+                {quickMode ? (
+                  <div><Label>Total (lei)</Label><Input type="number" value={newCost.total_direct} onChange={e => setNewCost(p => ({ ...p, total_direct: Number(e.target.value) }))} /></div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><Label>Cantitate</Label><Input type="number" value={newCost.cantitate} onChange={e => setNewCost(p => ({ ...p, cantitate: Number(e.target.value) }))} /></div>
+                      <div><Label>Preț unitar (lei)</Label><Input type="number" value={newCost.pret_unitar} onChange={e => setNewCost(p => ({ ...p, pret_unitar: Number(e.target.value) }))} /></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><Label>Furnizor</Label><Input value={newCost.furnizor} onChange={e => setNewCost(p => ({ ...p, furnizor: e.target.value }))} /></div>
+                      <div><Label>Sumă plătită (lei)</Label><Input type="number" value={newCost.suma_platita} onChange={e => setNewCost(p => ({ ...p, suma_platita: Number(e.target.value) }))} /></div>
+                    </div>
+                  </>
+                )}
                 <div className="text-sm font-semibold text-right">
-                  Total: {(newCost.cantitate * newCost.pret_unitar).toLocaleString('ro-RO')} lei
+                  Total: {(quickMode ? newCost.total_direct : newCost.cantitate * newCost.pret_unitar).toLocaleString('ro-RO')} lei
                 </div>
                 <Button onClick={handleAdd} className="w-full">Adaugă cost</Button>
               </div>
@@ -827,7 +1047,45 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
           </div>
         )}
 
-        {/* Category breakdown */}
+        {/* Charts row */}
+        {costs.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Pie chart — category breakdown */}
+            {pieData.length > 0 && (
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-sm font-semibold mb-3">Distribuție pe categorii</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                      {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => `${v.toLocaleString('ro-RO')} lei`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Burn rate chart */}
+            {burnRateData.length > 1 && site && (
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-sm font-semibold mb-3">Evoluție costuri vs. buget</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={burnRateData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <Tooltip formatter={(v: number) => `${v.toLocaleString('ro-RO')} lei`} />
+                    <Legend />
+                    <Line type="monotone" dataKey="cost" stroke="#4F46E5" name="Costuri cumulate" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="budget" stroke="#EF4444" name="Buget" strokeWidth={1} strokeDasharray="5 5" dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Category breakdown cards */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {Object.entries(byCategory).map(([cat, total]) => (
             <div key={cat} className="rounded-lg border border-border p-3 text-center">
@@ -836,6 +1094,45 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
             </div>
           ))}
         </div>
+
+        {/* All-sites overview table */}
+        {!selectedSite && allSitesOverview.length > 0 && (
+          <div className="rounded-lg border border-border overflow-hidden">
+            <div className="bg-muted/50 px-4 py-2">
+              <p className="text-sm font-semibold">Sumar toate șantierele</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left px-4 py-2 font-medium text-muted-foreground">Șantier</th>
+                    <th className="text-right px-4 py-2 font-medium text-muted-foreground">Buget</th>
+                    <th className="text-right px-4 py-2 font-medium text-muted-foreground">Cheltuit</th>
+                    <th className="text-right px-4 py-2 font-medium text-muted-foreground">Rămas</th>
+                    <th className="text-right px-4 py-2 font-medium text-muted-foreground">%</th>
+                    <th className="text-center px-4 py-2 font-medium text-muted-foreground">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allSitesOverview.map(s => (
+                    <tr key={s.id} className={`border-b border-border ${
+                      s.pct >= 100 ? 'bg-destructive/5' : s.pct >= 80 ? 'bg-orange-50 dark:bg-orange-900/10' : ''
+                    }`}>
+                      <td className="px-4 py-2 font-medium">{s.nume}</td>
+                      <td className="px-4 py-2 text-right">{s.buget.toLocaleString('ro-RO')}</td>
+                      <td className="px-4 py-2 text-right">{s.spent.toLocaleString('ro-RO')}</td>
+                      <td className="px-4 py-2 text-right">{s.remaining.toLocaleString('ro-RO')}</td>
+                      <td className={`px-4 py-2 text-right font-semibold ${
+                        s.pct >= 100 ? 'text-destructive' : s.pct >= 80 ? 'text-orange-500' : 'text-green-600'
+                      }`}>{s.pct}%</td>
+                      <td className="px-4 py-2 text-center"><Badge variant={s.status === 'activ' ? 'default' : 'secondary'} className="text-[10px]">{s.status}</Badge></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* Cost list */}
         <div className="divide-y divide-border">
@@ -863,6 +1160,112 @@ function CostsPanel({ orgId, costs, sites, selectedSite, onRefresh }: {
             </div>
           ))}
           {costs.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">Niciun cost înregistrat</p>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const categoryLabels: Record<string, string> = {
+  materiale: '🧱 Materiale',
+  manopera: '👷 Manoperă',
+  subcontractare: '🏢 Subcontractare',
+  utilaje: '🚜 Utilaje',
+  altele: '📦 Altele',
+};
+
+/* ════════════════════════════════════════════════
+   SSM Compliance Panel — Calendar view
+   ════════════════════════════════════════════════ */
+function SSMCompliancePanel({ checklists, sites }: { checklists: SSMChecklist[]; sites: ConstructionSite[] }) {
+  const [month, setMonth] = useState(new Date());
+  const monthStart = startOfMonth(month);
+  const monthEnd = endOfMonth(month);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const checklistByDate = useMemo(() => {
+    const map: Record<string, SSMChecklist[]> = {};
+    checklists.forEach(c => {
+      if (!map[c.data]) map[c.data] = [];
+      map[c.data].push(c);
+    });
+    return map;
+  }, [checklists]);
+
+  const totalCompleted = checklists.filter(c => c.status === 'completed').length;
+  const totalIncomplete = checklists.filter(c => c.status === 'incomplete').length;
+  const compliancePct = checklists.length > 0 ? Math.round((totalCompleted / checklists.length) * 100) : 100;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2"><ShieldCheck className="h-5 w-5" /> Conformitate SSM</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => setMonth(addDays(startOfMonth(month), -1))}>←</Button>
+            <span className="text-sm font-medium min-w-[100px] text-center">{format(month, 'MMMM yyyy', { locale: ro })}</span>
+            <Button size="sm" variant="outline" onClick={() => setMonth(addDays(monthEnd, 1))}>→</Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Summary */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-lg border border-border p-3 text-center">
+            <p className={`text-2xl font-bold ${compliancePct >= 80 ? 'text-green-600' : compliancePct >= 50 ? 'text-orange-500' : 'text-destructive'}`}>{compliancePct}%</p>
+            <p className="text-xs text-muted-foreground">Conformitate</p>
+          </div>
+          <div className="rounded-lg border border-border p-3 text-center">
+            <p className="text-2xl font-bold text-green-600">{totalCompleted}</p>
+            <p className="text-xs text-muted-foreground">Completate</p>
+          </div>
+          <div className={`rounded-lg border p-3 text-center ${totalIncomplete > 0 ? 'border-destructive' : 'border-border'}`}>
+            <p className={`text-2xl font-bold ${totalIncomplete > 0 ? 'text-destructive' : 'text-muted-foreground'}`}>{totalIncomplete}</p>
+            <p className="text-xs text-muted-foreground">Incomplete/Restanțe</p>
+          </div>
+        </div>
+
+        {/* Calendar */}
+        <div className="grid grid-cols-7 gap-1">
+          {['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'].map(d => (
+            <div key={d} className="text-center text-[10px] font-semibold text-muted-foreground py-1">{d}</div>
+          ))}
+          {/* Padding for first day */}
+          {Array.from({ length: (monthStart.getDay() + 6) % 7 }).map((_, i) => (
+            <div key={`pad-${i}`} />
+          ))}
+          {days.map(day => {
+            const dateStr = format(day, 'yyyy-MM-dd');
+            const dayChecklists = checklistByDate[dateStr] || [];
+            const hasCompleted = dayChecklists.some(c => c.status === 'completed');
+            const hasIncomplete = dayChecklists.some(c => c.status === 'incomplete');
+            const isFuture = day > new Date();
+            const today = isToday(day);
+
+            let bg = '';
+            if (isFuture) bg = '';
+            else if (hasCompleted && !hasIncomplete) bg = 'bg-green-100 dark:bg-green-900/30';
+            else if (hasIncomplete) bg = 'bg-destructive/10';
+            else if (dayChecklists.length === 0 && !isFuture && day.getDay() !== 0 && day.getDay() !== 6) bg = 'bg-muted/30';
+
+            return (
+              <div key={dateStr} className={`relative rounded-md text-center py-2 text-xs ${bg} ${today ? 'ring-2 ring-primary' : ''}`}>
+                <span className={`${today ? 'font-bold' : ''}`}>{format(day, 'd')}</span>
+                {dayChecklists.length > 0 && (
+                  <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+                    {hasCompleted && <div className="h-1.5 w-1.5 rounded-full bg-green-500" />}
+                    {hasIncomplete && <div className="h-1.5 w-1.5 rounded-full bg-destructive" />}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><div className="h-2.5 w-2.5 rounded-full bg-green-500" /> Completat</span>
+          <span className="flex items-center gap-1"><div className="h-2.5 w-2.5 rounded-full bg-destructive" /> Incomplet/Restanță</span>
+          <span className="flex items-center gap-1"><div className="h-2.5 w-2.5 rounded-full bg-muted" /> Fără checklist</span>
         </div>
       </CardContent>
     </Card>
