@@ -306,11 +306,31 @@ export default function QRCancelarie() {
 
 function AuthenticatedSection({ userId, orgId, primaryColor }: { userId: string; orgId: string; primaryColor: string }) {
   const { user } = useAuth();
+  const { orgSlug } = useParams<{ orgSlug: string }>();
   const roles = user?.status?.split(',').map(r => r.trim()) || [];
   const isAdmin = roles.includes('administrator') || roles.includes('director') || roles.includes('inky');
+  const isReceptionist = roles.includes('secretara') || isAdmin;
+  const isMedicine = user?.vertical_type === 'medicine';
 
   return (
     <div className="space-y-4">
+      {/* Medicine: Receptionist quick link to admin panel */}
+      {isMedicine && isReceptionist && (
+        <Card className="border-primary/30">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-sm text-foreground">Panou Recepție</h3>
+              <p className="text-xs text-muted-foreground">Gestionare coadă pacienți</p>
+            </div>
+            <Button asChild size="sm" className="gap-1.5">
+              <Link to="/coada">
+                <TicketIcon className="h-4 w-4" /> Deschide
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center gap-2">
         <Shield className="h-5 w-5 text-primary" />
         <h2 className="text-lg font-display font-semibold text-foreground">Informații personale</h2>
