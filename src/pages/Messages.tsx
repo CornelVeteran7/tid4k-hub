@@ -99,8 +99,7 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
 
   // Real-time subscription for new messages
   useEffect(() => {
-    if (!selectedConvo) return;
-    
+    if (!selectedConvo || isDemo) return;
     import('@/integrations/supabase/client').then(({ supabase: sb }) => {
       const channel = sb
         .channel(`messages:${selectedConvo.id}`)
