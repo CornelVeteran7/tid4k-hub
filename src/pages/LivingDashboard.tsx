@@ -79,7 +79,7 @@ export default function LivingDashboard() {
   const handleAddExpense = async () => {
     if (!newExpense.amount || !orgId) return toast.error('Suma e obligatorie');
     try {
-      await createExpense({ organization_id: orgId, month: selMonth, year: selYear, ...newExpense });
+      await createExpense({ organization_id: orgId, month: selMonth, year: selYear, ...newExpense } as any);
       toast.success('Cheltuială adăugată');
       setShowAddExpense(false);
       setNewExpense({ category: 'utilitati', description: '', amount: 0 });
