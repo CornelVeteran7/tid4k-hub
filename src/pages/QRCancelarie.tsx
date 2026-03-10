@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGuestSession } from '@/hooks/useGuestSession';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Newspaper, Stethoscope, Ticket as TicketIcon, HardHat, ShieldCheck, Theater } from 'lucide-react';
-import { Megaphone, FileText, MessageSquare, Clock, Shield, Calendar, Users, LogIn, ChevronRight, MapPin } from 'lucide-react';
-import { format, startOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { Megaphone, FileText, MessageSquare, Clock, Shield, Calendar, Users, LogIn, ChevronRight, MapPin, QrCode, Eye } from 'lucide-react';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
 /* ═══════════════════════════════════════════════════
@@ -36,7 +37,11 @@ interface OrgInfo {
 
 export default function QRCancelarie() {
   const { orgSlug } = useParams<{ orgSlug: string }>();
+  const [searchParams] = useSearchParams();
+  const tokenFromUrl = searchParams.get('t');
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { guestSession, isGuest, isValidating, validateAndCreateSession, clearSession } = useGuestSession(orgSlug);
+
   const [org, setOrg] = useState<OrgInfo | null>(null);
   const [announcements, setAnnouncements] = useState<PublicAnnouncement[]>([]);
   const [scheduleToday, setScheduleToday] = useState<{ ora: string; materie: string; profesor: string; culoare: string }[]>([]);
@@ -48,20 +53,42 @@ export default function QRCancelarie() {
   const [constructionSites, setConstructionSites] = useState<{ id: string; nume: string; adresa: string; beneficiar: string; contractor: string; numar_autorizatie: string }[]>([]);
   const [ssmStatus, setSsmStatus] = useState<{ completed: number; total: number }>({ completed: 0, total: 0 });
   const [loading, setLoading] = useState(true);
+  const [tokenError, setTokenError] = useState<string | null>(null);
 
+  // Determine access level
+  const hasAccess = isAuthenticated || isGuest;
+
+  // Load org info first (always needed for landing screen)
   useEffect(() => {
-    async function load() {
-      // Load org info
+    async function loadOrg() {
       const { data: orgData } = await supabase
         .from('organizations')
         .select('id, name, logo_url, primary_color, vertical_type')
         .eq('slug', orgSlug || '')
         .maybeSingle();
-
       if (orgData) setOrg(orgData as OrgInfo);
-      const orgId = orgData?.id || '';
+      setLoading(false);
+    }
+    loadOrg();
+  }, [orgSlug]);
 
-      // Load public announcements
+  // Auto-validate token from URL if not already a guest or authenticated
+  useEffect(() => {
+    if (!tokenFromUrl || isAuthenticated || isGuest || isValidating) return;
+    validateAndCreateSession(tokenFromUrl).then(result => {
+      if (!result.success) {
+        setTokenError(result.error || 'Token invalid');
+      }
+    });
+  }, [tokenFromUrl, isAuthenticated, isGuest, isValidating, validateAndCreateSession]);
+
+  // Load content when access is granted
+  useEffect(() => {
+    if (!hasAccess || !org) return;
+
+    async function loadContent() {
+      const orgId = org!.id;
+
       const { data: annData } = await supabase
         .from('announcements')
         .select('id, titlu, continut, prioritate, created_at')
@@ -72,7 +99,6 @@ export default function QRCancelarie() {
         .limit(10);
       setAnnouncements(annData || []);
 
-      // Load today's schedule (public)
       const todayRO = ['duminica', 'luni', 'marti', 'miercuri', 'joi', 'vineri', 'sambata'][new Date().getDay()] || '';
       const { data: schedData } = await supabase
         .from('schedule')
@@ -82,8 +108,7 @@ export default function QRCancelarie() {
         .order('ora');
       setScheduleToday(schedData || []);
 
-      // Schools-specific: timetable + magazine
-      if (orgData?.vertical_type === 'schools') {
+      if (org!.vertical_type === 'schools') {
         const dayOfWeek = new Date().getDay();
         const dayNum = dayOfWeek === 0 ? 7 : dayOfWeek;
         const [{ data: ttData }, { data: magData }] = await Promise.all([
@@ -99,8 +124,7 @@ export default function QRCancelarie() {
         setMagazineArticles(magData || []);
       }
 
-      // Medicine-specific: doctors + services
-      if (orgData?.vertical_type === 'medicine') {
+      if (org!.vertical_type === 'medicine') {
         const [{ data: docData }, { data: svcData }] = await Promise.all([
           supabase.from('doctor_profiles').select('name, specialization, credentials')
             .eq('organization_id', orgId).eq('activ', true).order('ordine'),
@@ -111,8 +135,7 @@ export default function QRCancelarie() {
         setMedicineServices(svcData || []);
       }
 
-      // Construction-specific: tasks, sites, SSM status
-      if (orgData?.vertical_type === 'construction') {
+      if (org!.vertical_type === 'construction') {
         const todayDate = format(new Date(), 'yyyy-MM-dd');
         const [{ data: tasksData }, { data: sitesData }, { data: ssmData }] = await Promise.all([
           supabase.from('construction_tasks').select('id, titlu, status, prioritate, locatie')
@@ -128,11 +151,9 @@ export default function QRCancelarie() {
         const ssmList = ssmData || [];
         setSsmStatus({ completed: ssmList.filter((s: any) => s.status === 'completed').length, total: ssmList.length });
       }
-
-      setLoading(false);
     }
-    load();
-  }, [orgSlug]);
+    loadContent();
+  }, [hasAccess, org]);
 
   if (loading || authLoading) {
     return (
@@ -145,6 +166,76 @@ export default function QRCancelarie() {
   const orgName = org?.name || orgSlug || '';
   const primaryColor = org?.primary_color || '#4F46E5';
 
+  // ─── LANDING SCREEN (no access yet) ───
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-background safe-top safe-bottom">
+        <div className="flex flex-col items-center justify-center min-h-screen px-6">
+          {/* Org branding */}
+          <div className="text-center mb-8">
+            {org?.logo_url && (
+              <img src={org.logo_url} alt="" className="h-20 w-20 mx-auto rounded-2xl object-contain mb-4"
+                style={{ background: `${primaryColor}15`, padding: 8 }} />
+            )}
+            <h1 className="text-3xl font-display font-bold text-foreground">{orgName}</h1>
+            <p className="text-muted-foreground mt-2">Bine ați venit!</p>
+          </div>
+
+          {/* Error message */}
+          {tokenError && (
+            <Card className="mb-6 border-destructive/50 bg-destructive/5 max-w-sm w-full">
+              <CardContent className="p-4 text-center">
+                <QrCode className="h-8 w-8 mx-auto text-destructive mb-2" />
+                <p className="text-sm text-destructive font-medium">{tokenError}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Scanați codul QR de pe avizierul digital pentru acces.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Validating state */}
+          {isValidating && (
+            <Card className="mb-6 max-w-sm w-full">
+              <CardContent className="p-6 text-center">
+                <div className="h-8 w-8 mx-auto animate-spin rounded-full border-4 border-primary border-t-transparent mb-3" />
+                <p className="text-sm text-muted-foreground">Se verifică accesul...</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Action buttons */}
+          {!isValidating && (
+            <div className="flex flex-col gap-3 w-full max-w-sm">
+              {tokenFromUrl && !tokenError && (
+                <Button
+                  size="lg"
+                  className="gap-2 w-full"
+                  onClick={() => validateAndCreateSession(tokenFromUrl)}
+                >
+                  <Eye className="h-5 w-5" /> Continuă ca vizitator
+                </Button>
+              )}
+
+              <Button variant="outline" size="lg" className="gap-2 w-full" asChild>
+                <Link to={`/login`}>
+                  <LogIn className="h-5 w-5" /> Autentificare
+                </Link>
+              </Button>
+
+              {!tokenFromUrl && !tokenError && (
+                <p className="text-center text-xs text-muted-foreground mt-4">
+                  Scanați codul QR de pe avizierul digital pentru a accesa informațiile publice.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── CONTENT VIEW (guest or authenticated) ───
   return (
     <div className="min-h-screen bg-background safe-top safe-bottom">
       {/* Header */}
@@ -154,11 +245,12 @@ export default function QRCancelarie() {
             style={{ background: `${primaryColor}15`, padding: 4 }} />
         )}
         <h1 className="text-2xl font-display font-bold text-foreground">{orgName}</h1>
-        <p className="text-muted-foreground text-sm mt-1">Informații publice</p>
-        {isAuthenticated && (
-          <Badge className="mt-2 bg-success text-success-foreground">
-            <Shield className="h-3 w-3 mr-1" /> Conectat ca {user?.nume_prenume}
+        {isAuthenticated ? (
+          <Badge className="mt-2 bg-primary/10 text-primary border-primary/20">
+            <Shield className="h-3 w-3 mr-1" /> {user?.nume_prenume}
           </Badge>
+        ) : (
+          <p className="text-muted-foreground text-sm mt-1">Informații publice</p>
         )}
       </div>
 
@@ -249,13 +341,13 @@ export default function QRCancelarie() {
           </Section>
         )}
 
-        {/* ── Medicine: Queue link + Services + Doctors ── */}
+        {/* ── Medicine: Queue + Services + Doctors ── */}
         {org?.vertical_type === 'medicine' && (
           <>
             <Section icon={<TicketIcon className="h-5 w-5" />} title="Coadă" color={primaryColor}>
               <Card>
                 <CardContent className="p-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-3">Ia un număr de ordine fără a te autentifica</p>
+                  <p className="text-sm text-muted-foreground mb-3">Ia un număr de ordine</p>
                   <Button asChild className="gap-2">
                     <a href={`/queue/${orgSlug}`}>
                       <TicketIcon className="h-4 w-4" /> Ia un număr
@@ -300,7 +392,7 @@ export default function QRCancelarie() {
           </>
         )}
 
-        {/* ── Culture: Program + Surtitles links ── */}
+        {/* ── Culture: Program + Surtitles ── */}
         {org?.vertical_type === 'culture' && (
           <Section icon={<Theater className="h-5 w-5" />} title="Program & Supratitrare" color={primaryColor}>
             <Card>
@@ -318,7 +410,7 @@ export default function QRCancelarie() {
           </Section>
         )}
 
-        {/* ── Workshops: Services + appointments ── */}
+        {/* ── Workshops ── */}
         {org?.vertical_type === 'workshops' && (
           <Section icon={<Clock className="h-5 w-5" />} title="Servicii & Programări" color={primaryColor}>
             <Card>
@@ -330,7 +422,7 @@ export default function QRCancelarie() {
           </Section>
         )}
 
-        {/* ── Living: Building info ── */}
+        {/* ── Living ── */}
         {org?.vertical_type === 'living' && (
           <Section icon={<Shield className="h-5 w-5" />} title="Informații Bloc" color={primaryColor}>
             <Card>
@@ -342,10 +434,9 @@ export default function QRCancelarie() {
           </Section>
         )}
 
-        {/* ── Construction: Tasks, Sites, SSM ── */}
+        {/* ── Construction ── */}
         {org?.vertical_type === 'construction' && (
           <>
-            {/* SSM Safety Status */}
             <Section icon={<ShieldCheck className="h-5 w-5" />} title="SSM — Securitate" color={primaryColor}>
               <Card className={ssmStatus.total === 0 ? 'border-destructive/50' : ''}>
                 <CardContent className="p-4">
@@ -365,7 +456,6 @@ export default function QRCancelarie() {
               </Card>
             </Section>
 
-            {/* Today's tasks (read-only for guests) */}
             {constructionTasks.length > 0 && (
               <Section icon={<HardHat className="h-5 w-5" />} title="Sarcini active" color={primaryColor}>
                 {constructionTasks.map(task => (
@@ -393,7 +483,6 @@ export default function QRCancelarie() {
               </Section>
             )}
 
-            {/* Site identification */}
             {constructionSites.length > 0 && (
               <Section icon={<FileText className="h-5 w-5" />} title="Identificare Șantier" color={primaryColor}>
                 {constructionSites.map(site => (
@@ -412,21 +501,25 @@ export default function QRCancelarie() {
           </>
         )}
 
+        {/* ── Authenticated-only section ── */}
         {isAuthenticated ? (
           <AuthenticatedSection userId={user?.id || ''} orgId={org?.id || ''} primaryColor={primaryColor} />
-        ) : (
-          <div className="rounded-2xl border border-border bg-card p-6 text-center">
-            <Shield className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-            <p className="text-sm text-muted-foreground mb-4">
-              Conectează-te pentru a vedea mesaje, documente și informații personale.
+        ) : isGuest ? (
+          <div className="rounded-2xl border border-border bg-card p-6 text-center space-y-3">
+            <Shield className="h-10 w-10 mx-auto text-muted-foreground mb-1" />
+            <p className="text-sm text-muted-foreground">
+              Pentru mesaje, documente și informații personale, autentificați-vă.
             </p>
             <Button asChild className="gap-2">
-              <Link to={`/login/${orgSlug}`}>
+              <Link to="/login">
                 <LogIn className="h-4 w-4" /> Autentifică-te
               </Link>
             </Button>
+            <p className="text-xs text-muted-foreground pt-2">
+              Sesiune vizitator · expiră la miezul nopții
+            </p>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -446,7 +539,6 @@ function AuthenticatedSection({ userId, orgId, primaryColor }: { userId: string;
 
   return (
     <div className="space-y-4">
-      {/* Medicine: Receptionist quick link to admin panel */}
       {isMedicine && isReceptionist && (
         <Card className="border-primary/30">
           <CardContent className="p-4 flex items-center justify-between">
@@ -501,7 +593,6 @@ function AuthenticatedSection({ userId, orgId, primaryColor }: { userId: string;
         </CardContent>
       </Card>
 
-      {/* Admin-level details */}
       {isAdmin && (
         <Card className="border-primary/30">
           <CardHeader className="pb-2">
@@ -527,12 +618,11 @@ function AuthenticatedSection({ userId, orgId, primaryColor }: { userId: string;
 }
 
 /* ═══════════════════════════════════════════════════
-   Sub-components for authenticated view
+   Sub-components
    ═══════════════════════════════════════════════════ */
 
 function UnreadMessages({ userId }: { userId: string }) {
   const [count, setCount] = useState<number | null>(null);
-
   useEffect(() => {
     supabase
       .from('messages')
@@ -556,7 +646,6 @@ function UnreadMessages({ userId }: { userId: string }) {
 
 function RecentDocuments() {
   const [docs, setDocs] = useState<{ nume_fisier: string; created_at: string }[]>([]);
-
   useEffect(() => {
     supabase
       .from('documents')
@@ -584,52 +673,29 @@ function RecentDocuments() {
 
 function AttendanceSummary({ userId, orgId, isAdmin }: { userId: string; orgId: string; isAdmin: boolean }) {
   const [stats, setStats] = useState<{ prezent: number; absent: number } | null>(null);
-
   useEffect(() => {
     async function load() {
       const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
       const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
       if (isAdmin) {
-        // Admin sees overall stats
         const { count: totalPresent } = await supabase
-          .from('attendance')
-          .select('id', { count: 'exact', head: true })
-          .eq('prezent', true)
-          .gte('data', monthStart)
-          .lte('data', monthEnd);
+          .from('attendance').select('id', { count: 'exact', head: true })
+          .eq('prezent', true).gte('data', monthStart).lte('data', monthEnd);
         const { count: totalAbsent } = await supabase
-          .from('attendance')
-          .select('id', { count: 'exact', head: true })
-          .eq('prezent', false)
-          .gte('data', monthStart)
-          .lte('data', monthEnd);
+          .from('attendance').select('id', { count: 'exact', head: true })
+          .eq('prezent', false).gte('data', monthStart).lte('data', monthEnd);
         setStats({ prezent: totalPresent || 0, absent: totalAbsent || 0 });
       } else {
-        // Parent sees own children's stats
-        const { data: children } = await supabase
-          .from('children')
-          .select('id')
-          .eq('parinte_id', userId);
-        if (!children || children.length === 0) {
-          setStats({ prezent: 0, absent: 0 });
-          return;
-        }
+        const { data: children } = await supabase.from('children').select('id').eq('parinte_id', userId);
+        if (!children || children.length === 0) { setStats({ prezent: 0, absent: 0 }); return; }
         const childIds = children.map(c => c.id);
         const { count: present } = await supabase
-          .from('attendance')
-          .select('id', { count: 'exact', head: true })
-          .in('child_id', childIds)
-          .eq('prezent', true)
-          .gte('data', monthStart)
-          .lte('data', monthEnd);
+          .from('attendance').select('id', { count: 'exact', head: true })
+          .in('child_id', childIds).eq('prezent', true).gte('data', monthStart).lte('data', monthEnd);
         const { count: absent } = await supabase
-          .from('attendance')
-          .select('id', { count: 'exact', head: true })
-          .in('child_id', childIds)
-          .eq('prezent', false)
-          .gte('data', monthStart)
-          .lte('data', monthEnd);
+          .from('attendance').select('id', { count: 'exact', head: true })
+          .in('child_id', childIds).eq('prezent', false).gte('data', monthStart).lte('data', monthEnd);
         setStats({ prezent: present || 0, absent: absent || 0 });
       }
     }
@@ -644,14 +710,14 @@ function AttendanceSummary({ userId, orgId, isAdmin }: { userId: string; orgId: 
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">{isAdmin ? 'Total prezențe' : 'Prezențe'}</span>
-        <span className="font-semibold text-success">{stats.prezent} zile ({pct}%)</span>
+        <span className="font-semibold text-green-600">{stats.prezent} zile ({pct}%)</span>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Absențe</span>
         <span className="font-semibold text-destructive">{stats.absent} zile</span>
       </div>
       <div className="h-2 bg-muted rounded-full overflow-hidden">
-        <div className="h-full bg-success rounded-full" style={{ width: `${pct}%`, transition: 'width 0.5s' }} />
+        <div className="h-full bg-green-600 rounded-full" style={{ width: `${pct}%`, transition: 'width 0.5s' }} />
       </div>
     </div>
   );
@@ -659,7 +725,6 @@ function AttendanceSummary({ userId, orgId, isAdmin }: { userId: string; orgId: 
 
 function AdminStats({ orgId }: { orgId: string }) {
   const [stats, setStats] = useState<{ users: number; children: number; groups: number } | null>(null);
-
   useEffect(() => {
     async function load() {
       const [{ count: users }, { count: children }, { count: groups }] = await Promise.all([

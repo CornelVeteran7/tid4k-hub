@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.stripe-contribution-webhook]
 verify_jwt = false
+
+[functions.validate-guest-token]
+verify_jwt = false

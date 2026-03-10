@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { QRCodeSVG } from 'qrcode.react';
+import { getDailyToken } from '@/api/guestTokens';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -151,6 +152,7 @@ export default function PublicDisplay() {
   const [scale, setScale] = useState(1);
   const [isPortrait, setIsPortrait] = useState(false);
   const [clockTime, setClockTime] = useState(new Date());
+  const [dailyToken, setDailyToken] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // ── Scaling logic (fixed 1920×1080 or 1080×1920) ──
@@ -399,6 +401,23 @@ export default function PublicDisplay() {
     return () => clearInterval(interval);
   }, [loadContent]);
 
+  // ── Fetch daily token for QR codes ──
+  useEffect(() => {
+    if (!config?.org_id) return;
+    getDailyToken(config.org_id).then(token => {
+      if (token) setDailyToken(token);
+    });
+    // Refresh token at midnight
+    const now = new Date();
+    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+    const timeout = setTimeout(() => {
+      getDailyToken(config.org_id).then(token => {
+        if (token) setDailyToken(token);
+      });
+    }, msUntilMidnight + 1000); // +1s buffer
+    return () => clearTimeout(timeout);
+  }, [config?.org_id]);
+
   // ── Realtime for queue (medicine/students) ──
   useEffect(() => {
     if (!config || (config.vertical_type !== 'medicine' && config.vertical_type !== 'students')) return;
@@ -429,7 +448,9 @@ export default function PublicDisplay() {
 
   const designW = isPortrait ? DESIGN_H : DESIGN_W;
   const designH = isPortrait ? DESIGN_W : DESIGN_H;
-  const qrUrl = `${window.location.origin}/qr/${orgSlug}`;
+  const qrUrl = dailyToken
+    ? `${window.location.origin}/qr/${orgSlug}?t=${dailyToken}`
+    : `${window.location.origin}/qr/${orgSlug}`;
 
   return (
     <div ref={containerRef} className="fixed inset-0 bg-black overflow-hidden select-none cursor-none">
