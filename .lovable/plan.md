@@ -1,150 +1,59 @@
 
 
-# Plan: Workshop Management System + Admin Push & Documentation
+# Stories Media Filter Layer — Plan
 
-## Overview
+## What We're Building
 
-This plan adds a complete **Workshop (Ateliere) management system** to the Admin Panel, enabling admins to create, edit, and push workshops to one or all school units. The dashboard "ATELIERE" module card will show this month's workshop preview directly (without opening), and push notifications will alert teachers about new workshops.
+Add a **media mode filter** to the Stories page (Kids vertical) so users can choose between three consumption modes before browsing:
 
----
+1. **Citește** (Read) — text stories, current default behavior
+2. **Audio** (Listen) — stories with generated audio narrated by Inky & friends, using TTS or pre-recorded audio
+3. **Video** (Watch) — pre-made video stories from the database, playable inline
 
-## What Gets Built
+This appears as a top-level filter row (above the category pills), using visually distinct cards/buttons with icons representing each mode.
 
-### 1. Workshop Data Model & API
+## Implementation
 
-**New file: `src/api/workshops.ts`**
+### 1. Update Story Type (`src/types/index.ts`)
 
-Types and mock data for workshops:
+Add `video_url?: string` and `media_type?: 'text' | 'audio' | 'video'` fields to the `Story` interface.
 
-```text
-Workshop {
-  id_atelier: number
-  titlu: string
-  descriere: string
-  luna: string (YYYY-MM)
-  imagine_url: string
-  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
-  materiale: string[]
-  instructor: string
-  durata_minute: number
-  scoli_target: string[] (['all'] or specific school IDs)
-  publicat: boolean
-  data_creare: string
-  data_publicare?: string
-}
-```
+### 2. Update API (`src/api/stories.ts`)
 
-API functions:
-- `getWorkshops(schoolId?, luna?)` -- fetch workshops, optionally filtered
-- `getWorkshopOfMonth(schoolId?)` -- returns this month's active published workshop
-- `createWorkshop(data)` -- create new
-- `updateWorkshop(id, data)` -- edit
-- `deleteWorkshop(id)` -- remove
-- `publishWorkshop(id, scoli_target)` -- mark as published + push to units
-- Mock data: 2-3 workshops for the current month
+Map `video_url` from the database response. Add the `media_type` field mapping (default to `'text'` if not set).
 
-### 2. Admin Panel: New "Ateliere" Tab
+### 3. Refactor Stories Page (`src/pages/Stories.tsx`)
 
-**New file: `src/components/admin/WorkshopsTab.tsx`**
+**New state**: `mediaMode: 'all' | 'read' | 'audio' | 'video'` (default `'all'`).
 
-A new tab in the Admin Panel (`/admin`) with:
+**New UI section** — three illustrated mode cards above the category pills:
 
-- **School selector awareness**: respects the global "Toate unitatile" / specific school filter at top of admin page
-- **Workshop list**: cards showing title, month, category badge, publish status, target schools
-- **Create/Edit dialog**: form with title, description, category, image URL, materials list, instructor, duration, school target (one / all)
-- **Publish button**: marks workshop as published; when target is "all", pushes to every school. Shows confirmation with school count.
-- **Status indicators**: Draft (gray), Published (green), showing which schools received it
+| Mode | Icon | Label | Description |
+|---|---|---|---|
+| Citește | BookOpen | Citește | Descoperă povești scrise |
+| Ascultă | Volume2 / Headphones | Ascultă | Inky și prietenii povestesc |
+| Privește | Play / Video | Video | Povești animate din colecția noastră |
 
-Changes to `src/pages/AdminPanel.tsx`:
-- Add `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` to TABS
-- Import and render `<WorkshopsTab>` in the new TabsContent
-- The tab respects `selectedSchoolId` (all vs specific)
+Each card shows Inky's emoji (🦉) plus a mode-specific icon. Selected card gets primary ring + scale effect.
 
-### 3. Dashboard: Workshop Preview on Module Card
+**Filtering logic**:
+- `read` mode: shows stories that are text-based (no video_url), opens to reader view
+- `audio` mode: shows stories with audio_url or TTS-capable, opens to reader with auto-play audio and character selector prominent
+- `video` mode: shows stories with video_url, clicking opens an inline video player instead of the text reader
 
-**Modified: `src/components/dashboard/ModuleHub.tsx`**
+**Video player**: When a video story is selected, render a `<video>` element with controls, poster thumbnail, and a character avatar overlay showing which character narrates.
 
-The "ATELIERE" card currently shows just a title and count. Change it to:
-- Fetch `getWorkshopOfMonth()` on mount
-- Display workshop title + short description directly on the card (below the subtitle), so teachers see it without tapping
-- Add a small "Luna: Martie 2026" label and category badge on the card face
-- Keep the card tappable to open full workshop detail
+**Grid card updates**: Each story card gets a small media-type badge icon (book/headphone/play) in the corner so users can see the type at a glance.
 
-**Modified: `src/components/dashboard/ModuleCard.tsx`**
+### 4. Demo Data
 
-Add optional `preview` prop (ReactNode) that renders below the subtitle when provided. Only the "ateliere" card will use this prop.
+Add 2-3 demo video stories with placeholder video_url values and thumbnails to ensure the video tab isn't empty in demo mode. These can be static entries returned when `isDemo` is true, supplementing whatever comes from Supabase.
 
-### 4. Notification System: Workshop Push Notifications
+### Files Changed
 
-**Modified: `src/contexts/NotificationContext.tsx`**
-
-- Import `getWorkshopOfMonth` from workshops API
-- Add `'workshop'` as a new notification type in `NotificationItem`
-- In `refreshNotifications`, check if there's a published workshop for this month that hasn't been seen (track via localStorage key `tid4k_seen_workshop_[id]`)
-- Generate notification: "Atelier nou: [titlu]" with link to open the ateliere module
-
-**Modified: `src/components/layout/AppLayout.tsx`**
-
-- Add `Paintbrush` icon handling for `workshop` notification type in the popover renderer (distinct purple color)
-
-### 5. Documentation
-
-**New file: `docs/WORKSHOPS.md`**
-
-Three sections:
-1. **For Admins**: How to create workshops, target specific schools or all, publish flow, editing after publish
-2. **For Developers/AI**: API endpoints table, TypeScript interfaces, component architecture, notification integration
-3. **API Reference**: Full endpoint spec for backend implementation
-
-```text
-POST /ateliere.php?action=create        -- Create workshop
-POST /ateliere.php?action=update        -- Edit workshop
-POST /ateliere.php?action=publish       -- Publish + push to schools
-GET  /ateliere.php?action=list          -- List workshops (filters: school_id, luna)
-GET  /ateliere.php?action=current       -- This month's active workshop
-POST /ateliere.php?action=delete        -- Delete workshop
-POST /ateliere.php?action=notify        -- Trigger push notifications
-```
-
----
-
-## Technical Details
-
-### File Changes Summary
-
-| File | Action | What |
-|------|--------|------|
-| `src/api/workshops.ts` | NEW | Workshop types, mock data, API functions |
-| `src/components/admin/WorkshopsTab.tsx` | NEW | Full admin UI for workshop CRUD + publish |
-| `docs/WORKSHOPS.md` | NEW | Documentation for admins and devs |
-| `src/pages/AdminPanel.tsx` | EDIT | Add "Ateliere" tab (icon + TabsContent) |
-| `src/components/dashboard/ModuleCard.tsx` | EDIT | Add optional `preview` prop |
-| `src/components/dashboard/ModuleHub.tsx` | EDIT | Fetch workshop of month, pass preview to ateliere card |
-| `src/contexts/NotificationContext.tsx` | EDIT | Add workshop notification type |
-| `src/components/layout/AppLayout.tsx` | EDIT | Render workshop notification icon in popover |
-
-### Patterns Followed
-
-- Same `USE_MOCK` toggle pattern as all other API files
-- Same collapsible card admin UI pattern as SettingsTab/SchoolsTab
-- Same notification item pattern with `type`, `icon`, `navigateTo`
-- School selector `selectedSchoolId` passed through just like other admin tabs
-- `framer-motion` animations consistent with existing module cards
-
-### Workshop Card Preview Rendering
-
-On the dashboard, the ATELIERE module card will show:
-
-```text
-+------------------------------------------+
-| [Paintbrush icon]  ATELIERE              |
-|                    Activitati creative     |
-|   ┌─────────────────────────────┐         |
-|   │ Pictură pe sticlă           │  [10]   |
-|   │ Artă · Martie 2026          │         |
-|   └─────────────────────────────┘         |
-+------------------------------------------+
-```
-
-This preview text appears only when a workshop-of-the-month exists.
+| File | Change |
+|---|---|
+| `src/types/index.ts` | Add `video_url`, `media_type` to Story |
+| `src/api/stories.ts` | Map new fields |
+| `src/pages/Stories.tsx` | Add media mode filter, video player view, demo stories |
 
