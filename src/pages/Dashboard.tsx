@@ -571,7 +571,7 @@ export default function Dashboard() {
           </motion.div>
 
           {/* Desktop-only: Charts */}
-          <DashboardCharts />
+          <DashboardCharts chartLabel={verticalDef.summaryLabels.attendanceLabel} />
 
         </div>
 
