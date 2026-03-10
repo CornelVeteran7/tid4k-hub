@@ -2585,6 +2585,47 @@ export type Database = {
         }
         Relationships: []
       }
+      sponsor_policies: {
+        Row: {
+          allowed_categories: string[] | null
+          blocked_categories: string[] | null
+          created_at: string
+          id: string
+          max_sponsor_share_percent: number
+          no_cameras_declaration: boolean | null
+          organization_id: string
+          requires_approval: boolean | null
+        }
+        Insert: {
+          allowed_categories?: string[] | null
+          blocked_categories?: string[] | null
+          created_at?: string
+          id?: string
+          max_sponsor_share_percent?: number
+          no_cameras_declaration?: boolean | null
+          organization_id: string
+          requires_approval?: boolean | null
+        }
+        Update: {
+          allowed_categories?: string[] | null
+          blocked_categories?: string[] | null
+          created_at?: string
+          id?: string
+          max_sponsor_share_percent?: number
+          no_cameras_declaration?: boolean | null
+          organization_id?: string
+          requires_approval?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_policies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sponsor_promos: {
         Row: {
           activ: boolean | null
@@ -3267,6 +3308,53 @@ export type Database = {
             foreignKeyName: "vehicle_profiles_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_config: {
+        Row: {
+          created_at: string
+          custom_css: string | null
+          custom_domain: string | null
+          hero_subtitle: string | null
+          hero_title: string | null
+          id: string
+          is_published: boolean | null
+          organization_id: string
+          pages_enabled: string[] | null
+          template: string | null
+        }
+        Insert: {
+          created_at?: string
+          custom_css?: string | null
+          custom_domain?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          id?: string
+          is_published?: boolean | null
+          organization_id: string
+          pages_enabled?: string[] | null
+          template?: string | null
+        }
+        Update: {
+          created_at?: string
+          custom_css?: string | null
+          custom_domain?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          id?: string
+          is_published?: boolean | null
+          organization_id?: string
+          pages_enabled?: string[] | null
+          template?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
