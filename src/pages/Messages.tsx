@@ -92,7 +92,7 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
       if (isDemo) {
         setMessages(getDemoMessages(vertical, selectedConvo.id));
       } else {
-        getMessages(selectedConvo.grada, user.id, selectedConvo.id).then(setMessages);
+        getMessages(selectedConvo.grupa, user.id, selectedConvo.id).then(setMessages);
       }
     }
   }, [selectedConvo, user, isDemo, vertical]);
