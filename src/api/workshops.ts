@@ -179,3 +179,87 @@ export async function publishWorkshop(id: string, scoli_target: string[]): Promi
     data_publicare: w.data_publicare || undefined,
   };
 }
+
+/* ═══════════════════════════════════════════════════
+   Vehicle Profiles CRUD (workshops vertical)
+   ═══════════════════════════════════════════════════ */
+
+export interface VehicleProfile {
+  id: string;
+  organization_id: string;
+  nr_inmatriculare: string;
+  marca: string;
+  model: string;
+  an_fabricatie: number;
+  vin: string;
+  culoare: string;
+  owner_name: string;
+  owner_phone: string;
+  notes: string;
+  created_at: string;
+}
+
+export interface WorkshopAppointment {
+  id: string;
+  organization_id: string;
+  client_name: string;
+  client_phone: string;
+  vehicle_profile_id: string | null;
+  appointment_date: string;
+  time_slot: string;
+  service_description: string;
+  status: 'scheduled' | 'in_progress' | 'done' | 'cancelled';
+  assigned_mechanic: string;
+  notes: string;
+  created_at: string;
+}
+
+export async function getVehicles(orgId: string): Promise<VehicleProfile[]> {
+  const { data, error } = await supabase
+    .from('vehicle_profiles')
+    .select('*')
+    .eq('organization_id', orgId)
+    .order('created_at', { ascending: false }) as any;
+  if (error) throw error;
+  return (data || []) as VehicleProfile[];
+}
+
+export async function createVehicle(v: Partial<VehicleProfile> & { organization_id: string; nr_inmatriculare: string }) {
+  const { data, error } = await supabase.from('vehicle_profiles').insert(v).select().single() as any;
+  if (error) throw error;
+  return data as VehicleProfile;
+}
+
+export async function updateVehicle(id: string, update: Partial<VehicleProfile>) {
+  const { error } = await supabase.from('vehicle_profiles').update(update).eq('id', id) as any;
+  if (error) throw error;
+}
+
+export async function deleteVehicle(id: string) {
+  const { error } = await supabase.from('vehicle_profiles').delete().eq('id', id) as any;
+  if (error) throw error;
+}
+
+export async function getAppointments(orgId: string, date?: string): Promise<WorkshopAppointment[]> {
+  let q = supabase.from('workshop_appointments').select('*').eq('organization_id', orgId).order('time_slot') as any;
+  if (date) q = q.eq('appointment_date', date);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data || []) as WorkshopAppointment[];
+}
+
+export async function createAppointment(a: Partial<WorkshopAppointment> & { organization_id: string; client_name: string; appointment_date: string }) {
+  const { data, error } = await supabase.from('workshop_appointments').insert(a).select().single() as any;
+  if (error) throw error;
+  return data as WorkshopAppointment;
+}
+
+export async function updateAppointment(id: string, update: Partial<WorkshopAppointment>) {
+  const { error } = await supabase.from('workshop_appointments').update(update).eq('id', id) as any;
+  if (error) throw error;
+}
+
+export async function deleteAppointment(id: string) {
+  const { error } = await supabase.from('workshop_appointments').delete().eq('id', id) as any;
+  if (error) throw error;
+}

@@ -1015,6 +1015,44 @@ export type Database = {
           },
         ]
       }
+      external_admins: {
+        Row: {
+          can_post_announcements: boolean | null
+          created_at: string
+          entity_name: string
+          entity_type: string
+          id: string
+          organization_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          can_post_announcements?: boolean | null
+          created_at?: string
+          entity_name: string
+          entity_type?: string
+          id?: string
+          organization_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          can_post_announcements?: boolean | null
+          created_at?: string
+          entity_name?: string
+          entity_type?: string
+          id?: string
+          organization_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_admins_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       facebook_posts: {
         Row: {
           content: string
@@ -1355,6 +1393,88 @@ export type Database = {
           },
           {
             foreignKeyName: "inventory_movements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      living_apartments: {
+        Row: {
+          apartment_number: string
+          balance: number | null
+          created_at: string
+          floor: number | null
+          id: string
+          organization_id: string | null
+          owner_name: string | null
+          owner_user_id: string | null
+        }
+        Insert: {
+          apartment_number: string
+          balance?: number | null
+          created_at?: string
+          floor?: number | null
+          id?: string
+          organization_id?: string | null
+          owner_name?: string | null
+          owner_user_id?: string | null
+        }
+        Update: {
+          apartment_number?: string
+          balance?: number | null
+          created_at?: string
+          floor?: number | null
+          id?: string
+          organization_id?: string | null
+          owner_name?: string | null
+          owner_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "living_apartments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      living_expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          month: number
+          organization_id: string | null
+          year: number
+        }
+        Insert: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          month: number
+          organization_id?: string | null
+          year: number
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          month?: number
+          organization_id?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "living_expenses_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -3099,6 +3219,59 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicle_profiles: {
+        Row: {
+          an_fabricatie: number | null
+          created_at: string
+          culoare: string | null
+          id: string
+          marca: string | null
+          model: string | null
+          notes: string | null
+          nr_inmatriculare: string
+          organization_id: string | null
+          owner_name: string | null
+          owner_phone: string | null
+          vin: string | null
+        }
+        Insert: {
+          an_fabricatie?: number | null
+          created_at?: string
+          culoare?: string | null
+          id?: string
+          marca?: string | null
+          model?: string | null
+          notes?: string | null
+          nr_inmatriculare: string
+          organization_id?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          vin?: string | null
+        }
+        Update: {
+          an_fabricatie?: number | null
+          created_at?: string
+          culoare?: string | null
+          id?: string
+          marca?: string | null
+          model?: string | null
+          notes?: string | null
+          nr_inmatriculare?: string
+          organization_id?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          vin?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_mappings: {
         Row: {
           consent: boolean | null
@@ -3133,6 +3306,66 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workshop_appointments: {
+        Row: {
+          appointment_date: string
+          assigned_mechanic: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string | null
+          service_description: string | null
+          status: string
+          time_slot: string | null
+          vehicle_profile_id: string | null
+        }
+        Insert: {
+          appointment_date: string
+          assigned_mechanic?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          service_description?: string | null
+          status?: string
+          time_slot?: string | null
+          vehicle_profile_id?: string | null
+        }
+        Update: {
+          appointment_date?: string
+          assigned_mechanic?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          service_description?: string | null
+          status?: string
+          time_slot?: string | null
+          vehicle_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_appointments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workshop_appointments_vehicle_profile_id_fkey"
+            columns: ["vehicle_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_profiles"
             referencedColumns: ["id"]
           },
         ]

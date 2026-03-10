@@ -31,6 +31,8 @@ import ConstructionWorker from "./pages/ConstructionWorker";
 import InventoryPage from "./pages/Inventory";
 import SSMPage from "./pages/SSM";
 import MagazinePage from "./pages/Magazine";
+import WorkshopDashboard from "./pages/WorkshopDashboard";
+import LivingDashboard from "./pages/LivingDashboard";
 import AdvancedTimetable from "./pages/AdvancedTimetable";
 import SurtitlesPage from "./pages/Surtitles";
 import VideoGenerationPage from "./pages/VideoGeneration";
@@ -98,6 +100,8 @@ function ProtectedRoutes() {
             <Route path="/inventar" element={<InventoryPage />} />
             <Route path="/ssm" element={<SSMPage />} />
             <Route path="/revista" element={<MagazinePage />} />
+            <Route path="/atelier" element={<WorkshopDashboard />} />
+            <Route path="/bloc" element={<LivingDashboard />} />
             <Route path="/orar-avansat" element={<AdvancedTimetable />} />
             <Route path="/supratitrare" element={<SurtitlesPage />} />
             <Route path="/spectacole" element={<CultureShowEditor />} />
