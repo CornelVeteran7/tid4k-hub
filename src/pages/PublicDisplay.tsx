@@ -64,10 +64,20 @@ interface ConstructionTask {
   assignee: string;
 }
 
-interface SSMReminder {
+interface SSMChecklistStatus {
   id: string;
-  mesaj: string;
-  tip: string;
+  status: string;
+  data: string;
+}
+
+interface ConstructionSiteInfo {
+  id: string;
+  nume: string;
+  beneficiar: string | null;
+  contractor: string | null;
+  numar_autorizatie: string | null;
+  adresa: string | null;
+  status: string;
 }
 
 interface DisplayConfig {
