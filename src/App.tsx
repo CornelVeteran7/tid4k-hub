@@ -99,6 +99,7 @@ function ProtectedRoutes() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
+        </ModuleConfigProvider>
       </NotificationProvider>
     </GroupProvider>
   );
