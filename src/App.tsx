@@ -93,6 +93,7 @@ function ProtectedRoutes() {
             <Route path="/inventar" element={<InventoryPage />} />
             <Route path="/ssm" element={<SSMPage />} />
             <Route path="/revista" element={<MagazinePage />} />
+            <Route path="/orar-avansat" element={<AdvancedTimetable />} />
             <Route path="/supratitrare" element={<SurtitlesPage />} />
             <Route path="/video" element={<VideoGenerationPage />} />
             <Route path="/coada" element={<QueueAdmin />} />
