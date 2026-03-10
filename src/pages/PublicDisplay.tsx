@@ -842,8 +842,92 @@ function QueueContent({ config }: { config: DisplayConfig }) {
 }
 
 /* ═══════════════════════════════════════════════════
-   CONSTRUCTION Content: Tasks + SSM
+   Medicine Info Strip — rotating doctors, services, Google Reviews
    ═══════════════════════════════════════════════════ */
+
+function MedicineInfoStrip({ config }: { config: DisplayConfig }) {
+  const slides: React.ReactNode[] = [];
+
+  // Doctor profiles slide
+  if (config.medicine_doctors.length > 0) {
+    slides.push(
+      <div key="doctors" className="flex items-center" style={{ gap: 32 }}>
+        <div style={{ fontSize: 18, fontWeight: 700, opacity: 0.7, minWidth: 140 }}>🩺 Echipa medicală</div>
+        <div className="flex" style={{ gap: 16 }}>
+          {config.medicine_doctors.map((d, i) => (
+            <div key={i} className="rounded-xl" style={{ background: 'rgba(255,255,255,0.1)', padding: '8px 16px' }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{d.name}</div>
+              <div style={{ fontSize: 11, opacity: 0.5 }}>{d.specialization}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Services slide
+  if (config.medicine_services.length > 0) {
+    slides.push(
+      <div key="services" className="flex items-center" style={{ gap: 32 }}>
+        <div style={{ fontSize: 18, fontWeight: 700, opacity: 0.7, minWidth: 140 }}>📋 Servicii</div>
+        <div className="flex flex-wrap" style={{ gap: 10 }}>
+          {config.medicine_services.map((s, i) => (
+            <div key={i} className="rounded-lg" style={{ background: 'rgba(255,255,255,0.08)', padding: '6px 14px', fontSize: 14 }}>
+              {s.name}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Google Reviews CTA slide
+  if (config.google_reviews_url) {
+    slides.push(
+      <div key="reviews" className="flex items-center justify-center" style={{ gap: 24 }}>
+        <div className="text-center">
+          <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>⭐ Vă mulțumim pentru vizită!</div>
+          <div style={{ fontSize: 16, opacity: 0.6 }}>Lăsați o recenzie pe Google</div>
+        </div>
+        <div className="rounded-xl" style={{ background: '#fff', padding: 10 }}>
+          <QRCodeSVG value={config.google_reviews_url} size={72} />
+        </div>
+      </div>
+    );
+  }
+
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const duration = 6000;
+    const fadeTimer = setTimeout(() => setVisible(false), duration - 600);
+    const switchTimer = setTimeout(() => {
+      setSlideIdx(prev => (prev + 1) % slides.length);
+      setVisible(true);
+    }, duration);
+    return () => { clearTimeout(fadeTimer); clearTimeout(switchTimer); };
+  }, [slideIdx, slides.length]);
+
+  if (slides.length === 0) return null;
+
+  return (
+    <div className="absolute left-0 right-0 z-10 rounded-2xl" style={{
+      bottom: config.ticker_messages.length > 0 ? 60 : 12,
+      margin: '0 60px',
+      background: 'rgba(0,0,0,0.5)',
+      backdropFilter: 'blur(20px)',
+      padding: '16px 28px',
+      transition: 'opacity 0.5s ease',
+      opacity: visible ? 1 : 0,
+    }}>
+      {slides[slideIdx % slides.length]}
+    </div>
+  );
+}
+
+
 
 function ConstructionContent({ config }: { config: DisplayConfig }) {
   return (
