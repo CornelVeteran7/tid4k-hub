@@ -232,10 +232,10 @@ export default function PublicDisplay() {
             .in('status', ['todo', 'in_progress', 'blocked'])
             .order('created_at', { ascending: false }).limit(8)
         : Promise.resolve({ data: [] as any[] }),
-      // SSM reminders
+      // SSM — get today's checklist status for construction
       org?.vertical_type === 'construction'
-        ? supabase.from('ssm_reminders').select('*')
-            .eq('organization_id', orgId).eq('activ', true).order('ordine').limit(5)
+        ? supabase.from('ssm_checklists').select('id, status, data')
+            .eq('organization_id', orgId).eq('data', todayDate).limit(5)
         : Promise.resolve({ data: [] as any[] }),
     ]);
 

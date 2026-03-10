@@ -201,8 +201,8 @@ export async function getCosts(orgId: string, siteId?: string): Promise<Construc
 }
 
 export async function createCost(cost: Omit<ConstructionCost, 'id'>) {
-  // Ensure total is computed
-  const total = cost.cantitate * cost.pret_unitar;
+  // Use explicit total if provided, otherwise compute from quantity * unit price
+  const total = cost.total || (cost.cantitate * cost.pret_unitar);
   const { error } = await supabase.from('construction_costs').insert({ ...cost, total });
   if (error) throw error;
 }
