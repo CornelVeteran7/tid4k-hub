@@ -80,6 +80,18 @@ interface ConstructionSiteInfo {
   status: string;
 }
 
+interface CultureShowDisplay {
+  id: string;
+  title: string;
+  show_date: string;
+  show_time: string;
+  duration_minutes: number;
+  acts: number;
+  language: string;
+  has_surtitles: boolean;
+  status: string;
+}
+
 interface DisplayConfig {
   panels: DisplayPanel[];
   ticker_messages: string[];
@@ -87,6 +99,7 @@ interface DisplayConfig {
   org_id: string;
   org_name: string;
   org_logo?: string;
+  org_slug?: string;
   primary_color: string;
   secondary_color: string;
   vertical_type: string;
@@ -105,6 +118,7 @@ interface DisplayConfig {
   google_reviews_url: string;
   medicine_doctors: { name: string; specialization: string }[];
   medicine_services: { name: string }[];
+  culture_tonight_show: CultureShowDisplay | null;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -332,6 +346,17 @@ export default function PublicDisplay() {
       constructionSites = (sitesData || []) as ConstructionSiteInfo[];
     }
 
+    // Culture: load tonight's show
+    let cultureTonightShow: CultureShowDisplay | null = null;
+    if (org?.vertical_type === 'culture') {
+      const { data: showData } = await supabase.from('culture_shows')
+        .select('id, title, show_date, show_time, duration_minutes, acts, language, has_surtitles, status')
+        .eq('organization_id', orgId).eq('show_date', todayDate)
+        .in('status', ['upcoming', 'live'])
+        .limit(1) as any;
+      cultureTonightShow = showData?.[0] || null;
+    }
+
     setConfig({
       panels: (panels || []).map((p: any) => ({
         id: p.id, tip: p.tip, continut: p.continut,
@@ -342,6 +367,7 @@ export default function PublicDisplay() {
       org_id: orgId,
       org_name: org?.name || orgSlug || 'InfoDisplay',
       org_logo: org?.logo_url || undefined,
+      org_slug: orgSlug || '',
       primary_color: org?.primary_color || '#4F46E5',
       secondary_color: org?.secondary_color || '#7C3AED',
       vertical_type: org?.vertical_type || 'kids',
@@ -362,6 +388,7 @@ export default function PublicDisplay() {
       google_reviews_url: googleReviewsUrl,
       medicine_doctors: medicineDoctors,
       medicine_services: medicineServices,
+      culture_tonight_show: cultureTonightShow,
     });
     setLoading(false);
   }, [orgSlug]);
@@ -1050,6 +1077,27 @@ function ConstructionContent({ config }: { config: DisplayConfig }) {
    ═══════════════════════════════════════════════════ */
 
 function CultureContent({ config, isPortrait }: { config: DisplayConfig; isPortrait: boolean }) {
+  const show = config.culture_tonight_show;
+  const [countdown, setCountdown] = useState('');
+
+  useEffect(() => {
+    if (!show) return;
+    const update = () => {
+      const [h, m] = (show.show_time || '19:00').split(':').map(Number);
+      const showStart = new Date();
+      showStart.setHours(h, m, 0, 0);
+      const diff = showStart.getTime() - Date.now();
+      if (diff <= 0) { setCountdown('Acum'); return; }
+      const mins = Math.floor(diff / 60000);
+      const hrs = Math.floor(mins / 60);
+      const rm = mins % 60;
+      setCountdown(hrs > 0 ? `${hrs}h ${rm}min` : `${rm} min`);
+    };
+    update();
+    const t = setInterval(update, 30000);
+    return () => clearInterval(t);
+  }, [show]);
+
   return (
     <>
       <PanelSlideshow panels={config.panels} primaryColor={config.primary_color} />
@@ -1058,19 +1106,48 @@ function CultureContent({ config, isPortrait }: { config: DisplayConfig; isPortr
         padding: '0 48px',
         gap: 24,
       }}>
-        <div className="rounded-2xl" style={{
-          background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(20px)',
-          padding: 20,
-          flex: '0 0 400px',
-        }}>
-          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, opacity: 0.9 }}>
-            🎭 Program diseară
+        {show ? (
+          <div className="rounded-2xl" style={{
+            background: 'rgba(0,0,0,0.7)',
+            backdropFilter: 'blur(20px)',
+            padding: 28,
+            flex: '0 0 480px',
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.5, marginBottom: 8, letterSpacing: 2, textTransform: 'uppercase' }}>
+              Diseară
+            </div>
+            <div style={{ fontSize: 32, fontWeight: 700, marginBottom: 8 }}>
+              🎭 {show.title}
+            </div>
+            <div style={{ fontSize: 15, opacity: 0.7, marginBottom: 6 }}>
+              {show.show_time?.slice(0, 5)} · {show.duration_minutes} min · {show.acts} acte · {show.language?.toUpperCase()}
+            </div>
+            {show.has_surtitles && (
+              <div style={{ fontSize: 13, opacity: 0.6 }}>
+                📱 Supratitrat — scanați QR-ul pentru text pe telefon
+              </div>
+            )}
+            {countdown && countdown !== 'Acum' && (
+              <div style={{ fontSize: 20, fontWeight: 700, marginTop: 12, color: config.primary_color }}>
+                Începe în {countdown}
+              </div>
+            )}
           </div>
-          <div style={{ fontSize: 14, opacity: 0.6 }}>
-            Scanați codul QR pentru programul digital și supratitrare
+        ) : (
+          <div className="rounded-2xl" style={{
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(20px)',
+            padding: 20,
+            flex: '0 0 400px',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, opacity: 0.9 }}>
+              🎭 Niciun spectacol programat azi
+            </div>
+            <div style={{ fontSize: 14, opacity: 0.6 }}>
+              Scanați codul QR pentru programul stagiunii
+            </div>
           </div>
-        </div>
+        )}
         {config.qr_codes.length > 0 && (
           <div className="flex items-end" style={{ gap: 16, marginLeft: 'auto' }}>
             {config.qr_codes.map(qr => (
@@ -1081,6 +1158,25 @@ function CultureContent({ config, isPortrait }: { config: DisplayConfig; isPortr
                 <span style={{ fontSize: 11, opacity: 0.5 }}>{qr.label}</span>
               </div>
             ))}
+          </div>
+        )}
+        {/* Auto-generate QR to tonight's program if show exists */}
+        {show && config.qr_codes.length === 0 && (
+          <div className="flex items-end" style={{ gap: 16, marginLeft: 'auto' }}>
+            <div className="flex flex-col items-center" style={{ gap: 4 }}>
+              <div className="rounded-xl" style={{ background: '#fff', padding: 8 }}>
+                <QRCodeSVG value={`${window.location.origin}/program/${show.id}`} size={72} />
+              </div>
+              <span style={{ fontSize: 11, opacity: 0.5 }}>Program digital</span>
+            </div>
+            {show.has_surtitles && (
+              <div className="flex flex-col items-center" style={{ gap: 4 }}>
+                <div className="rounded-xl" style={{ background: '#fff', padding: 8 }}>
+                  <QRCodeSVG value={`${window.location.origin}/surtitle/audience/${show.id}`} size={72} />
+                </div>
+                <span style={{ fontSize: 11, opacity: 0.5 }}>Supratitrare</span>
+              </div>
+            )}
           </div>
         )}
       </div>
