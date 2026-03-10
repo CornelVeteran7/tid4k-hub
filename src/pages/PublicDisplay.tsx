@@ -346,6 +346,17 @@ export default function PublicDisplay() {
       constructionSites = (sitesData || []) as ConstructionSiteInfo[];
     }
 
+    // Culture: load tonight's show
+    let cultureTonightShow: CultureShowDisplay | null = null;
+    if (org?.vertical_type === 'culture') {
+      const { data: showData } = await supabase.from('culture_shows')
+        .select('id, title, show_date, show_time, duration_minutes, acts, language, has_surtitles, status')
+        .eq('organization_id', orgId).eq('show_date', todayDate)
+        .in('status', ['upcoming', 'live'])
+        .limit(1) as any;
+      cultureTonightShow = showData?.[0] || null;
+    }
+
     setConfig({
       panels: (panels || []).map((p: any) => ({
         id: p.id, tip: p.tip, continut: p.continut,
