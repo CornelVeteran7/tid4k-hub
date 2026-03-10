@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, ChevronDown, ChevronRight, Server, Shield, Layout, Globe } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronRight, Server, Shield, Layout, Globe, Database, Palette, Cpu, Users, Layers } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
@@ -17,37 +17,66 @@ const ARCHITECTURE_SECTIONS: DocSection[] = [
     title: 'Tehnologii utilizate',
     content: (
       <div className="space-y-2 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Frontend:</strong> React 18 + TypeScript, Vite, Tailwind CSS, Framer Motion, Recharts, React Query</p>
-        <p><strong className="text-foreground">Backend:</strong> PHP / MariaDB (server propriu). Toate request-urile trec prin <code className="bg-muted px-1 rounded text-xs">apiFetch()</code> din <code className="bg-muted px-1 rounded text-xs">src/api/config.ts</code>.</p>
-        <p><strong className="text-foreground">Mock mode:</strong> Variabila <code className="bg-muted px-1 rounded text-xs">USE_MOCK = true</code> în <code className="bg-muted px-1 rounded text-xs">config.ts</code> activează date simulate. Pentru producție, setează <code className="bg-muted px-1 rounded text-xs">USE_MOCK = false</code> și actualizează <code className="bg-muted px-1 rounded text-xs">BASE_URL</code>.</p>
-        <p><strong className="text-foreground">Autentificare:</strong> Login cu telefon + PIN. Token JWT salvat în <code className="bg-muted px-1 rounded text-xs">localStorage</code> și trimis ca header <code className="bg-muted px-1 rounded text-xs">Authorization: Bearer</code>.</p>
+        <p><strong className="text-foreground">Frontend:</strong> React 18 + TypeScript, Vite, Tailwind CSS, shadcn/ui, Framer Motion, Recharts, React Query, react-router-dom v6</p>
+        <p><strong className="text-foreground">Backend:</strong> Supabase (PostgreSQL + Auth + Storage + Edge Functions + Realtime). Toate operațiile de date trec prin funcții în <code className="bg-muted px-1 rounded text-xs">src/api/</code>.</p>
+        <p><strong className="text-foreground">Autentificare:</strong> Supabase Auth — email/password + Google OAuth. Sesiune gestionată automat prin <code className="bg-muted px-1 rounded text-xs">@supabase/supabase-js</code>.</p>
+        <p><strong className="text-foreground">Demo mode:</strong> Mock user stocat în localStorage, fără apeluri Supabase. Activat prin <code className="bg-muted px-1 rounded text-xs">/demo?vertical=kids&role=profesor</code>.</p>
+        <p><strong className="text-foreground">PWA:</strong> Configurat via <code className="bg-muted px-1 rounded text-xs">vite-plugin-pwa</code> cu manifest, icons și service worker.</p>
+        <p><strong className="text-foreground">Maps:</strong> Leaflet + react-leaflet (harta sponsori)</p>
+        <p><strong className="text-foreground">QR:</strong> qrcode.react (token-uri acces, orare, inventar)</p>
       </div>
     ),
   },
   {
-    title: 'Structura de fișiere API',
+    title: 'Structura de fișiere',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p>Fiecare modul are propriul fișier în <code className="bg-muted px-1 rounded text-xs">src/api/</code>:</p>
         <div className="font-mono text-xs bg-muted/50 rounded-lg p-3 space-y-0.5">
-          <p>config.ts — BASE_URL, USE_MOCK, apiFetch(), getAuthHeaders()</p>
-          <p>auth.ts — login, logout, qrLogin, validateSession</p>
-          <p>attendance.ts — getAttendance, saveAttendance, getWeeklyAttendance</p>
-          <p>announcements.ts — getAnnouncements, createAnnouncement, hideFromTicker</p>
-          <p>children.ts — getChildren, getChildrenByGroup</p>
-          <p>documents.ts — getDocuments, uploadDocument, deleteDocument</p>
-          <p>menu.ts — getMenu, saveMenu, getNutritionalData</p>
-          <p>messages.ts — getConversations, getMessages, sendMessage</p>
-          <p>schedule.ts — getSchedule, saveSchedule, getCancelarieTeachers</p>
-          <p>reports.ts — getAttendanceReport, getActivityReport</p>
-          <p>schools.ts — getSchools, createSchool, updateSchool, deleteSchool</p>
-          <p>users.ts — getUsers, getUser, createUser, updateUser, deleteUser</p>
-          <p>stories.ts — getStories, createStory, generateTTS</p>
-          <p>workshops.ts — getWorkshops, createWorkshop, publishWorkshop</p>
-          <p>sponsors.ts — getSponsors, getActivePromos, getRotationConfig</p>
-          <p>facebook.ts — getFacebookSettings, postToFacebook, getPostLog</p>
-          <p>whatsapp.ts — getWhatsappMappings, createMapping, syncStatus</p>
-          <p>infodisplay.ts — getInfodisplayContent, generateVideo</p>
+          <p className="font-bold text-foreground">src/</p>
+          <p className="pl-2">api/ — Supabase data access layer (un fișier per domeniu)</p>
+          <p className="pl-4">auth.ts, attendance.ts, announcements.ts, children.ts, documents.ts</p>
+          <p className="pl-4">menu.ts, menuOms.ts, messages.ts, schedule.ts, schools.ts, users.ts</p>
+          <p className="pl-4">construction.ts, culture.ts, surtitles.ts, inventory.ts, ssm.ts</p>
+          <p className="pl-4">workshops.ts, living.ts, magazine.ts, clubs.ts, sponsors.ts</p>
+          <p className="pl-4">facebook.ts, whatsapp.ts, websiteConfig.ts, orgConfig.ts, guestTokens.ts</p>
+          <p className="pl-2">components/ — UI components (admin/, dashboard/, layout/, settings/, sponsor/, superadmin/, ui/)</p>
+          <p className="pl-2">config/ — verticalConfig.ts, moduleConfig.tsx, demoEnvironments.ts</p>
+          <p className="pl-2">contexts/ — AuthContext, GroupContext, NotificationContext, ExternalLinkContext</p>
+          <p className="pl-2">hooks/ — useActiveModules, useFeatureToggles, useGuestSession, useSponsorRotation</p>
+          <p className="pl-2">pages/ — 35+ page components</p>
+          <p className="pl-2">types/ — TypeScript interfaces (index.ts, sponsor.ts)</p>
+          <p className="pl-2">utils/ — branding.ts, roles.ts, docRegistry.ts</p>
+          <p className="font-bold text-foreground mt-2">docs/ — Documentație markdown auto-actualizabilă</p>
+          <p className="pl-2">APP_OVERVIEW.md, PAGES.md, API.md, HOOKS.md, CONTEXTS.md</p>
+          <p className="pl-2">TYPES.md, ROLES.md, THEMING.md, GUEST_ACCESS.md, DATABASE.md, DOC_REGISTRY.md</p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    title: 'Multi-tenancy & Verticale',
+    content: (
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <p>Platforma servește <strong>8 verticale</strong> dintr-un singur codebase. Fiecare organizație are un <code className="bg-muted px-1 rounded text-xs">vertical_type</code> care determină module, terminologie și temă vizuală.</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className="border-b border-border">
+              <th className="py-1.5 pr-3 text-left font-medium">Vertical</th>
+              <th className="py-1.5 pr-3 text-left font-medium">Entitate</th>
+              <th className="py-1.5 pr-3 text-left font-medium">Membru</th>
+              <th className="py-1.5 text-left font-medium">Staff</th>
+            </tr></thead>
+            <tbody>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">🧒 Grădinițe</td><td>Grupă</td><td>Copil</td><td>Educatoare</td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">🏫 Școli</td><td>Clasă</td><td>Elev</td><td>Profesor</td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">🏥 Medicină</td><td>Cabinet</td><td>Pacient</td><td>Medic</td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">🏠 Rezidențial</td><td>Bloc</td><td>Locatar</td><td>Administrator</td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">🎭 Cultură</td><td>Sală</td><td>Vizitator</td><td>Regizor</td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">🎓 Universități</td><td>Facultate</td><td>Student</td><td>Profesor</td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">🏗️ Construcții</td><td>Șantier</td><td>Muncitor</td><td>Inginer</td></tr>
+              <tr><td className="py-1 pr-3 font-medium">🔧 Service Auto</td><td>Service</td><td>Client</td><td>Mecanic</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     ),
@@ -56,7 +85,7 @@ const ARCHITECTURE_SECTIONS: DocSection[] = [
     title: 'Roluri utilizator',
     content: (
       <div className="space-y-2 text-sm text-muted-foreground">
-        <p>Rolurile sunt stocate ca CSV în câmpul <code className="bg-muted px-1 rounded text-xs">status</code> (ex: <code className="bg-muted px-1 rounded text-xs">"profesor,director"</code>).</p>
+        <p>Rolurile sunt stocate ca CSV în câmpul <code className="bg-muted px-1 rounded text-xs">profiles.status</code> (ex: <code className="bg-muted px-1 rounded text-xs">"profesor,director"</code>). Utilitar: <code className="bg-muted px-1 rounded text-xs">src/utils/roles.ts</code></p>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className="border-b border-border">
@@ -70,7 +99,7 @@ const ARCHITECTURE_SECTIONS: DocSection[] = [
               <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">administrator</td><td>Acces total: panou admin, gestionare școli/utilizatori/setări</td></tr>
               <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">secretara</td><td>Documente administrative, orar</td></tr>
               <tr className="border-b border-border/30"><td className="py-1 pr-3 font-medium">sponsor</td><td>Dashboard sponsor, gestionare campanii proprii</td></tr>
-              <tr><td className="py-1 pr-3 font-medium">inky</td><td>Superuser — acces la toate funcționalitățile</td></tr>
+              <tr><td className="py-1 pr-3 font-medium">inky</td><td>Superuser — acces la toate funcționalitățile + superadmin panel</td></tr>
             </tbody>
           </table>
         </div>
@@ -81,20 +110,90 @@ const ARCHITECTURE_SECTIONS: DocSection[] = [
     title: 'Contexte React',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">AuthContext</strong> — Sesiunea utilizatorului, login/logout, roluri. Wraps toată aplicația.</p>
+        <p><strong className="text-foreground">AuthContext</strong> — Sesiunea utilizatorului, login/logout, roluri. Wraps toată aplicația. Aplică branding + temă la login.</p>
         <p><strong className="text-foreground">GroupContext</strong> — Grupa/clasa selectată curent. Determină ce date se afișează.</p>
-        <p><strong className="text-foreground">NotificationContext</strong> — Contoare mesaje necitite, anunțuri noi.</p>
+        <p><strong className="text-foreground">NotificationContext</strong> — Contoare mesaje necitite, anunțuri noi. Poll periodic.</p>
         <p><strong className="text-foreground">ExternalLinkContext</strong> — Dialog confirmare pentru link-uri externe (PWA safe).</p>
+        <p><strong className="text-foreground">ModuleConfigProvider</strong> — Configurare culori/titluri module. Persistat în localStorage.</p>
       </div>
     ),
   },
   {
-    title: 'Baza de date — Convenții',
+    title: 'Sistem de Teme (Theming)',
     content: (
-      <div className="space-y-1 text-sm text-muted-foreground">
-        <p>Backend-ul folosește <strong>tabel-naming dinamic</strong>: tabela de prezență se numește <code className="bg-muted px-1 rounded text-xs">prezenta_[group_id]</code> (ex: <code className="bg-muted px-1 rounded text-xs">prezenta_grupa_mare</code>).</p>
-        <p>ID-urile grupelor au formatul <code className="bg-muted px-1 rounded text-xs">[school_id]_[group_name]</code> (ex: <code className="bg-muted px-1 rounded text-xs">1_grupa_mare</code>).</p>
-        <p>Toate datele calendaristice sunt în format ISO 8601 (<code className="bg-muted px-1 rounded text-xs">YYYY-MM-DD</code>).</p>
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <p>Trei straturi de tematizare, aplicate în ordine:</p>
+        <ol className="list-decimal list-inside space-y-1">
+          <li><strong>Tema de bază</strong> — variabile CSS în <code className="bg-muted px-1 rounded text-xs">:root</code> din <code className="bg-muted px-1 rounded text-xs">index.css</code></li>
+          <li><strong>Tema per vertical</strong> — selectori CSS <code className="bg-muted px-1 rounded text-xs">[data-vertical="culture"]</code> în <code className="bg-muted px-1 rounded text-xs">index.css</code></li>
+          <li><strong>Branding per organizație</strong> — variabile CSS inline via <code className="bg-muted px-1 rounded text-xs">applyBrandingColors()</code></li>
+        </ol>
+        <div className="overflow-x-auto mt-2">
+          <table className="w-full text-xs">
+            <thead><tr className="border-b border-border">
+              <th className="py-1.5 pr-3 text-left font-medium">Vertical</th>
+              <th className="py-1.5 pr-3 text-left font-medium">Temă</th>
+              <th className="py-1.5 text-left font-medium">Paletă</th>
+            </tr></thead>
+            <tbody>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">Culture</td><td>Dark opera noir</td><td>Crimson + gold, background negru</td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">Medicine</td><td>Clinical clean</td><td>Trust blue + teal, alb</td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">Construction</td><td>Earth industrial</td><td>Brown + amber, gri cald</td></tr>
+              <tr><td className="py-1 pr-3">Workshops</td><td>Steel professional</td><td>Slate blue, gri rece</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2"><strong className="text-foreground">Admin editor:</strong> Panou Admin → tab "Teme" (<code className="bg-muted px-1 rounded text-xs">ThemeEditorTab.tsx</code>)</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Inky Assistant — Costume per vertical',
+    content: (
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <p>Mascota Inky se adaptează automat la verticalul organizației:</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className="border-b border-border">
+              <th className="py-1.5 pr-3 text-left font-medium">Vertical</th>
+              <th className="py-1.5 pr-3 text-left font-medium">Costum</th>
+              <th className="py-1.5 text-left font-medium">Fișier</th>
+            </tr></thead>
+            <tbody>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">Kids/Schools</td><td>Default (buton albastru)</td><td><code className="text-xs">inky-button.png</code></td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">Medicine</td><td>Halat + stetoscop</td><td><code className="text-xs">inky-doctor.png</code></td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">Construction</td><td>Cască + vestă reflectorizantă</td><td><code className="text-xs">inky-construction.png</code></td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">Workshops</td><td>Salopetă mecanic + cheie</td><td><code className="text-xs">inky-mechanic.png</code></td></tr>
+              <tr><td className="py-1 pr-3">Culture</td><td>Capă roșie + joben</td><td><code className="text-xs">inky-opera.png</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Override: sponsorii Enterprise pot seta un costum custom via <code className="bg-muted px-1 rounded text-xs">stilInky.costume_url</code>.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Baza de date — Supabase PostgreSQL',
+    content: (
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <p>Toate tabelele au <code className="bg-muted px-1 rounded text-xs">organization_id</code> pentru multi-tenancy. RLS (Row Level Security) izolează datele per organizație.</p>
+        <p><strong className="text-foreground">Tabele core:</strong> organizations, profiles, groups, schools, org_config, modules_config</p>
+        <p><strong className="text-foreground">Tabele conținut:</strong> announcements, children, attendance, documents, schedule, menu_weeks/meals/dishes, messages, conversations</p>
+        <p><strong className="text-foreground">Tabele domeniu:</strong> construction_sites/teams/tasks/costs, culture_shows/surtitle_blocks, doctor_profiles, medicine_services, inventory_items, living_apartments, magazine_articles, school_clubs</p>
+        <p><strong className="text-foreground">Tabele integrări:</strong> sponsor_campaigns/promos, facebook_settings, infodisplay_panels, guest_tokens, queue_entries</p>
+        <p><strong className="text-foreground">Tipuri în:</strong> <code className="bg-muted px-1 rounded text-xs">src/integrations/supabase/types.ts</code> (auto-generat)</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Guest Access — Acces QR fără autentificare',
+    content: (
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <p>Vizitatorii pot accesa conținut public prin scanarea unui QR code de pe display-ul TV.</p>
+        <p><strong className="text-foreground">Flow:</strong> Display TV afișează QR → Vizitor scanează → <code className="bg-muted px-1 rounded text-xs">/qr/:orgSlug?t=token</code> → Token validat → Sesiune guest creată în localStorage</p>
+        <p><strong className="text-foreground">Token:</strong> Rotație zilnică, 12 caractere alfanumerice, validat prin edge function <code className="bg-muted px-1 rounded text-xs">validate-guest-token</code></p>
+        <p><strong className="text-foreground">Expirare:</strong> Sesiunea guest expiră la miezul nopții (verificare client-side)</p>
+        <p><strong className="text-foreground">Hook:</strong> <code className="bg-muted px-1 rounded text-xs">useGuestSession(orgSlug)</code> — gestionează validare, stocare și expirare</p>
       </div>
     ),
   },
@@ -105,14 +204,11 @@ const ARCHITECTURE_SECTIONS: DocSection[] = [
 // ===================================================================
 const PAGE_SECTIONS: DocSection[] = [
   {
-    title: '/ — Dashboard (pagina principală)',
+    title: '/ — Dashboard',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Dashboard.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Hub central cu banner de bun venit, statistici rapide (prezență, fotografii, documente, mesaje), charts analitice (desktop), grila de module interactive și ticker anunțuri.</p>
-        <p><strong className="text-foreground">Module:</strong> Carduri colorate care se deschid in-place (mobile: fullscreen, desktop: panel lateral) folosind Framer Motion layoutId.</p>
-        <p><strong className="text-foreground">Fundal:</strong> SVG inline cu linii topografice, flori și albine decorative.</p>
-        <p><strong className="text-foreground">Configurabil:</strong> Sidebar lateral permite ascunderea/afișarea modulelor (salvat în localStorage).</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Dashboard.tsx</code> (504 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Hub central cu banner de bun venit, statistici rapide, module interactive reordonabile, anunțuri ticker, sponsor cards. Vertical-aware: conținut adaptat tipului de organizație.</p>
         <p><strong className="text-foreground">Acces:</strong> Toți utilizatorii autentificați.</p>
       </div>
     ),
@@ -122,10 +218,7 @@ const PAGE_SECTIONS: DocSection[] = [
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
         <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Login.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Formular login cu telefon + PIN, plus opțiune de login prin QR code.</p>
-        <p><strong className="text-foreground">API:</strong> <code className="bg-muted px-1 rounded text-xs">POST /auth.php?action=login</code> — body: <code className="bg-muted px-1 rounded text-xs">{`{telefon, pin}`}</code></p>
-        <p><strong className="text-foreground">API QR:</strong> <code className="bg-muted px-1 rounded text-xs">POST /auth.php?action=qr_login</code> — body: <code className="bg-muted px-1 rounded text-xs">{`{session_id}`}</code></p>
-        <p><strong className="text-foreground">Răspuns:</strong> Obiect <code className="bg-muted px-1 rounded text-xs">UserSession</code> cu roluri, grupe disponibile, index grupă curentă.</p>
+        <p><strong className="text-foreground">Descriere:</strong> Login email/password + Google OAuth + sign-up. Branded per organizație când accesat via <code className="bg-muted px-1 rounded text-xs">/login/:orgSlug</code>.</p>
       </div>
     ),
   },
@@ -133,12 +226,9 @@ const PAGE_SECTIONS: DocSection[] = [
     title: '/prezenta — Prezența',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Attendance.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Grid săptămânal (L-V) cu checkbox-uri per copil/zi. Header galben cu contor „Prezenți: X/Y". Suportă vizualizare lunară cu statistici, calcul contribuții financiare (25 RON/zi), export Excel/PDF. Optimizat pentru printare cu <code className="bg-muted px-1 rounded text-xs">@media print</code>.</p>
-        <p><strong className="text-foreground">API GET:</strong> <code className="bg-muted px-1 rounded text-xs">GET /prezenta.php?action=get_weekly&grupa=X&data=YYYY-MM-DD</code></p>
-        <p><strong className="text-foreground">API SAVE:</strong> <code className="bg-muted px-1 rounded text-xs">POST /prezenta.php?action=save_weekly</code> — body: <code className="bg-muted px-1 rounded text-xs">{`{grupa, saptamana_start, saptamana_end, records[]}`}</code></p>
-        <p><strong className="text-foreground">API STATS:</strong> <code className="bg-muted px-1 rounded text-xs">GET /prezenta.php?action=stats&grupa=X&luna=M&an=Y</code></p>
-        <p><strong className="text-foreground">Acces:</strong> profesor, director, administrator (parinte: doar vizualizare).</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Attendance.tsx</code> (810 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Grid săptămânal cu checkbox-uri per copil/zi. Vizualizare lunară cu statistici. Calcul contribuții financiare (daily_rate × zile prezent). Export Excel/PDF. Print-optimized.</p>
+        <p><strong className="text-foreground">Acces:</strong> profesor+ (editare), parinte (vizualizare proprii copii).</p>
       </div>
     ),
   },
@@ -146,13 +236,8 @@ const PAGE_SECTIONS: DocSection[] = [
     title: '/documente — Documente',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Documents.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Galerie de fișiere cu filtrare pe categorii (activități, administrativ, teme, fotografii). Upload drag-and-drop, vizualizare thumbnail, ștergere.</p>
-        <p><strong className="text-foreground">API LIST:</strong> <code className="bg-muted px-1 rounded text-xs">GET /documente.php?action=list&grupa=X&categorie=Y</code></p>
-        <p><strong className="text-foreground">API UPLOAD:</strong> <code className="bg-muted px-1 rounded text-xs">POST /documente.php?action=upload</code> — FormData cu file, grupa, categorie</p>
-        <p><strong className="text-foreground">API DELETE:</strong> <code className="bg-muted px-1 rounded text-xs">POST /documente.php?action=delete&id=N</code></p>
-        <p><strong className="text-foreground">Tipuri acceptate:</strong> PDF, JPG, PNG, GIF, WEBP.</p>
-        <p><strong className="text-foreground">Acces:</strong> Toți (upload: profesor+).</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Documents.tsx</code> (224 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Upload la Supabase Storage. Categorii: Activități, Administrativ, Teme, Fotografii. Grid/list view, thumbnails, download/delete.</p>
       </div>
     ),
   },
@@ -160,12 +245,8 @@ const PAGE_SECTIONS: DocSection[] = [
     title: '/mesaje — Mesaje',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Messages.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Chat în timp real între profesori și părinți. Lista conversații cu contor necitite, view detaliat cu bule de mesaj.</p>
-        <p><strong className="text-foreground">API CONVERSATIONS:</strong> <code className="bg-muted px-1 rounded text-xs">GET /mesaje.php?action=conversations&id_utilizator=N</code></p>
-        <p><strong className="text-foreground">API MESSAGES:</strong> <code className="bg-muted px-1 rounded text-xs">GET /mesaje.php?action=messages&grupa=X&id_utilizator=N</code></p>
-        <p><strong className="text-foreground">API SEND:</strong> <code className="bg-muted px-1 rounded text-xs">POST /mesaje.php?action=send</code> — body: <code className="bg-muted px-1 rounded text-xs">{`{grupa, destinatar, mesaj}`}</code></p>
-        <p><strong className="text-foreground">Acces:</strong> Toți utilizatorii autentificați.</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Messages.tsx</code> (461 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Chat real-time via Supabase channels. Split-pane layout. Read receipts, avatar colors, date grouping. Responsive.</p>
       </div>
     ),
   },
@@ -173,13 +254,8 @@ const PAGE_SECTIONS: DocSection[] = [
     title: '/anunturi — Anunțuri',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Announcements.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Listă completă de anunțuri cu prioritate (normal/urgent). Anunțurile urgente au indicator roșu pulsant. Creare anunțuri noi, ascundere/restaurare din ticker.</p>
-        <p><strong className="text-foreground">API LIST:</strong> <code className="bg-muted px-1 rounded text-xs">GET /anunturi.php?action=list&grupa=X</code></p>
-        <p><strong className="text-foreground">API CREATE:</strong> <code className="bg-muted px-1 rounded text-xs">POST /anunturi.php?action=create</code></p>
-        <p><strong className="text-foreground">API HIDE:</strong> <code className="bg-muted px-1 rounded text-xs">POST /anunturi.php?action=hide_banda&id=N</code></p>
-        <p><strong className="text-foreground">API RESTORE:</strong> <code className="bg-muted px-1 rounded text-xs">POST /anunturi.php?action=restore_banda&id=N</code></p>
-        <p><strong className="text-foreground">Ticker:</strong> Anunțurile cu <code className="bg-muted px-1 rounded text-xs">ascuns_banda=false</code> apar în bara fixă de jos, ordonate după <code className="bg-muted px-1 rounded text-xs">pozitie_banda</code>.</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Announcements.tsx</code> (213 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Creare/gestionare anunțuri cu prioritate (normal/urgent), expiry dates, ascundere din ticker, cross-post WhatsApp/Facebook.</p>
       </div>
     ),
   },
@@ -187,37 +263,18 @@ const PAGE_SECTIONS: DocSection[] = [
     title: '/orar — Orar',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Schedule.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Tabel orar săptămânal color-coded per materie. Editabil de profesor/administrator.</p>
-        <p><strong className="text-foreground">API GET:</strong> <code className="bg-muted px-1 rounded text-xs">GET /orar.php?action=get&grupa=X</code></p>
-        <p><strong className="text-foreground">API SAVE:</strong> <code className="bg-muted px-1 rounded text-xs">POST /orar.php?action=save</code> — body: <code className="bg-muted px-1 rounded text-xs">{`{grupa, cells[]}`}</code></p>
-        <p><strong className="text-foreground">Date:</strong> Fiecare celulă: <code className="bg-muted px-1 rounded text-xs">{`{zi, ora, materie, profesor, culoare}`}</code></p>
-        <p><strong className="text-foreground">Acces:</strong> Toți (editare: profesor+).</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Schedule.tsx</code> (402 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Grid 5-zile × 9-ore cu celule color-coded. Editare inline (materie, profesor, sală, culoare). QR per clasă/sală. Print.</p>
       </div>
     ),
   },
   {
-    title: '/orar-cancelarie — Orar Cancelarie',
+    title: '/meniu — Meniu Săptămânal (OMS)',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/ScheduleCancelarie.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Vizualizare profesori cu avatar, QR code personal, calendar absențe și activități. Destinat directorilor.</p>
-        <p><strong className="text-foreground">API:</strong> <code className="bg-muted px-1 rounded text-xs">GET /orar.php?action=cancelarie</code></p>
-        <p><strong className="text-foreground">Răspuns:</strong> Array de <code className="bg-muted px-1 rounded text-xs">CancelarieTeacher</code> cu <code className="bg-muted px-1 rounded text-xs">qr_data</code>, <code className="bg-muted px-1 rounded text-xs">absent_dates[]</code>, <code className="bg-muted px-1 rounded text-xs">activitati[]</code>.</p>
-        <p><strong className="text-foreground">Acces:</strong> director, administrator.</p>
-      </div>
-    ),
-  },
-  {
-    title: '/meniu — Meniul Săptămânii',
-    content: (
-      <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/WeeklyMenu.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Meniu zilnic cu 4 mese (mic dejun, gustare 1, prânz, gustare 2), date nutriționale (kcal, proteine, etc.), lista alergeni, semnături digitale (director, asistent medical, administrator).</p>
-        <p><strong className="text-foreground">API GET:</strong> <code className="bg-muted px-1 rounded text-xs">GET /meniu.php?action=get&saptamana=YYYY-WNN</code></p>
-        <p><strong className="text-foreground">API SAVE:</strong> <code className="bg-muted px-1 rounded text-xs">POST /meniu.php?action=save</code> — body: obiect <code className="bg-muted px-1 rounded text-xs">WeeklyMenu</code> complet</p>
-        <p><strong className="text-foreground">API NUTRITIONAL:</strong> <code className="bg-muted px-1 rounded text-xs">GET /meniu.php?action=nutritional&saptamana=YYYY-WNN</code></p>
-        <p><strong className="text-foreground">Acces:</strong> Toți (editare: profesor+).</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/WeeklyMenu.tsx</code> (561 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Sistem de meniu OMS-compliant cu 4 mese/zi, tracking ingrediente + valori nutriționale, target calorii per grupă de vârstă (1-3, 3-7 ani), detecție ingrediente interzise, workflow publicare.</p>
+        <p><strong className="text-foreground">API:</strong> <code className="bg-muted px-1 rounded text-xs">src/api/menuOms.ts</code> — computeDayNutrition(), checkBannedIngredients(), getCalorieStatus()</p>
       </div>
     ),
   },
@@ -225,12 +282,8 @@ const PAGE_SECTIONS: DocSection[] = [
     title: '/povesti — Povești',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Stories.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Bibliotecă de povești pentru copii, categorizate (educative, morale, distractive) și filtrate pe vârstă (3-5, 5-7, 7-10). Suport TTS (text-to-speech) pentru citire audio.</p>
-        <p><strong className="text-foreground">API LIST:</strong> <code className="bg-muted px-1 rounded text-xs">GET /povesti.php?action=list</code></p>
-        <p><strong className="text-foreground">API CREATE:</strong> <code className="bg-muted px-1 rounded text-xs">POST /povesti.php?action=create</code></p>
-        <p><strong className="text-foreground">API TTS:</strong> <code className="bg-muted px-1 rounded text-xs">POST /povesti.php?action=tts&id=N</code> — returnează <code className="bg-muted px-1 rounded text-xs">{`{audio_url}`}</code></p>
-        <p><strong className="text-foreground">Acces:</strong> Toți.</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Stories.tsx</code> (523 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Bibliotecă de povești: Read, Listen (audio player), Watch (video). Categorii, filtre pe vârstă, favorites.</p>
       </div>
     ),
   },
@@ -238,11 +291,8 @@ const PAGE_SECTIONS: DocSection[] = [
     title: '/rapoarte — Rapoarte',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Reports.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Dashboard analitic cu grafice: tendințe prezență (line chart), activitate utilizatori (bar chart), documente pe categorii (pie chart). Filtrare pe grupă și perioadă.</p>
-        <p><strong className="text-foreground">API:</strong> <code className="bg-muted px-1 rounded text-xs">GET /rapoarte.php?action=attendance&grupa=X&start=D1&end=D2</code></p>
-        <p><strong className="text-foreground">API:</strong> <code className="bg-muted px-1 rounded text-xs">GET /rapoarte.php?action=activity</code></p>
-        <p><strong className="text-foreground">Acces:</strong> director, administrator.</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Reports.tsx</code> (114 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Dashboard analitic cu Recharts: tendințe prezență, activitate utilizatori, documente pe categorii. Export PDF/Excel.</p>
       </div>
     ),
   },
@@ -250,121 +300,120 @@ const PAGE_SECTIONS: DocSection[] = [
     title: '/admin — Panou Administrare',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/AdminPanel.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Panou central cu taburi: Școli, Utilizatori, Orar, Meniu, Ateliere, Setări, Docs, Branding. Selector global de școală în header.</p>
-        <p><strong className="text-foreground">Subcomponente:</strong></p>
-        <p className="pl-3">• <code className="bg-muted px-1 rounded text-xs">SchoolsTab</code> — CRUD școli/grădinițe</p>
-        <p className="pl-3">• <code className="bg-muted px-1 rounded text-xs">UsersTab</code> — Gestionare utilizatori și roluri</p>
-        <p className="pl-3">• <code className="bg-muted px-1 rounded text-xs">ScheduleTab</code> — Editare orar pe școală</p>
-        <p className="pl-3">• <code className="bg-muted px-1 rounded text-xs">MenuTab</code> — Editare meniu pe școală</p>
-        <p className="pl-3">• <code className="bg-muted px-1 rounded text-xs">WorkshopsTab</code> — Creare/publicare ateliere</p>
-        <p className="pl-3">• <code className="bg-muted px-1 rounded text-xs">SettingsTab</code> — API keys, notificări</p>
-        <p className="pl-3">• <code className="bg-muted px-1 rounded text-xs">DocsTab</code> — Această documentație</p>
-        <p className="pl-3">• <code className="bg-muted px-1 rounded text-xs">BrandingTab</code> — Ghid identitate vizuală</p>
-        <p><strong className="text-foreground">Acces:</strong> administrator.</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/AdminPanel.tsx</code> (119 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Hub admin cu 16 taburi (filtrate per vertical):</p>
+        <p className="pl-3">• SchoolsTab, UsersTab, ScheduleTab, MenuTab, WorkshopsTab</p>
+        <p className="pl-3">• SponsorsTab, SponsorPolicyTab, DisplayPreviewTab, WebsiteTab</p>
+        <p className="pl-3">• ModuleTogglesTab, SettingsTab, UserGuideTab, DocsTab</p>
+        <p className="pl-3">• BrandingTab, BusinessIntelligenceTab, <strong>ThemeEditorTab</strong> (NOU)</p>
+        <p><strong className="text-foreground">Acces:</strong> administrator, director, inky.</p>
       </div>
     ),
   },
   {
-    title: '/sponsori — Gestionare Sponsori',
+    title: '/santiere — Construcții Dashboard',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/SponsorAdmin.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Interfață admin pentru sponsori. Listă cu statistici globale (afișări, click-uri, CTR), detaliu per sponsor cu campanii active, editor campanii cu preview live pe 3 canale (Card, Ticker, Inky).</p>
-        <p><strong className="text-foreground">API:</strong> Vezi secțiunea API Sponsori mai jos.</p>
-        <p><strong className="text-foreground">Rotație:</strong> Automată, proporțională cu prețul planului. Ciclu de 60s.</p>
-        <p><strong className="text-foreground">Acces:</strong> administrator, sponsor (doar propriile campanii).</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/ConstructionDashboard.tsx</code> (1273 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Management complet: șantiere (CRUD, progress, buget), echipe, task-uri (kanban), costuri categorisate, asignări săptămânale, SSM.</p>
       </div>
     ),
   },
   {
-    title: '/infodisplay — InfoDisplay',
+    title: '/spectacole — Cultură (Show Editor)',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Infodisplay.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Ecran de avizier digital pentru TV-uri din holul școlii. Panouri rotative (anunțuri, meniu, orar, galerie foto) cu tranziții fade/slide, ticker în partea de jos, QR codes pentru acces rapid.</p>
-        <p><strong className="text-foreground">API:</strong> <code className="bg-muted px-1 rounded text-xs">GET /infodisplay.php?action=content</code></p>
-        <p><strong className="text-foreground">Răspuns:</strong> <code className="bg-muted px-1 rounded text-xs">InfodisplayConfig</code> cu panels[], ticker_messages[], qr_codes[], transition type.</p>
-        <p><strong className="text-foreground">API Video:</strong> <code className="bg-muted px-1 rounded text-xs">POST /infodisplay.php?action=generate_video</code> — generare video recap.</p>
-        <p><strong className="text-foreground">Acces:</strong> profesor, director, administrator.</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/CultureShowEditor.tsx</code> (365 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Management spectacole: CRUD shows, cast, sponsori per spectacol, blocuri supratitrare. Temă dark opera noir.</p>
       </div>
     ),
   },
   {
-    title: '/social-facebook — Social Media Facebook',
+    title: '/supratitrare — Supratitrare Live',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/SocialMediaFacebook.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Publicare automată pe pagina de Facebook a școlii. Configurare page_id, format posting (text+image), log postări.</p>
-        <p><strong className="text-foreground">API SETTINGS:</strong> <code className="bg-muted px-1 rounded text-xs">GET /facebook.php?action=settings</code></p>
-        <p><strong className="text-foreground">API POST:</strong> <code className="bg-muted px-1 rounded text-xs">POST /facebook.php?action=post</code> — body: <code className="bg-muted px-1 rounded text-xs">{`{content, imageUrl}`}</code></p>
-        <p><strong className="text-foreground">API LOG:</strong> <code className="bg-muted px-1 rounded text-xs">GET /facebook.php?action=log</code></p>
-        <p><strong className="text-foreground">Notă:</strong> Necesită token Facebook Graph API valid (configurabil în Setări).</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Surtitles.tsx</code> (352 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Operator console + audience view. Multi-limbă (RO, EN, FR, DE). Realtime via Supabase channels.</p>
+        <p><strong className="text-foreground">Rute aferente:</strong> <code className="bg-muted px-1 rounded text-xs">/surtitle/operate/:showId</code>, <code className="bg-muted px-1 rounded text-xs">/surtitle/view/:showId</code></p>
       </div>
     ),
   },
   {
-    title: '/social-whatsapp — Social Media WhatsApp',
+    title: '/coada — Sistem Coadă',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/SocialMediaWhatsapp.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Sincronizare mesaje între grupele din app și grupurile WhatsApp ale părinților. Mapare grupă → grup WhatsApp, cu opțiune bidirecțional sau one-way.</p>
-        <p><strong className="text-foreground">API MAPPINGS:</strong> <code className="bg-muted px-1 rounded text-xs">GET /whatsapp.php?action=mappings</code></p>
-        <p><strong className="text-foreground">API CREATE:</strong> <code className="bg-muted px-1 rounded text-xs">POST /whatsapp.php?action=create</code></p>
-        <p><strong className="text-foreground">API STATUS:</strong> <code className="bg-muted px-1 rounded text-xs">GET /whatsapp.php?action=status</code> — returnează status sincronizare + last_sync.</p>
-        <p><strong className="text-foreground">Notă:</strong> Necesită Twilio WhatsApp Business API (configurabil în Setări).</p>
+        <p><strong className="text-foreground">Fișiere:</strong> <code className="bg-muted px-1 rounded text-xs">QueueAdmin.tsx</code> (505 linii), <code className="bg-muted px-1 rounded text-xs">QueueTicket.tsx</code> (472 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Admin: call next, service points, statistici. Public: take ticket, wait estimation, realtime updates.</p>
       </div>
     ),
   },
   {
-    title: '/profil — Profilul meu',
+    title: '/cabinet — Medicină Admin',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/MyProfile.tsx</code></p>
-        <p><strong className="text-foreground">Descriere:</strong> Pagina de profil personal cu editare date (nume, email, telefon), vizualizare roluri și grupe asignate.</p>
-        <p><strong className="text-foreground">Acces:</strong> Toți utilizatorii autentificați.</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/MedicineAdmin.tsx</code> (362 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Profiluri doctori (foto, bio, specializare), servicii medicale cu prețuri și durată. Temă clinical clean.</p>
       </div>
     ),
   },
-];
-
-// ===================================================================
-// SECTION: ATELIERE
-// ===================================================================
-const WORKSHOP_SECTIONS: DocSection[] = [
   {
-    title: 'Crearea unui atelier',
+    title: '/atelier — Workshop Dashboard',
     content: (
-      <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-        <li>Mergi la <strong>Panou Admin → Ateliere</strong></li>
-        <li>Click <strong>Atelier nou</strong></li>
-        <li>Completează: titlu, descriere, categorie, lună, instructor, durată, materiale</li>
-        <li>Alege destinația: <strong>Toate unitățile</strong> sau o școală specifică</li>
-        <li>Click <strong>Creează</strong> — atelierul e salvat ca Draft</li>
-      </ol>
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/WorkshopDashboard.tsx</code> (242 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Management service auto: vehicule, programări (scheduled/in-progress/done), clienți. Temă steel professional.</p>
+      </div>
     ),
   },
   {
-    title: 'Publicarea unui atelier',
+    title: '/bloc — Rezidențial Dashboard',
     content: (
-      <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-        <li>Găsește cardul de atelier în stare Draft</li>
-        <li>Click <strong>Publică</strong></li>
-        <li>Selectează școlile țintă în dialogul de confirmare</li>
-        <li>Click <strong>Publică și notifică</strong></li>
-        <li>Atelierul devine vizibil pe dashboard-urile profesorilor + notificare push</li>
-      </ol>
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/LivingDashboard.tsx</code> (293 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Apartamente, cheltuieli lunare pe categorii, entități administrative externe, tracking plăți.</p>
+      </div>
     ),
   },
   {
-    title: 'Categorii disponibile',
+    title: '/inventar — Inventar',
     content: (
-      <div className="flex flex-wrap gap-1.5 text-sm">
-        <Badge variant="outline">Artă</Badge>
-        <Badge variant="outline">Știință</Badge>
-        <Badge variant="outline">Muzică</Badge>
-        <Badge variant="outline">Sport</Badge>
-        <Badge variant="outline">Natură</Badge>
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Inventory.tsx</code> (269 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> CRUD articole, categorii, mișcări stoc (in/out), QR per articol, locație.</p>
+      </div>
+    ),
+  },
+  {
+    title: '/revista — Revistă / Magazine',
+    content: (
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/Magazine.tsx</code> (383 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Workflow editorial: draft → review → published. Cluburi școlare cu membership.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Rute publice (fără auth)',
+    content: (
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p><code className="bg-muted px-1 rounded text-xs">/display/:orgSlug</code> — Infodisplay fullscreen pentru TV-uri (1348 linii)</p>
+        <p><code className="bg-muted px-1 rounded text-xs">/qr/:orgSlug</code> — Portal QR guest (781 linii). Content adaptat per vertical.</p>
+        <p><code className="bg-muted px-1 rounded text-xs">/queue/:orgSlug</code> — Tichet coadă public (472 linii)</p>
+        <p><code className="bg-muted px-1 rounded text-xs">/site/:orgSlug</code> — Website public auto-generat (319 linii)</p>
+        <p><code className="bg-muted px-1 rounded text-xs">/program/:showId</code> — Program digital spectacol (221 linii)</p>
+        <p><code className="bg-muted px-1 rounded text-xs">/surtitle/:orgSlug</code> — Selectare spectacol supratitrare</p>
+        <p><code className="bg-muted px-1 rounded text-xs">/surtitle/view/:showId</code> — Vizualizare supratitrare audiență</p>
+        <p><code className="bg-muted px-1 rounded text-xs">/demo</code> — Intrare mod demo</p>
+      </div>
+    ),
+  },
+  {
+    title: '/superadmin — Super Admin Panel',
+    content: (
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/pages/SuperAdmin.tsx</code> (89 linii)</p>
+        <p><strong className="text-foreground">Descriere:</strong> Panel cross-org: Organizații, Module Matrix, BI, Display Monitor, Activity Feed, Docs, Clienți, Șabloane, Client Nou.</p>
+        <p><strong className="text-foreground">Acces:</strong> Doar inky/administrator.</p>
       </div>
     ),
   },
@@ -399,31 +448,21 @@ const SPONSOR_SECTIONS: DocSection[] = [
     ),
   },
   {
-    title: 'Canale de afișare',
+    title: 'Canale & Rotație',
     content: (
       <div className="space-y-2 text-sm text-muted-foreground">
         <p><strong>Card Dashboard</strong> — Pe pagina principală, cu logo, titlu, descriere și buton CTA.</p>
         <p><strong>Ticker</strong> — Bară fixă în partea de jos, text scrollabil cu badge.</p>
         <p><strong>Inky Popup</strong> — Meniul asistentului virtual, buton cu logo sponsor.</p>
         <p><strong>Infodisplay</strong> — Ecranele TV din hol, panou dedicat cu QR code.</p>
+        <p className="mt-2"><strong>Rotație:</strong> Un sponsor per canal, ciclu 60s, proporțional cu planul. Hook: <code className="bg-muted px-1 rounded text-xs">useSponsorRotation(location)</code></p>
       </div>
     ),
   },
   {
-    title: 'Rotația sponsorilor',
+    title: 'Campanii — Lifecycle',
     content: (
       <div className="space-y-2 text-sm text-muted-foreground">
-        <p>Rotația e <strong>complet automată</strong>. Un singur sponsor apare la un moment dat pe fiecare canal.</p>
-        <p>Timpul de afișare e proporțional cu prețul planului: <code className="bg-muted px-1 rounded">timp = (preț_plan / suma_prețuri) × 60s</code></p>
-        <p><strong>Exemplu</strong>: Kaufland (Enterprise, 3000 RON) = ~51s, Lidl (Basic, 500 RON) = ~9s dintr-un ciclu de 60s.</p>
-      </div>
-    ),
-  },
-  {
-    title: 'Gestionarea campaniilor',
-    content: (
-      <div className="space-y-2 text-sm text-muted-foreground">
-        <p>Fiecare sponsor poate avea mai multe campanii simultane pe canale diferite.</p>
         <div className="flex flex-wrap gap-1.5 mt-1">
           <Badge variant="outline">draft — în pregătire</Badge>
           <Badge variant="outline">activ — rulează</Badge>
@@ -431,16 +470,7 @@ const SPONSOR_SECTIONS: DocSection[] = [
           <Badge variant="outline">expirat — data a trecut</Badge>
           <Badge variant="outline">arhivat — scos din circulație</Badge>
         </div>
-      </div>
-    ),
-  },
-  {
-    title: 'Statistici & Rapoarte',
-    content: (
-      <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong>Afișări</strong> — De câte ori a fost afișat cardul/mesajul.</p>
-        <p><strong>Click-uri</strong> — Interacțiuni ale utilizatorilor.</p>
-        <p><strong>CTR</strong> — Rata de click (click-uri / afișări × 100).</p>
+        <p className="mt-2"><strong>Statistici:</strong> Afișări, click-uri, CTR per campanie. Logging automat via <code className="bg-muted px-1 rounded text-xs">logImpression()</code> / <code className="bg-muted px-1 rounded text-xs">logClick()</code>.</p>
       </div>
     ),
   },
@@ -455,7 +485,7 @@ const UI_SECTIONS: DocSection[] = [
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
         <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/layout/AppLayout.tsx</code></p>
-        <p>Sidebar fix pe desktop (64px larg), hamburger menu pe mobil. Header cu logo, search, notificări, selector grupă, avatar utilizator. Navigare role-based — meniurile se afișează conform rolurilor utilizatorului.</p>
+        <p>Sidebar fix pe desktop (280px), hamburger pe mobil. Navigare role-based + module-aware. SVG decorative pe sidebar.</p>
       </div>
     ),
   },
@@ -464,124 +494,88 @@ const UI_SECTIONS: DocSection[] = [
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
         <p><strong className="text-foreground">Fișiere:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/dashboard/Module*.tsx</code></p>
-        <p><strong>ModuleHub</strong> — Grid de carduri module, filtrat prin visibility config + search.</p>
-        <p><strong>ModuleCard</strong> — Card colorat cu icon, titlu, subtitle, contor, share button. Tap scale animation.</p>
-        <p><strong>ModulePanel</strong> — Panel fullscreen (mobil) / lateral (desktop) cu Framer Motion layoutId morphing. Încarcă lazy componentele modulelor.</p>
+        <p><strong>ModuleHub</strong> — Grid de carduri module, filtrat prin visibility + useActiveModules.</p>
+        <p><strong>ModuleCard</strong> — Card colorat cu icon, titlu Playfair, subtitle, badge contor, share button.</p>
+        <p><strong>ModulePanel</strong> — Panel fullscreen (mobil) / lateral (desktop) cu Framer Motion layoutId.</p>
       </div>
     ),
   },
   {
-    title: 'AnnouncementsTicker — Bara de anunțuri',
-    content: (
-      <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/dashboard/AnnouncementsTicker.tsx</code></p>
-        <p>Bară fixă în partea de jos cu marquee scrolling. 3 wave SVG layers deasupra pentru blending cu fundalul. Integrează promo-urile sponsorilor (inserate după al 3-lea anunț). Click duce la <code className="bg-muted px-1 rounded text-xs">/anunturi</code>.</p>
-      </div>
-    ),
-  },
-  {
-    title: 'ChildrenScroller + ChildDetailDialog',
-    content: (
-      <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișiere:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/dashboard/Children*.tsx</code></p>
-        <p><strong>ChildrenScroller</strong> — Scroll orizontal cu avatar-uri copii, inițiale colorate.</p>
-        <p><strong>ChildDetailDialog</strong> — Dialog cu toggle prezență, statistici lunare, contact părinte, calcul costuri mâncare (25 RON/zi).</p>
-      </div>
-    ),
-  },
-  {
-    title: 'InkyAssistant — Asistent virtual',
+    title: 'InkyAssistant — Asistent virtual cu costume',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
         <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/InkyAssistant.tsx</code></p>
-        <p>Buton floating cu mascota Inky. Deschide meniu cu shortcut-uri, promo-uri sponsori (Inky popup), și acțiuni rapide.</p>
+        <p>Buton floating cu mascota Inky. Costume adaptate per vertical (doctor, muncitor, mecanic, operă). Meniu shortcut-uri + promo-uri sponsori.</p>
+        <p>Map costum: <code className="bg-muted px-1 rounded text-xs">VERTICAL_COSTUMES</code> — medicine→inkyDoctor, construction→inkyConstruction, etc.</p>
       </div>
     ),
   },
   {
-    title: 'SponsorCard — Card sponsor pe dashboard',
+    title: 'ThemeEditorTab — Editor teme (NOU)',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/dashboard/SponsorCard.tsx</code></p>
-        <p>Card cu branding sponsor (logo, gradient, CTA), integrat în grila de module după secțiunea Documente. Rotație automată între sponsori activi.</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/admin/ThemeEditorTab.tsx</code></p>
+        <p>Două secțiuni: preset-uri per vertical (culorile default) și override per organizație specifică.</p>
+        <p>Persistare: <code className="bg-muted px-1 rounded text-xs">org_config</code> table, keys: <code className="bg-muted px-1 rounded text-xs">vertical_theme_{type}</code> și <code className="bg-muted px-1 rounded text-xs">theme_override</code></p>
       </div>
     ),
   },
   {
-    title: 'CampaignEditor — Editor campanii sponsor',
+    title: 'WhiteLabelSwitcher — Selector demo vertical',
     content: (
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/sponsor/CampaignEditor.tsx</code></p>
-        <p>Formular complet de editare campanie cu preview live pe 3 canale (CardPreview, TickerPreview, InkyPreview). Configurare stiluri per canal, selectare școli țintă, date start/end.</p>
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/WhiteLabelSwitcher.tsx</code></p>
+        <p>Dropdown pentru schimbarea verticalului în mod demo. Aplică automat tema + branding la switch.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'AnnouncementsTicker — Bandă scrollabilă',
+    content: (
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/dashboard/AnnouncementsTicker.tsx</code></p>
+        <p>Bară fixă în partea de jos cu CSS marquee animation. Content triplicat pentru buclă infinită. Integrează promo-uri sponsor.</p>
       </div>
     ),
   },
 ];
 
 // ===================================================================
-// API REFERENCE — COMPLETE
+// SECTION: HOOKS
 // ===================================================================
-const ALL_API_ENDPOINTS = [
-  { group: 'Auth', method: 'POST', endpoint: '/auth.php?action=login', desc: 'Login cu telefon + PIN', body: '{telefon, pin}' },
-  { group: 'Auth', method: 'POST', endpoint: '/auth.php?action=qr_login', desc: 'Login prin QR code', body: '{session_id}' },
-  { group: 'Auth', method: 'POST', endpoint: '/auth.php?action=logout', desc: 'Logout', body: '' },
-  { group: 'Auth', method: 'GET', endpoint: '/auth.php?action=validate', desc: 'Validare sesiune curentă', body: '' },
-  { group: 'Prezență', method: 'GET', endpoint: '/prezenta.php?action=get&grupa=X&data=D', desc: 'Prezență pe zi', body: '' },
-  { group: 'Prezență', method: 'POST', endpoint: '/prezenta.php?action=save', desc: 'Salvare prezență zilnică', body: '{grupa, data, prezente[]}' },
-  { group: 'Prezență', method: 'GET', endpoint: '/prezenta.php?action=get_weekly&grupa=X&data=D', desc: 'Prezență săptămânală', body: '' },
-  { group: 'Prezență', method: 'POST', endpoint: '/prezenta.php?action=save_weekly', desc: 'Salvare prezență săptămânală', body: '{grupa, records[]}' },
-  { group: 'Prezență', method: 'GET', endpoint: '/prezenta.php?action=stats&grupa=X&luna=M&an=Y', desc: 'Statistici lunare', body: '' },
-  { group: 'Copii', method: 'GET', endpoint: '/copii.php?action=list', desc: 'Toți copiii', body: '' },
-  { group: 'Copii', method: 'GET', endpoint: '/copii.php?action=list&grupa=X', desc: 'Copii pe grupă', body: '' },
-  { group: 'Anunțuri', method: 'GET', endpoint: '/anunturi.php?action=list&grupa=X', desc: 'Lista anunțuri', body: '' },
-  { group: 'Anunțuri', method: 'POST', endpoint: '/anunturi.php?action=create', desc: 'Creare anunț', body: '{titlu, continut, prioritate, target}' },
-  { group: 'Anunțuri', method: 'POST', endpoint: '/anunturi.php?action=hide_banda&id=N', desc: 'Ascunde din ticker', body: '' },
-  { group: 'Anunțuri', method: 'POST', endpoint: '/anunturi.php?action=restore_banda&id=N', desc: 'Restaurare în ticker', body: '' },
-  { group: 'Documente', method: 'GET', endpoint: '/documente.php?action=list&grupa=X&categorie=Y', desc: 'Lista documente', body: '' },
-  { group: 'Documente', method: 'POST', endpoint: '/documente.php?action=upload', desc: 'Upload fișier (FormData)', body: 'file, grupa, categorie' },
-  { group: 'Documente', method: 'POST', endpoint: '/documente.php?action=delete&id=N', desc: 'Ștergere document', body: '' },
-  { group: 'Mesaje', method: 'GET', endpoint: '/mesaje.php?action=conversations&id_utilizator=N', desc: 'Lista conversații', body: '' },
-  { group: 'Mesaje', method: 'GET', endpoint: '/mesaje.php?action=messages&grupa=X&id_utilizator=N', desc: 'Mesaje conversație', body: '' },
-  { group: 'Mesaje', method: 'POST', endpoint: '/mesaje.php?action=send', desc: 'Trimitere mesaj', body: '{grupa, destinatar, mesaj}' },
-  { group: 'Orar', method: 'GET', endpoint: '/orar.php?action=get&grupa=X', desc: 'Orar grupă', body: '' },
-  { group: 'Orar', method: 'POST', endpoint: '/orar.php?action=save', desc: 'Salvare orar', body: '{grupa, cells[]}' },
-  { group: 'Orar', method: 'GET', endpoint: '/orar.php?action=cancelarie', desc: 'Profesori cancelarie', body: '' },
-  { group: 'Meniu', method: 'GET', endpoint: '/meniu.php?action=get&saptamana=W', desc: 'Meniu săptămânal', body: '' },
-  { group: 'Meniu', method: 'POST', endpoint: '/meniu.php?action=save', desc: 'Salvare meniu', body: 'WeeklyMenu object' },
-  { group: 'Meniu', method: 'GET', endpoint: '/meniu.php?action=nutritional&saptamana=W', desc: 'Date nutriționale', body: '' },
-  { group: 'Povești', method: 'GET', endpoint: '/povesti.php?action=list', desc: 'Lista povești', body: '' },
-  { group: 'Povești', method: 'POST', endpoint: '/povesti.php?action=create', desc: 'Creare poveste', body: '{titlu, continut, categorie, varsta}' },
-  { group: 'Povești', method: 'POST', endpoint: '/povesti.php?action=tts&id=N', desc: 'Generare audio TTS', body: '' },
-  { group: 'Rapoarte', method: 'GET', endpoint: '/rapoarte.php?action=attendance&...', desc: 'Raport prezență', body: '' },
-  { group: 'Rapoarte', method: 'GET', endpoint: '/rapoarte.php?action=activity', desc: 'Raport activitate', body: '' },
-  { group: 'Școli', method: 'GET', endpoint: '/scoli.php?action=list', desc: 'Lista școli', body: '' },
-  { group: 'Școli', method: 'POST', endpoint: '/scoli.php?action=create', desc: 'Creare școală', body: 'School object' },
-  { group: 'Școli', method: 'POST', endpoint: '/scoli.php?action=update', desc: 'Editare școală', body: 'Partial<School>' },
-  { group: 'Școli', method: 'DELETE', endpoint: '/scoli.php?action=delete&id=N', desc: 'Ștergere școală', body: '' },
-  { group: 'Utilizatori', method: 'GET', endpoint: '/utilizatori.php?action=list', desc: 'Lista utilizatori', body: '' },
-  { group: 'Utilizatori', method: 'GET', endpoint: '/utilizatori.php?action=get&id=N', desc: 'Detalii utilizator', body: '' },
-  { group: 'Utilizatori', method: 'POST', endpoint: '/utilizatori.php?action=create', desc: 'Creare utilizator', body: 'User object' },
-  { group: 'Utilizatori', method: 'POST', endpoint: '/utilizatori.php?action=update', desc: 'Editare utilizator', body: 'Partial<User>' },
-  { group: 'Utilizatori', method: 'POST', endpoint: '/utilizatori.php?action=delete&id=N', desc: 'Ștergere utilizator', body: '' },
-  { group: 'Ateliere', method: 'GET', endpoint: '/ateliere.php?action=list', desc: 'Lista ateliere (filtre: school_id, luna)', body: '' },
-  { group: 'Ateliere', method: 'GET', endpoint: '/ateliere.php?action=current', desc: 'Atelierul lunii curente', body: '' },
-  { group: 'Ateliere', method: 'POST', endpoint: '/ateliere.php?action=create', desc: 'Creare atelier', body: 'WorkshopCreate object' },
-  { group: 'Ateliere', method: 'POST', endpoint: '/ateliere.php?action=update', desc: 'Editare atelier', body: '{id, ...data}' },
-  { group: 'Ateliere', method: 'POST', endpoint: '/ateliere.php?action=publish', desc: 'Publicare + notificare', body: '{id, scoli_target[]}' },
-  { group: 'Ateliere', method: 'POST', endpoint: '/ateliere.php?action=delete', desc: 'Ștergere atelier', body: '{id}' },
-  { group: 'Sponsori', method: 'GET', endpoint: '/sponsors.php?action=sponsors', desc: 'Lista sponsori', body: '' },
-  { group: 'Sponsori', method: 'GET', endpoint: '/sponsors.php?action=active_promos&tip=X&school=N', desc: 'Promo-uri active', body: '' },
-  { group: 'Sponsori', method: 'GET', endpoint: '/sponsors.php?action=rotation_config', desc: 'Configurare rotație', body: '' },
-  { group: 'Sponsori', method: 'POST', endpoint: '/sponsors.php?action=log_impression', desc: 'Log afișare sponsor', body: '{id_promo, tip, school_id}' },
-  { group: 'Sponsori', method: 'POST', endpoint: '/sponsors.php?action=log_click', desc: 'Log click sponsor', body: '{id_promo, tip, school_id}' },
-  { group: 'Facebook', method: 'GET', endpoint: '/facebook.php?action=settings', desc: 'Setări Facebook', body: '' },
-  { group: 'Facebook', method: 'POST', endpoint: '/facebook.php?action=post', desc: 'Publicare pe Facebook', body: '{content, imageUrl}' },
-  { group: 'Facebook', method: 'GET', endpoint: '/facebook.php?action=log', desc: 'Log postări', body: '' },
-  { group: 'WhatsApp', method: 'GET', endpoint: '/whatsapp.php?action=mappings', desc: 'Mapări WhatsApp', body: '' },
-  { group: 'WhatsApp', method: 'POST', endpoint: '/whatsapp.php?action=create', desc: 'Creare mapare', body: 'WhatsappMapping' },
-  { group: 'WhatsApp', method: 'GET', endpoint: '/whatsapp.php?action=status', desc: 'Status sincronizare', body: '' },
-  { group: 'InfoDisplay', method: 'GET', endpoint: '/infodisplay.php?action=content', desc: 'Conținut avizier', body: '' },
-  { group: 'InfoDisplay', method: 'POST', endpoint: '/infodisplay.php?action=generate_video', desc: 'Generare video recap', body: '{type}' },
+const HOOKS_SECTIONS: DocSection[] = [
+  {
+    title: 'useActiveModules(orgId, verticalType)',
+    content: (
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p>Încarcă module active din <code className="bg-muted px-1 rounded text-xs">modules_config</code>. Returnează <code className="bg-muted px-1 rounded text-xs">{`{ activeModules: Set<string>, loaded }`}</code>. Fallback: module default per vertical.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'useFeatureToggles()',
+    content: (
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p>Toggle-uri funcționalitate via <code className="bg-muted px-1 rounded text-xs">org_config</code>. Returnează <code className="bg-muted px-1 rounded text-xs">{`{ isEnabled(key), setToggle(key, enabled) }`}</code>. Demo mode: defaults fără DB.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'useGuestSession(orgSlug)',
+    content: (
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p>Sesiune guest QR: validare token, stocare localStorage, expirare la miezul nopții. Returnează <code className="bg-muted px-1 rounded text-xs">{`{ guestSession, isGuest, validateAndCreateSession, clearSession }`}</code>.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'useSponsorRotation(location)',
+    content: (
+      <div className="space-y-1 text-sm text-muted-foreground">
+        <p>Rotație sponsor per locație (dashboard, infodisplay, ticker, inky_popup). Auto-timer + impression logging. Returnează <code className="bg-muted px-1 rounded text-xs">{`{ currentPromo }`}</code>.</p>
+      </div>
+    ),
+  },
 ];
 
 // ===================================================================
@@ -608,38 +602,25 @@ function DocGroup({ title, badge, sections }: { title: string; badge?: string; s
   );
 }
 
-// Group API endpoints by group name
-function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
-  return arr.reduce((acc, item) => {
-    const k = key(item);
-    (acc[k] = acc[k] || []).push(item);
-    return acc;
-  }, {} as Record<string, T[]>);
-}
-
 // ===================================================================
 // MAIN COMPONENT
 // ===================================================================
 export default function DocsTab() {
-  const [apiFilterGroup, setApiFilterGroup] = useState<string>('all');
-  const groupedEndpoints = groupBy(ALL_API_ENDPOINTS, e => e.group);
-  const groupNames = Object.keys(groupedEndpoints);
-  const filteredEndpoints = apiFilterGroup === 'all' ? ALL_API_ENDPOINTS : ALL_API_ENDPOINTS.filter(e => e.group === apiFilterGroup);
-
   return (
     <div className="space-y-4 pb-10">
       <div>
         <h2 className="text-lg font-display font-semibold flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-primary" />
-          Documentație completă TID4K
+          Documentație completă Infodisplay Platform
         </h2>
-        <p className="text-sm text-muted-foreground">Ghid tehnic și operațional — arhitectură, pagini, API-uri, componente UI</p>
+        <p className="text-sm text-muted-foreground">Ghid tehnic și operațional — arhitectură, pagini, componente UI, hooks, sponsori</p>
+        <p className="text-xs text-muted-foreground mt-1">Documentație detaliată markdown disponibilă în <code className="bg-muted px-1 rounded">docs/</code> — actualizare automată via <code className="bg-muted px-1 rounded">DOC_REGISTRY.md</code></p>
       </div>
 
       {/* Architecture */}
       <Card>
         <CardContent className="p-2 divide-y divide-border/50">
-          <DocGroup title="Arhitectură & Configurare" badge="core" sections={ARCHITECTURE_SECTIONS} />
+          <DocGroup title="Arhitectură, Teme & Configurare" badge={`${ARCHITECTURE_SECTIONS.length} secțiuni`} sections={ARCHITECTURE_SECTIONS} />
         </CardContent>
       </Card>
 
@@ -650,17 +631,10 @@ export default function DocsTab() {
         </CardContent>
       </Card>
 
-      {/* Workshops */}
-      <Card>
-        <CardContent className="p-2 divide-y divide-border/50">
-          <DocGroup title="Ateliere — Ghid Admin" badge="ateliere" sections={WORKSHOP_SECTIONS} />
-        </CardContent>
-      </Card>
-
       {/* Sponsors */}
       <Card>
         <CardContent className="p-2 divide-y divide-border/50">
-          <DocGroup title="Sponsori — Ghid Operațional" badge="sponsori" sections={SPONSOR_SECTIONS} />
+          <DocGroup title="Sponsori — Pachete, Canale & Campanii" badge="sponsori" sections={SPONSOR_SECTIONS} />
         </CardContent>
       </Card>
 
@@ -671,73 +645,20 @@ export default function DocsTab() {
         </CardContent>
       </Card>
 
-      {/* Complete API Reference */}
+      {/* Hooks */}
       <Card>
-        <CardContent className="p-4">
-          <h3 className="text-sm font-display font-semibold mb-3 flex items-center gap-2">
-            <Server className="h-4 w-4 text-muted-foreground" />
-            Referință API completă
-            <Badge variant="outline" className="text-[10px]">{ALL_API_ENDPOINTS.length} endpoints</Badge>
-          </h3>
-
-          {/* Filter */}
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            <button
-              onClick={() => setApiFilterGroup('all')}
-              className={`text-[10px] px-2 py-1 rounded-full font-medium transition-colors ${apiFilterGroup === 'all' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
-            >
-              Toate ({ALL_API_ENDPOINTS.length})
-            </button>
-            {groupNames.map(g => (
-              <button
-                key={g}
-                onClick={() => setApiFilterGroup(g)}
-                className={`text-[10px] px-2 py-1 rounded-full font-medium transition-colors ${apiFilterGroup === g ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
-              >
-                {g} ({groupedEndpoints[g].length})
-              </button>
-            ))}
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="py-1.5 pr-2 text-left font-medium">Grup</th>
-                  <th className="py-1.5 pr-2 text-left font-medium">Metodă</th>
-                  <th className="py-1.5 pr-2 text-left font-medium">Endpoint</th>
-                  <th className="py-1.5 pr-2 text-left font-medium">Descriere</th>
-                  <th className="py-1.5 text-left font-medium">Body</th>
-                </tr>
-              </thead>
-              <tbody className="text-muted-foreground">
-                {filteredEndpoints.map((ep, i) => (
-                  <tr key={i} className="border-b border-border/30">
-                    <td className="py-1.5 pr-2 text-[10px] font-medium text-foreground/70">{ep.group}</td>
-                    <td className="py-1.5 pr-2">
-                      <Badge
-                        variant={ep.method === 'GET' ? 'secondary' : ep.method === 'DELETE' ? 'destructive' : 'default'}
-                        className="text-[9px] font-mono px-1.5 py-0"
-                      >
-                        {ep.method}
-                      </Badge>
-                    </td>
-                    <td className="py-1.5 pr-2 font-mono text-[10px]">{ep.endpoint}</td>
-                    <td className="py-1.5 pr-2">{ep.desc}</td>
-                    <td className="py-1.5 font-mono text-[10px] text-muted-foreground/70">{ep.body || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground space-y-1">
-            <p className="flex items-center gap-1.5"><Shield className="h-3 w-3" /><strong>Autentificare:</strong> Toate request-urile (în afară de login) necesită header <code className="bg-muted px-1 rounded">Authorization: Bearer [token]</code>.</p>
-            <p className="flex items-center gap-1.5"><Globe className="h-3 w-3" /><strong>Base URL:</strong> Configurabil în <code className="bg-muted px-1 rounded">src/api/config.ts</code> → variabila <code className="bg-muted px-1 rounded">BASE_URL</code>.</p>
-            <p className="flex items-center gap-1.5"><Server className="h-3 w-3" /><strong>Mock mode:</strong> <code className="bg-muted px-1 rounded">USE_MOCK = true</code> activează date simulate. Setează <code className="bg-muted px-1 rounded">false</code> pentru producție.</p>
-          </div>
+        <CardContent className="p-2 divide-y divide-border/50">
+          <DocGroup title="Hooks & Contexte" badge={`${HOOKS_SECTIONS.length} hooks`} sections={HOOKS_SECTIONS} />
         </CardContent>
       </Card>
+
+      {/* Footer note */}
+      <div className="p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground space-y-1">
+        <p className="flex items-center gap-1.5"><Shield className="h-3 w-3" /><strong>Autentificare:</strong> Supabase Auth — sesiune automată, RLS pentru izolarea organizațiilor.</p>
+        <p className="flex items-center gap-1.5"><Database className="h-3 w-3" /><strong>Backend:</strong> Supabase PostgreSQL cu Row Level Security. Tipuri auto-generate în <code className="bg-muted px-1 rounded">types.ts</code>.</p>
+        <p className="flex items-center gap-1.5"><Palette className="h-3 w-3" /><strong>Teme:</strong> CSS variables per vertical + override per organizație. Editor în Admin Panel → Teme.</p>
+        <p className="flex items-center gap-1.5"><Globe className="h-3 w-3" /><strong>Docs markdown:</strong> <code className="bg-muted px-1 rounded">docs/*.md</code> — actualizare automată via <code className="bg-muted px-1 rounded">DOC_REGISTRY.md</code>.</p>
+      </div>
     </div>
   );
 }
