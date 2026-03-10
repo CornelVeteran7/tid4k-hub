@@ -133,6 +133,8 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     orgName: 'ASE București',
     icon: '🎓',
     color: '#06b6d4',
+    primaryColor: '#0e7490',
+    secondaryColor: '#06b6d4',
     accounts: [
       { label: 'Student', description: 'Coadă secretariat, orar, anunțuri', status: 'parinte', redirect: '/', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala')], userName: 'Student Demo' },
       { label: 'Secretar', description: 'Controlează coada, documente', status: 'secretara', redirect: '/', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala'), g('fac-ie', 'Informatică Economică', 'scoala')], userName: 'Secretar ASE' },
