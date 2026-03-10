@@ -106,6 +106,8 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     orgName: 'Bloc A3 Militari Residence',
     icon: '🏢',
     color: '#f59e0b',
+    primaryColor: '#166534',
+    secondaryColor: '#22c55e',
     accounts: [
       { label: 'Locatar', description: 'Cheltuieli proprii, anunțuri', status: 'parinte', redirect: '/', orgName: 'Bloc A3 Militari Residence', vertical: 'living', groups: [g('sc-a', 'Scara A', 'scoala')], userName: 'Cristian Enache' },
       { label: 'Administrator Bloc', description: 'Financiar, anunțuri, setări', status: 'administrator', redirect: '/admin', orgName: 'Bloc A3 Militari Residence', vertical: 'living', groups: [g('sc-a', 'Scara A', 'scoala'), g('sc-b', 'Scara B', 'scoala'), g('sc-c', 'Scara C', 'scoala'), g('sc-d', 'Scara D', 'scoala')], userName: 'Admin Bloc A3' },
