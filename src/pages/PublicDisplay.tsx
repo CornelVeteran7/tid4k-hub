@@ -355,7 +355,7 @@ export default function PublicDisplay() {
       queue_service_points: queueServicePoints,
       construction_tasks: (tasksData || []) as ConstructionTask[],
       ssm_checklists_today: (ssmData || []) as SSMChecklistStatus[],
-      construction_sites: [] as ConstructionSiteInfo[],
+      construction_sites: constructionSites,
       timetable_today: timetableToday,
       timetable_current_period: timetableCurrentPeriod,
       magazine_articles: magazineArticles,
