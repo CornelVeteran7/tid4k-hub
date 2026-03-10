@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { SidebarDecorations } from '@/components/decorations/VerticalDecorations';
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 import { useActiveModules } from '@/hooks/useActiveModules';
 import { useGroup } from '@/contexts/GroupContext';
@@ -11,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
-  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award, Package, ShieldCheck, Newspaper, Theater, HardHat, Video, Ticket, Coins } from
+  BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award, Package, ShieldCheck, Newspaper, Theater, HardHat, Video, Ticket, Coins, MapPin } from
 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
@@ -26,8 +27,9 @@ import TutorialOverlay from '@/components/TutorialOverlay';
 import QuickUpload from '@/components/QuickUpload';
 import WhiteLabelSwitcher from '@/components/WhiteLabelSwitcher';
 
-/* Decorative SVG background for sidebar — white contour lines + flower + bee */
-function SidebarDecoration() {
+/* Decorative SVG background for sidebar — contour lines + vertical-specific themed elements */
+function SidebarDecorationComponent({ vertical }: { vertical: string }) {
+  const verticalType = (vertical || 'kids') as import('@/config/verticalConfig').VerticalType;
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <svg
@@ -46,34 +48,10 @@ function SidebarDecoration() {
           <path d="M-10,820 C40,850 110,790 170,830 C230,870 260,810 290,840" />
         </g>
 
-        {/* Flower — upper-right area */}
-        <g transform="translate(200, 180)" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.45">
-          <ellipse cx="0" cy="-10" rx="4" ry="8" />
-          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(72)" />
-          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(144)" />
-          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(216)" />
-          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(288)" />
-          <circle cx="0" cy="0" r="3.5" />
-          <path d="M0,8 C-1,24 1,42 -2,60" />
-          <path d="M-1,28 C-11,23 -12,33 -4,36" />
-          <path d="M0,45 C8,40 11,48 4,52" />
-        </g>
-
-        {/* Bee — lower-left area */}
-        <g transform="translate(70, 620) rotate(-15)" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.45">
-          <ellipse cx="0" cy="0" rx="9" ry="5" />
-          <line x1="-2.5" y1="-4.5" x2="-2.5" y2="4.5" />
-          <line x1="2.5" y1="-5" x2="2.5" y2="5" />
-          <circle cx="11" cy="0" r="3.5" />
-          <path d="M13,-2.5 C15,-8 18,-9 20,-6" />
-          <path d="M13.5,-1.5 C17,-7 20,-6 21,-3" />
-          <ellipse cx="-1" cy="-7.5" rx="6" ry="3" transform="rotate(-12, -1, -7.5)" />
-          <ellipse cx="3" cy="-8" rx="5.5" ry="2.5" transform="rotate(10, 3, -8)" />
-          <line x1="-9" y1="0" x2="-12" y2="0.5" />
-        </g>
+        {/* Vertical-specific themed decorations */}
+        <SidebarDecorations vertical={verticalType} />
       </svg>
     </div>);
-
 }
 
 // Secondary nav — items NOT on the dashboard
@@ -97,6 +75,7 @@ const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; 
 
 // Admin nav — role-gated
 const ADMIN_NAV = [
+{ path: '/harta-locatii', label: 'Hartă Locații', icon: MapPin, roles: ['director', 'administrator'] },
 { path: '/sponsori', label: 'Sponsori', icon: Award, roles: ['director', 'administrator'] },
 { path: '/rapoarte', label: 'Rapoarte', icon: BarChart3, roles: ['director', 'administrator'] },
 { path: '/settings', label: 'Configurări', icon: Settings, roles: ['director', 'administrator'] },
@@ -207,7 +186,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
       <div className="flex flex-1 overflow-hidden">
       {/* ===== DESKTOP SIDEBAR — persistent, minimal ===== */}
       <aside className="hidden lg:flex lg:relative w-64 bg-sidebar text-sidebar-foreground flex-col shrink-0 relative overflow-hidden">
-        <SidebarDecoration />
+        <SidebarDecorationComponent vertical={verticalType} />
         {/* Logo */}
         <div className="flex items-center px-4 py-5 border-b border-sidebar-border">
           <img src={logoWhite} alt="InfoDisplay" className="h-11" />
@@ -319,7 +298,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
       {/* ===== MOBILE BOTTOM SHEET MENU ===== */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent side="left" className="w-72 bg-accent/90 text-accent-foreground p-0 overflow-hidden">
-          <SidebarDecoration />
+          <SidebarDecorationComponent vertical={verticalType} />
           <SheetHeader className="px-4 pt-5 pb-4 border-b border-white/15">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold text-white shrink-0">

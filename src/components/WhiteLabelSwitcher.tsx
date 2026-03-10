@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { DEMO_ENVIRONMENTS, INKY_ACCOUNT, type DemoAccount, type DemoEnvironment } from '@/config/demoEnvironments';
+import { applyBrandingColors } from '@/utils/branding';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Zap } from 'lucide-react';
@@ -30,6 +31,14 @@ export default function WhiteLabelSwitcher() {
     });
 
     setTimeout(() => {
+      // Apply vertical-specific branding colors
+      if (env) {
+        applyBrandingColors(env.primaryColor, env.secondaryColor);
+        try {
+          sessionStorage.setItem('demo_branding', JSON.stringify({ primary: env.primaryColor, secondary: env.secondaryColor }));
+        } catch {}
+      }
+
       setDemoUser({
         vertical: account.vertical,
         status: account.status,
