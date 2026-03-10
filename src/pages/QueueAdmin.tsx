@@ -23,6 +23,7 @@ interface QueueEntry {
   status: string;
   cabinet: string | null;
   note: string | null;
+  service_type: string | null;
   created_at: string;
   called_at: string | null;
   completed_at: string | null;
