@@ -297,7 +297,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
       {/* ===== MOBILE BOTTOM SHEET MENU ===== */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent side="left" className="w-72 bg-accent/90 text-accent-foreground p-0 overflow-hidden">
-          <SidebarDecoration />
+          <SidebarDecorationComponent vertical={verticalType} />
           <SheetHeader className="px-4 pt-5 pb-4 border-b border-white/15">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold text-white shrink-0">
