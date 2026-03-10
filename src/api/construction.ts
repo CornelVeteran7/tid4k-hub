@@ -11,6 +11,9 @@ export interface ConstructionSite {
   progress_pct: number;
   data_start: string | null;
   data_estimare_finalizare: string | null;
+  beneficiar: string | null;
+  contractor: string | null;
+  numar_autorizatie: string | null;
 }
 
 export async function getSites(orgId: string): Promise<ConstructionSite[]> {
@@ -41,12 +44,20 @@ export async function deleteSite(id: string) {
 }
 
 // ===== Teams =====
+export interface TeamMember {
+  name: string;
+  phone: string;
+  role: string;
+}
+
 export interface ConstructionTeam {
   id: string;
   organization_id: string;
   nume: string;
   nr_membri: number;
   specialitate: string;
+  leader_name: string | null;
+  members: TeamMember[];
 }
 
 export async function getTeams(orgId: string): Promise<ConstructionTeam[]> {
@@ -56,7 +67,10 @@ export async function getTeams(orgId: string): Promise<ConstructionTeam[]> {
     .eq('organization_id', orgId)
     .order('nume');
   if (error) throw error;
-  return (data || []) as ConstructionTeam[];
+  return (data || []).map((d: any) => ({
+    ...d,
+    members: Array.isArray(d.members) ? d.members : [],
+  })) as ConstructionTeam[];
 }
 
 export async function upsertTeam(team: Partial<ConstructionTeam> & { organization_id: string }) {
@@ -71,6 +85,11 @@ export async function upsertTeam(team: Partial<ConstructionTeam> & { organizatio
   }
 }
 
+export async function deleteTeam(id: string) {
+  const { error } = await supabase.from('construction_teams').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // ===== Team Assignments =====
 export interface TeamAssignment {
   id: string;
@@ -78,6 +97,7 @@ export interface TeamAssignment {
   site_id: string;
   saptamana_start: string;
   saptamana_end: string;
+  notes: string | null;
 }
 
 export async function getAssignments(orgId: string): Promise<TeamAssignment[]> {
@@ -118,6 +138,7 @@ export interface ConstructionTask {
   status: string;
   prioritate: string;
   assignee: string;
+  assigned_workers: string[];
   locatie: string;
   data_limita: string | null;
   photo_url: string;
@@ -136,7 +157,10 @@ export async function getTasks(orgId: string, siteId?: string): Promise<Construc
   if (siteId) q = q.eq('site_id', siteId);
   const { data, error } = await q;
   if (error) throw error;
-  return (data || []) as ConstructionTask[];
+  return (data || []).map((d: any) => ({
+    ...d,
+    assigned_workers: d.assigned_workers || [],
+  })) as ConstructionTask[];
 }
 
 export async function updateTask(id: string, update: Partial<ConstructionTask>) {
