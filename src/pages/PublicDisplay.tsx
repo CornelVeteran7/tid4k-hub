@@ -431,7 +431,9 @@ export default function PublicDisplay() {
 
   const designW = isPortrait ? DESIGN_H : DESIGN_W;
   const designH = isPortrait ? DESIGN_W : DESIGN_H;
-  const qrUrl = `${window.location.origin}/qr/${orgSlug}`;
+  const qrUrl = dailyToken
+    ? `${window.location.origin}/qr/${orgSlug}?t=${dailyToken}`
+    : `${window.location.origin}/qr/${orgSlug}`;
 
   return (
     <div ref={containerRef} className="fixed inset-0 bg-black overflow-hidden select-none cursor-none">
