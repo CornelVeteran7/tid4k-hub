@@ -267,7 +267,7 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-foreground">{children.length}</div>
-            <p className="text-xs text-muted-foreground">Copii</p>
+            <p className="text-xs text-muted-foreground">Înscriși</p>
           </CardContent>
         </Card>
         <Card>
