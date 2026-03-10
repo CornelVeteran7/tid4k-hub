@@ -24,6 +24,7 @@ import logoWhite from '@/assets/logo-white.png';
 import InkyAssistant from '@/components/InkyAssistant';
 import TutorialOverlay from '@/components/TutorialOverlay';
 import QuickUpload from '@/components/QuickUpload';
+import WhiteLabelSwitcher from '@/components/WhiteLabelSwitcher';
 
 /* Decorative SVG background for sidebar — white contour lines + flower + bee */
 function SidebarDecoration() {
@@ -675,6 +676,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
         <InkyAssistant />
         <TutorialOverlay />
         <QuickUpload />
+        {isDemo && <WhiteLabelSwitcher />}
       </div>
 
 

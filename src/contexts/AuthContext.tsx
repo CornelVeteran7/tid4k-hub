@@ -4,6 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { loadAndApplyBranding } from '@/utils/branding';
 
+export interface DemoConfig {
+  vertical: string;
+  status: string;
+  orgName: string;
+  groups: GroupInfo[];
+  userName: string;
+}
+
 interface AuthContextType {
   user: UserSession | null;
   isAuthenticated: boolean;
@@ -13,7 +21,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
-  setDemoUser: () => void;
+  setDemoUser: (config?: DemoConfig) => void;
   // Legacy compatibility
   qrLogin: (sessionId: string) => Promise<void>;
 }
@@ -115,10 +123,33 @@ const DEMO_SESSION: UserSession = {
 function getInitialDemoState(): { user: UserSession | null; isDemo: boolean } {
   try {
     if (sessionStorage.getItem('demo_mode') === '1') {
+      const savedConfig = sessionStorage.getItem('demo_config');
+      if (savedConfig) {
+        const config: DemoConfig = JSON.parse(savedConfig);
+        return { user: buildDemoSession(config), isDemo: true };
+      }
       return { user: DEMO_SESSION, isDemo: true };
     }
   } catch {}
   return { user: null, isDemo: false };
+}
+
+function buildDemoSession(config: DemoConfig): UserSession {
+  return {
+    id: 'demo-user-00000000',
+    nume_prenume: config.userName,
+    telefon: '',
+    email: 'demo@infodisplay.ro',
+    status: config.status,
+    avatar_url: '',
+    grupa_clasa_copil: config.groups[0]?.id || '',
+    numar_grupe_clase_utilizator: config.groups.length,
+    index_grupa_clasa_curenta: 0,
+    grupe_disponibile: config.groups,
+    organization_id: undefined,
+    vertical_type: config.vertical,
+    org_name: config.orgName,
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -128,8 +159,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isDemo, setIsDemo] = useState(initialDemo.isDemo);
   const isDemoRef = useRef(initialDemo.isDemo);
 
-  const setDemoUser = useCallback(() => {
-    setUser(DEMO_SESSION);
+  const setDemoUser = useCallback((config?: DemoConfig) => {
+    if (config) {
+      const session = buildDemoSession(config);
+      setUser(session);
+      try { sessionStorage.setItem('demo_config', JSON.stringify(config)); } catch {}
+    } else {
+      setUser(DEMO_SESSION);
+      try { sessionStorage.removeItem('demo_config'); } catch {}
+    }
     setIsDemo(true);
     isDemoRef.current = true;
     setIsLoading(false);
@@ -218,7 +256,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setIsDemo(false);
     isDemoRef.current = false;
-    try { sessionStorage.removeItem('demo_mode'); } catch {}
+    try { sessionStorage.removeItem('demo_mode'); sessionStorage.removeItem('demo_config'); } catch {}
   }, []);
 
   return (
