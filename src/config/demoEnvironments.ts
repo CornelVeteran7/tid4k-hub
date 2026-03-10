@@ -119,6 +119,8 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     orgName: 'Opera Națională București',
     icon: '🎭',
     color: '#a855f7',
+    primaryColor: '#92400e',
+    secondaryColor: '#b91c1c',
     accounts: [
       { label: 'Spectator', description: 'Program, bilete, supratitrare', status: 'parinte', redirect: '/', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala')], userName: 'Spectator Demo' },
       { label: 'Operator', description: 'Controlează supratitrarea live', status: 'profesor', redirect: '/', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala')], userName: 'Operator Supratitrare' },
