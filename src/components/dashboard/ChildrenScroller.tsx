@@ -30,8 +30,6 @@ export default function ChildrenScroller() {
 
   const verticalType = (user?.vertical_type || 'kids') as VerticalType;
   const verticalDef = VERTICAL_DEFINITIONS[verticalType];
-  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
-  const [selectedColor, setSelectedColor] = useState('');
 
   useEffect(() => {
     if (currentGroup) {
