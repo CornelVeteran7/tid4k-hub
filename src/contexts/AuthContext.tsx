@@ -54,7 +54,7 @@ async function buildUserSession(authUser: User): Promise<UserSession> {
       .single();
     if (org) {
       orgInfo = { vertical_type: org.vertical_type, name: org.name };
-      // Apply org branding colors on login
+      // Apply org branding colors + vertical theme on login
       loadAndApplyBranding(org as any);
     }
   }

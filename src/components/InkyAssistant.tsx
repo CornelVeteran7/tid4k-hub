@@ -13,6 +13,21 @@ import {
   Award, ExternalLink
 } from 'lucide-react';
 import inkyImg from '@/assets/inky-button.png';
+import inkyDoctor from '@/assets/inky-doctor.png';
+import inkyConstruction from '@/assets/inky-construction.png';
+import inkyMechanic from '@/assets/inky-mechanic.png';
+import inkyOpera from '@/assets/inky-opera.png';
+
+const VERTICAL_COSTUMES: Record<string, string> = {
+  kids: inkyImg,
+  schools: inkyImg,
+  medicine: inkyDoctor,
+  construction: inkyConstruction,
+  workshops: inkyMechanic,
+  culture: inkyOpera,
+  living: inkyImg,
+  students: inkyImg,
+};
 
 interface QuickAction {
   label: string;
@@ -143,6 +158,7 @@ export default function InkyAssistant() {
   const stilInky = sponsorAction?.stilInky;
   const sponsorBg = stilInky?.bg_color || sponsorAction?.sponsorColor || '#e1001a';
   const costumeUrl = stilInky?.costume_url;
+  const verticalCostume = VERTICAL_COSTUMES[user.vertical_type || 'kids'] || inkyImg;
 
   return (
     <>
@@ -233,7 +249,7 @@ export default function InkyAssistant() {
           }
           className="h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-lg border border-primary/20 flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 glass-card p-0"
         >
-          <img src={costumeUrl || inkyImg} alt="Inky Assistant" className="h-[90%] w-[90%] object-contain" />
+          <img src={costumeUrl || verticalCostume} alt="Inky Assistant" className="h-[90%] w-[90%] object-contain" />
         </motion.button>
       </div>
     </>
