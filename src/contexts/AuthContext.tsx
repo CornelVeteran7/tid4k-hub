@@ -123,10 +123,33 @@ const DEMO_SESSION: UserSession = {
 function getInitialDemoState(): { user: UserSession | null; isDemo: boolean } {
   try {
     if (sessionStorage.getItem('demo_mode') === '1') {
+      const savedConfig = sessionStorage.getItem('demo_config');
+      if (savedConfig) {
+        const config: DemoConfig = JSON.parse(savedConfig);
+        return { user: buildDemoSession(config), isDemo: true };
+      }
       return { user: DEMO_SESSION, isDemo: true };
     }
   } catch {}
   return { user: null, isDemo: false };
+}
+
+function buildDemoSession(config: DemoConfig): UserSession {
+  return {
+    id: 'demo-user-00000000',
+    nume_prenume: config.userName,
+    telefon: '',
+    email: 'demo@infodisplay.ro',
+    status: config.status,
+    avatar_url: '',
+    grupa_clasa_copil: config.groups[0]?.id || '',
+    numar_grupe_clase_utilizator: config.groups.length,
+    index_grupa_clasa_curenta: 0,
+    grupe_disponibile: config.groups,
+    organization_id: undefined,
+    vertical_type: config.vertical,
+    org_name: config.orgName,
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
