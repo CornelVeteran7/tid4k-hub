@@ -152,6 +152,7 @@ export default function PublicDisplay() {
   const [scale, setScale] = useState(1);
   const [isPortrait, setIsPortrait] = useState(false);
   const [clockTime, setClockTime] = useState(new Date());
+  const [dailyToken, setDailyToken] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // ── Scaling logic (fixed 1920×1080 or 1080×1920) ──
