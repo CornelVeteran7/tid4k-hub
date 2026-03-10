@@ -100,6 +100,7 @@ function ProtectedRoutes() {
             <Route path="/revista" element={<MagazinePage />} />
             <Route path="/orar-avansat" element={<AdvancedTimetable />} />
             <Route path="/supratitrare" element={<SurtitlesPage />} />
+            <Route path="/spectacole" element={<CultureShowEditor />} />
             <Route path="/video" element={<VideoGenerationPage />} />
             <Route path="/coada" element={<QueueAdmin />} />
             <Route path="/cabinet" element={<MedicineAdmin />} />
