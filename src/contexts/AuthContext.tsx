@@ -4,6 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { loadAndApplyBranding } from '@/utils/branding';
 
+export interface DemoConfig {
+  vertical: string;
+  status: string;
+  orgName: string;
+  groups: GroupInfo[];
+  userName: string;
+}
+
 interface AuthContextType {
   user: UserSession | null;
   isAuthenticated: boolean;
@@ -13,7 +21,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
-  setDemoUser: () => void;
+  setDemoUser: (config?: DemoConfig) => void;
   // Legacy compatibility
   qrLogin: (sessionId: string) => Promise<void>;
 }
