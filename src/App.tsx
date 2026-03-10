@@ -142,6 +142,7 @@ const App = () => (
                 <Route path="/surtitle/operate/:showId" element={<SurtitleOperator />} />
                 <Route path="/program/:showId" element={<DigitalProgram />} />
                 <Route path="/queue/:orgSlug" element={<QueueTicket />} />
+                <Route path="/site/:orgSlug" element={<PublicWebsite />} />
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
             </AuthProvider>
