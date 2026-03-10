@@ -9,6 +9,22 @@ import { ro } from 'date-fns/locale';
    Types
    ═══════════════════════════════════════════════════ */
 
+interface TimetableSlide {
+  class_id: string;
+  period_number: number;
+  subject: string;
+  teacher_name: string;
+  room: string;
+}
+
+interface MagazineSlide {
+  id: string;
+  titlu: string;
+  autor_nume: string;
+  categorie: string;
+  continut: string;
+}
+
 interface DisplayPanel {
   id: string;
   tip: string;
