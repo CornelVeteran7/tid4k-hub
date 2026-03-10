@@ -401,6 +401,23 @@ export default function PublicDisplay() {
     return () => clearInterval(interval);
   }, [loadContent]);
 
+  // ── Fetch daily token for QR codes ──
+  useEffect(() => {
+    if (!config?.org_id) return;
+    getDailyToken(config.org_id).then(token => {
+      if (token) setDailyToken(token);
+    });
+    // Refresh token at midnight
+    const now = new Date();
+    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+    const timeout = setTimeout(() => {
+      getDailyToken(config.org_id).then(token => {
+        if (token) setDailyToken(token);
+      });
+    }, msUntilMidnight + 1000); // +1s buffer
+    return () => clearTimeout(timeout);
+  }, [config?.org_id]);
+
   // ── Realtime for queue (medicine/students) ──
   useEffect(() => {
     if (!config || (config.vertical_type !== 'medicine' && config.vertical_type !== 'students')) return;
