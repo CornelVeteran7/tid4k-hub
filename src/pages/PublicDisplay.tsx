@@ -97,7 +97,8 @@ interface DisplayConfig {
   queue_avg_wait: number;
   queue_service_points: string[];
   construction_tasks: ConstructionTask[];
-  ssm_reminders: SSMReminder[];
+  ssm_checklists_today: SSMChecklistStatus[];
+  construction_sites: ConstructionSiteInfo[];
   timetable_today: TimetableSlide[];
   timetable_current_period: number;
   magazine_articles: MagazineSlide[];
