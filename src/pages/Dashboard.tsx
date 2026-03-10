@@ -566,7 +566,7 @@ export default function Dashboard() {
               <QuickStatsRow config={config} />
 
               {/* Desktop: Rezumatul zilei details */}
-              <DesktopSummary config={config} />
+              <DesktopSummary config={config} verticalType={verticalType} />
             </div>
           </motion.div>
 
