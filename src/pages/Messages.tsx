@@ -140,16 +140,36 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
     if (!newMessage.trim() || !selectedConvo || !user || isSending) return;
     setIsSending(true);
     try {
-      const msg = await sendMessage(selectedConvo.grupa, selectedConvo.contact_id, newMessage);
-      setMessages(prev => [...prev, msg]);
-      setNewMessage('');
-      // Update conversation preview
-      setConversations(prev => prev.map(c =>
-        c.id === selectedConvo.id
-          ? { ...c, ultimul_mesaj: newMessage, data_ultimul_mesaj: new Date().toISOString() }
-          : c
-      ));
-      inputRef.current?.focus();
+      if (isDemo) {
+        // Local-only demo message
+        const demoMsg: Message = {
+          id: `demo-msg-${Date.now()}`,
+          expeditor: user.id,
+          expeditor_nume: user.nume_prenume,
+          destinatar: selectedConvo.contact_id,
+          mesaj: newMessage,
+          data: new Date().toISOString(),
+          citit: false,
+        };
+        setMessages(prev => [...prev, demoMsg]);
+        setNewMessage('');
+        setConversations(prev => prev.map(c =>
+          c.id === selectedConvo.id
+            ? { ...c, ultimul_mesaj: newMessage, data_ultimul_mesaj: new Date().toISOString() }
+            : c
+        ));
+        inputRef.current?.focus();
+      } else {
+        const msg = await sendMessage(selectedConvo.grupa, selectedConvo.contact_id, newMessage);
+        setMessages(prev => [...prev, msg]);
+        setNewMessage('');
+        setConversations(prev => prev.map(c =>
+          c.id === selectedConvo.id
+            ? { ...c, ultimul_mesaj: newMessage, data_ultimul_mesaj: new Date().toISOString() }
+            : c
+        ));
+        inputRef.current?.focus();
+      }
     } finally {
       setIsSending(false);
     }
