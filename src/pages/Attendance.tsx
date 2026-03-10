@@ -398,6 +398,8 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
 export default function Attendance({ embedded }: { embedded?: boolean }) {
   const { currentGroup } = useGroup();
   const { user } = useAuth();
+  const verticalType = (user?.vertical_type || 'kids') as string;
+  const isKidsVertical = verticalType === 'kids';
   const [monday, setMonday] = useState(() => getMonday(new Date()));
   const [data, setData] = useState<WeeklyAttendanceData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -518,7 +520,7 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
         <div className="rounded-2xl p-5 text-black" style={{ backgroundColor: '#FFC107' }}>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-display font-bold uppercase tracking-wide">Prezența și Contribuție</h1>
+              <h1 className="text-xl font-display font-bold uppercase tracking-wide">{isKidsVertical ? 'Prezența și Contribuție' : 'Prezența'}</h1>
               <p className="text-sm font-medium opacity-80">{currentGroup?.nume || 'Selectează o grupă'}</p>
               <p className="text-xs opacity-70 mt-0.5">{format(new Date(), 'd MMMM yyyy', { locale: ro })}</p>
               {isParent && (
@@ -547,9 +549,11 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
           <TabsTrigger value="stats" className="gap-1.5">
             <BarChart3 className="h-3.5 w-3.5" /> Statistici
           </TabsTrigger>
-          <TabsTrigger value="contributions" className="gap-1.5">
-            <Coins className="h-3.5 w-3.5" /> Contribuții
-          </TabsTrigger>
+          {isKidsVertical && (
+            <TabsTrigger value="contributions" className="gap-1.5">
+              <Coins className="h-3.5 w-3.5" /> Contribuții
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* ── Weekly Tab ── */}
