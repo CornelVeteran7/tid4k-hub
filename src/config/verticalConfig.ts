@@ -19,6 +19,23 @@ export interface VerticalDefinition {
   parentLabelPlural: string; // Plural form
   icon: string;
   groupTypeDefault: string;  // Default group.tip value
+  // Vertical-aware module labels
+  moduleLabels: {
+    prezenta: { title: string; subtitle: string };
+    imagini: { title: string; subtitle: string };
+    documente: { title: string; subtitle: string };
+    povesti: { title: string; subtitle: string };
+    ateliere: { title: string; subtitle: string };
+    meniu: { title: string; subtitle: string };
+    mesaje: { title: string; subtitle: string };
+  };
+  // Dashboard summary labels
+  summaryLabels: {
+    mealLabel: string;        // "Mic dejun" vs "Program" vs "Task curent"
+    activityLabel: string;    // "Activitate" vs "Curs curent" vs "Cabinet activ"
+    attendanceLabel: string;  // "Tendințe prezență" vs "Progres taskuri"
+    membersTitle: string;     // "Copiii grupei" vs "Pacienții cabinetului"
+  };
 }
 
 export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
