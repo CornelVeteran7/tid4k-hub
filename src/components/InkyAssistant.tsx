@@ -13,6 +13,21 @@ import {
   Award, ExternalLink
 } from 'lucide-react';
 import inkyImg from '@/assets/inky-button.png';
+import inkyDoctor from '@/assets/inky-doctor.png';
+import inkyConstruction from '@/assets/inky-construction.png';
+import inkyMechanic from '@/assets/inky-mechanic.png';
+import inkyOpera from '@/assets/inky-opera.png';
+
+const VERTICAL_COSTUMES: Record<string, string> = {
+  kids: inkyImg,
+  schools: inkyImg,
+  medicine: inkyDoctor,
+  construction: inkyConstruction,
+  workshops: inkyMechanic,
+  culture: inkyOpera,
+  living: inkyImg,
+  students: inkyImg,
+};
 
 interface QuickAction {
   label: string;
