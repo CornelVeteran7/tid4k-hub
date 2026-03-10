@@ -47,7 +47,8 @@ import DemoEntry from "./pages/DemoEntry";
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const verticalType = (user?.vertical_type || 'kids') as import('@/config/verticalConfig').VerticalType;
 
   if (isLoading) {
     return (
@@ -62,6 +63,7 @@ function ProtectedRoutes() {
   return (
     <GroupProvider>
       <NotificationProvider>
+        <ModuleConfigProvider vertical={verticalType}>
         <AppLayout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
