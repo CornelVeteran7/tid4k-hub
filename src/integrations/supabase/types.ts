@@ -408,11 +408,14 @@ export type Database = {
       construction_sites: {
         Row: {
           adresa: string | null
+          beneficiar: string | null
           buget: number | null
+          contractor: string | null
           created_at: string
           data_estimare_finalizare: string | null
           data_start: string | null
           id: string
+          numar_autorizatie: string | null
           nume: string
           organization_id: string | null
           progress_pct: number | null
@@ -421,11 +424,14 @@ export type Database = {
         }
         Insert: {
           adresa?: string | null
+          beneficiar?: string | null
           buget?: number | null
+          contractor?: string | null
           created_at?: string
           data_estimare_finalizare?: string | null
           data_start?: string | null
           id?: string
+          numar_autorizatie?: string | null
           nume: string
           organization_id?: string | null
           progress_pct?: number | null
@@ -434,11 +440,14 @@ export type Database = {
         }
         Update: {
           adresa?: string | null
+          beneficiar?: string | null
           buget?: number | null
+          contractor?: string | null
           created_at?: string
           data_estimare_finalizare?: string | null
           data_start?: string | null
           id?: string
+          numar_autorizatie?: string | null
           nume?: string
           organization_id?: string | null
           progress_pct?: number | null
@@ -457,6 +466,7 @@ export type Database = {
       }
       construction_tasks: {
         Row: {
+          assigned_workers: string[] | null
           assignee: string | null
           completed_at: string | null
           completed_by: string | null
@@ -475,6 +485,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          assigned_workers?: string[] | null
           assignee?: string | null
           completed_at?: string | null
           completed_by?: string | null
@@ -493,6 +504,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          assigned_workers?: string[] | null
           assignee?: string | null
           completed_at?: string | null
           completed_by?: string | null
@@ -538,6 +550,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          notes: string | null
           organization_id: string | null
           saptamana_end: string
           saptamana_start: string
@@ -547,6 +560,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          notes?: string | null
           organization_id?: string | null
           saptamana_end: string
           saptamana_start: string
@@ -556,6 +570,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          notes?: string | null
           organization_id?: string | null
           saptamana_end?: string
           saptamana_start?: string
@@ -590,6 +605,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          leader_name: string | null
+          members: Json | null
           nr_membri: number | null
           nume: string
           organization_id: string | null
@@ -598,6 +615,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          leader_name?: string | null
+          members?: Json | null
           nr_membri?: number | null
           nume: string
           organization_id?: string | null
@@ -606,6 +625,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          leader_name?: string | null
+          members?: Json | null
           nr_membri?: number | null
           nume?: string
           organization_id?: string | null
@@ -2386,6 +2407,7 @@ export type Database = {
           items: Json
           organization_id: string | null
           semnatura_data: string | null
+          site_id: string | null
           status: string
           template_id: string | null
         }
@@ -2399,6 +2421,7 @@ export type Database = {
           items?: Json
           organization_id?: string | null
           semnatura_data?: string | null
+          site_id?: string | null
           status?: string
           template_id?: string | null
         }
@@ -2412,6 +2435,7 @@ export type Database = {
           items?: Json
           organization_id?: string | null
           semnatura_data?: string | null
+          site_id?: string | null
           status?: string
           template_id?: string | null
         }
@@ -2421,6 +2445,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ssm_checklists_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "construction_sites"
             referencedColumns: ["id"]
           },
           {
