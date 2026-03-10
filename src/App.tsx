@@ -35,7 +35,7 @@ import SurtitlesPage from "./pages/Surtitles";
 import VideoGenerationPage from "./pages/VideoGeneration";
 import QueueAdmin from "./pages/QueueAdmin";
 import QueueTicket from "./pages/QueueTicket";
-import Contributions from "./pages/Contributions";
+
 import SponsorMap from "./pages/SponsorMap";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
@@ -95,7 +95,7 @@ function ProtectedRoutes() {
             <Route path="/supratitrare" element={<SurtitlesPage />} />
             <Route path="/video" element={<VideoGenerationPage />} />
             <Route path="/coada" element={<QueueAdmin />} />
-            <Route path="/contributii" element={<Contributions />} />
+            <Route path="/contributii" element={<Navigate to="/prezenta" replace />} />
             <Route path="/harta-locatii" element={<SponsorMap />} />
             <Route path="/superadmin" element={<SuperAdmin />} />
             <Route path="*" element={<NotFound />} />
