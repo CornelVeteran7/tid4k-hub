@@ -236,6 +236,38 @@ export default function PublicDisplay() {
         : Promise.resolve({ data: [] as any[] }),
     ]);
 
+    // Schools: load timetable + magazine
+    let timetableToday: TimetableSlide[] = [];
+    let timetableCurrentPeriod = 0;
+    let magazineArticles: MagazineSlide[] = [];
+    if (org?.vertical_type === 'schools') {
+      const [{ data: ttEntries }, { data: magData }] = await Promise.all([
+        dayNum <= 5
+          ? supabase.from('timetable_entries').select('class_id, period_number, subject, teacher_name, room')
+              .eq('organization_id', orgId).eq('day_of_week', dayNum).order('period_number')
+          : Promise.resolve({ data: [] as any[] }),
+        supabase.from('magazine_articles').select('id, titlu, autor_nume, categorie, continut')
+          .eq('organization_id', orgId).eq('status', 'published')
+          .order('published_at', { ascending: false }).limit(5),
+      ]);
+      timetableToday = (ttEntries || []) as TimetableSlide[];
+      magazineArticles = (magData || []) as MagazineSlide[];
+      // Determine current period from timetable_config
+      const { data: ttConfig } = await supabase.from('timetable_config').select('*')
+        .eq('organization_id', orgId).maybeSingle();
+      if (ttConfig) {
+        const [sH, sM] = (ttConfig.start_time || '08:00').split(':').map(Number);
+        let cur = sH * 60 + sM;
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        const breaks = (ttConfig.break_durations as number[]) || [];
+        for (let p = 0; p < ttConfig.periods_per_day; p++) {
+          const end = cur + ttConfig.period_duration_minutes;
+          if (nowMin >= cur && nowMin < end) { timetableCurrentPeriod = p + 1; break; }
+          cur = end + (breaks[p] || 10);
+        }
+      }
+    }
+
     const tickerMsgs = [
       ...(ticker || []).map((t: any) => t.mesaj),
       ...(announcements || []).map((a: any) => a.titlu),
