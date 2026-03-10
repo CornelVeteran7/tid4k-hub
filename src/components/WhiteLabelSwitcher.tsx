@@ -31,9 +31,10 @@ export default function WhiteLabelSwitcher() {
     });
 
     setTimeout(() => {
-      // Apply vertical-specific branding colors
+      // Apply vertical-specific branding colors + theme
       if (env) {
         applyBrandingColors(env.primaryColor, env.secondaryColor);
+        applyVerticalTheme(account.vertical);
         try {
           sessionStorage.setItem('demo_branding', JSON.stringify({ primary: env.primaryColor, secondary: env.secondaryColor }));
         } catch {}
