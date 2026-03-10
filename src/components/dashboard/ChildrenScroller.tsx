@@ -23,7 +23,13 @@ function getInitials(name: string) {
 
 export default function ChildrenScroller() {
   const { currentGroup } = useGroup();
+  const { user } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [selectedColor, setSelectedColor] = useState('');
+
+  const verticalType = (user?.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [selectedColor, setSelectedColor] = useState('');
 
