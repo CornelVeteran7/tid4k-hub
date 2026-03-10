@@ -315,6 +315,9 @@ export default function PublicDisplay() {
       queue_service_points: queueServicePoints,
       construction_tasks: (tasksData || []) as ConstructionTask[],
       ssm_reminders: (ssmData || []) as SSMReminder[],
+      timetable_today: timetableToday,
+      timetable_current_period: timetableCurrentPeriod,
+      magazine_articles: magazineArticles,
     });
     setLoading(false);
   }, [orgSlug]);
