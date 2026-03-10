@@ -58,12 +58,22 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
 
   const { isDemo } = useAuth();
 
+  const vertical = (user?.vertical_type || 'kids') as VerticalType;
+
+  // Load conversations - demo or real
   useEffect(() => {
-    if (user && !isDemo) getConversations(user.id).then(c => {
-      setConversations(c);
-      setFilteredConvos(c);
-    });
-  }, [user, isDemo]);
+    if (!user) return;
+    if (isDemo) {
+      const demoConvos = getDemoConversations(vertical);
+      setConversations(demoConvos);
+      setFilteredConvos(demoConvos);
+    } else {
+      getConversations(user.id).then(c => {
+        setConversations(c);
+        setFilteredConvos(c);
+      });
+    }
+  }, [user, isDemo, vertical]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
