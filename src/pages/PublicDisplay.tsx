@@ -983,6 +983,87 @@ function MedicineInfoStrip({ config }: { config: DisplayConfig }) {
 }
 
 
+/* ═══════════════════════════════════════════════════
+   STUDENTS Content: queue + announcements
+   ═══════════════════════════════════════════════════ */
+
+function StudentsContent({ config }: { config: DisplayConfig }) {
+  return (
+    <>
+      <QueueContent config={config} />
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   WORKSHOPS Content: today's jobs board
+   ═══════════════════════════════════════════════════ */
+
+function WorkshopsContent({ config, isPortrait }: { config: DisplayConfig; isPortrait: boolean }) {
+  return (
+    <>
+      <PanelSlideshow panels={config.panels} primaryColor={config.primary_color} />
+      <div className="absolute left-0 right-0 z-10 flex" style={{
+        bottom: config.ticker_messages.length > 0 ? 60 : 12,
+        padding: '0 48px', gap: 24,
+      }}>
+        <div className="rounded-2xl" style={{
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(20px)', padding: 20, flex: '0 0 400px',
+        }}>
+          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>🔧 Atelier & Service</div>
+          <div style={{ fontSize: 14, opacity: 0.6 }}>Scanați QR pentru programare sau informații</div>
+        </div>
+        {config.qr_codes.length > 0 && (
+          <div className="flex items-end" style={{ gap: 16, marginLeft: 'auto' }}>
+            {config.qr_codes.map(qr => (
+              <div key={qr.label} className="flex flex-col items-center" style={{ gap: 4 }}>
+                <div className="rounded-xl" style={{ background: '#fff', padding: 8 }}>
+                  <QRCodeSVG value={qr.url} size={72} />
+                </div>
+                <span style={{ fontSize: 11, opacity: 0.5 }}>{qr.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   LIVING Content: building announcements + expenses
+   ═══════════════════════════════════════════════════ */
+
+function LivingContent({ config, isPortrait }: { config: DisplayConfig; isPortrait: boolean }) {
+  return (
+    <>
+      <PanelSlideshow panels={config.panels} primaryColor={config.primary_color} />
+      <div className="absolute left-0 right-0 z-10 flex" style={{
+        bottom: config.ticker_messages.length > 0 ? 60 : 12,
+        padding: '0 48px', gap: 24,
+      }}>
+        <div className="rounded-2xl" style={{
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(20px)', padding: 20, flex: '0 0 400px',
+        }}>
+          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, opacity: 0.9 }}>🏢 Informații Bloc</div>
+          <div style={{ fontSize: 14, opacity: 0.6 }}>Scanați QR pentru informații și situația financiară</div>
+        </div>
+        {config.qr_codes.length > 0 && (
+          <div className="flex items-end" style={{ gap: 16, marginLeft: 'auto' }}>
+            {config.qr_codes.map(qr => (
+              <div key={qr.label} className="flex flex-col items-center" style={{ gap: 4 }}>
+                <div className="rounded-xl" style={{ background: '#fff', padding: 8 }}>
+                  <QRCodeSVG value={qr.url} size={72} />
+                </div>
+                <span style={{ fontSize: 11, opacity: 0.5 }}>{qr.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
 
 function ConstructionContent({ config }: { config: DisplayConfig }) {
   return (
