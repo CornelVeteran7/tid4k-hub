@@ -82,6 +82,7 @@ export default function SurtitleOperator() {
   const scenes = currentBlock ? [...new Set(blocks.filter(b => b.act_number === currentBlock.act_number).map(b => b.scene_number))].sort((a, b) => a - b) : [];
 
   if (loading) return <div className="fixed inset-0 bg-black flex items-center justify-center"><div className="h-8 w-8 border-2 border-white border-t-transparent rounded-full animate-spin" /></div>;
+  if (!user) return <div className="fixed inset-0 bg-black flex flex-col items-center justify-center text-white/50 text-xl gap-4">Autentificare necesară<Button variant="outline" className="text-white border-white/30" onClick={() => navigate('/login')}>Login</Button></div>;
   if (!show) return <div className="fixed inset-0 bg-black flex items-center justify-center text-white/50 text-xl">Spectacol negăsit</div>;
 
   return (
