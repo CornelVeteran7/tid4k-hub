@@ -111,6 +111,7 @@ export default function AdminPanel() {
           <TabsContent value="docs"><DocsTab /></TabsContent>
           <TabsContent value="branding"><BrandingTab /></TabsContent>
           <TabsContent value="bi"><BusinessIntelligenceTab /></TabsContent>
+          <TabsContent value="teme"><ThemeEditorTab /></TabsContent>
         </div>
       </Tabs>
     </div>
