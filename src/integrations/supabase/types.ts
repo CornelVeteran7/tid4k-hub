@@ -1168,6 +1168,38 @@ export type Database = {
           },
         ]
       }
+      guest_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          token: string
+          valid_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          token: string
+          valid_date?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          token?: string
+          valid_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_tokens_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       infodisplay_panels: {
         Row: {
           continut: string
@@ -3522,6 +3554,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_guest_tokens: { Args: never; Returns: undefined }
       generate_queue_ticket: {
         Args: { _org_id: string }
         Returns: {
@@ -3533,6 +3566,7 @@ export type Database = {
           status: string
         }[]
       }
+      get_or_create_daily_token: { Args: { _org_id: string }; Returns: string }
       get_user_org_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
