@@ -27,8 +27,9 @@ import TutorialOverlay from '@/components/TutorialOverlay';
 import QuickUpload from '@/components/QuickUpload';
 import WhiteLabelSwitcher from '@/components/WhiteLabelSwitcher';
 
-/* Decorative SVG background for sidebar — white contour lines + flower + bee */
-function SidebarDecoration() {
+/* Decorative SVG background for sidebar — contour lines + vertical-specific themed elements */
+function SidebarDecorationComponent({ vertical }: { vertical: string }) {
+  const verticalType = (vertical || 'kids') as import('@/config/verticalConfig').VerticalType;
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <svg
@@ -47,34 +48,10 @@ function SidebarDecoration() {
           <path d="M-10,820 C40,850 110,790 170,830 C230,870 260,810 290,840" />
         </g>
 
-        {/* Flower — upper-right area */}
-        <g transform="translate(200, 180)" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.45">
-          <ellipse cx="0" cy="-10" rx="4" ry="8" />
-          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(72)" />
-          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(144)" />
-          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(216)" />
-          <ellipse cx="0" cy="-10" rx="4" ry="8" transform="rotate(288)" />
-          <circle cx="0" cy="0" r="3.5" />
-          <path d="M0,8 C-1,24 1,42 -2,60" />
-          <path d="M-1,28 C-11,23 -12,33 -4,36" />
-          <path d="M0,45 C8,40 11,48 4,52" />
-        </g>
-
-        {/* Bee — lower-left area */}
-        <g transform="translate(70, 620) rotate(-15)" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.45">
-          <ellipse cx="0" cy="0" rx="9" ry="5" />
-          <line x1="-2.5" y1="-4.5" x2="-2.5" y2="4.5" />
-          <line x1="2.5" y1="-5" x2="2.5" y2="5" />
-          <circle cx="11" cy="0" r="3.5" />
-          <path d="M13,-2.5 C15,-8 18,-9 20,-6" />
-          <path d="M13.5,-1.5 C17,-7 20,-6 21,-3" />
-          <ellipse cx="-1" cy="-7.5" rx="6" ry="3" transform="rotate(-12, -1, -7.5)" />
-          <ellipse cx="3" cy="-8" rx="5.5" ry="2.5" transform="rotate(10, 3, -8)" />
-          <line x1="-9" y1="0" x2="-12" y2="0.5" />
-        </g>
+        {/* Vertical-specific themed decorations */}
+        <SidebarDecorations vertical={verticalType} />
       </svg>
     </div>);
-
 }
 
 // Secondary nav — items NOT on the dashboard
