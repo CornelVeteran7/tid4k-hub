@@ -174,6 +174,46 @@ export default function QRCancelarie() {
           </Section>
         )}
 
+        {/* ── PUBLIC: Schools Timetable ── */}
+        {timetableToday.length > 0 && (
+          <Section icon={<Calendar className="h-5 w-5" />} title="Orar azi" color={primaryColor}>
+            {(() => {
+              const classes = [...new Set(timetableToday.map(e => e.class_id))];
+              return classes.slice(0, 3).map(cls => (
+                <Card key={cls} className="mb-3">
+                  <CardContent className="p-4">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">{cls}</p>
+                    <div className="space-y-1.5">
+                      {timetableToday.filter(e => e.class_id === cls).map(e => (
+                        <div key={e.period_number} className="flex items-center gap-3 text-sm">
+                          <span className="font-mono text-muted-foreground w-12 text-xs">Ora {e.period_number}</span>
+                          <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: primaryColor }} />
+                          <span className="text-foreground font-medium">{e.subject}</span>
+                          {e.teacher_name && <span className="text-muted-foreground text-xs ml-auto">{e.teacher_name}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ));
+            })()}
+          </Section>
+        )}
+
+        {/* ── PUBLIC: Magazine articles ── */}
+        {magazineArticles.length > 0 && (
+          <Section icon={<Newspaper className="h-5 w-5" />} title="Revista Școlii" color={primaryColor}>
+            {magazineArticles.map(a => (
+              <Card key={a.id} className="mb-3">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-sm text-foreground">{a.titlu}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">de {a.autor_nume} · {a.categorie}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </Section>
+        )}
+
         {/* ── AUTHENTICATED SECTION ── */}
         {isAuthenticated ? (
           <AuthenticatedSection userId={user?.id || ''} orgId={org?.id || ''} primaryColor={primaryColor} />
