@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, memo, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
-import { getRoles, getRoleLabel } from '@/utils/roles';
+import { getRoles } from '@/utils/roles';
+import { getVerticalRoleLabel } from '@/config/verticalConfig';
 import { Badge } from '@/components/ui/badge';
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 import { Users, Camera, FileText, Clock, CalendarDays, Utensils, BookOpen, BarChart3 } from 'lucide-react';
