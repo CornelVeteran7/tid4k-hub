@@ -1,6 +1,7 @@
 /**
  * Dynamically applies organization branding colors to CSS custom properties.
  * Converts hex to HSL for Tailwind/shadcn compatibility.
+ * Also applies vertical-specific theme via data-vertical attribute.
  */
 
 function hexToHsl(hex: string): [number, number, number] {
@@ -57,9 +58,35 @@ export function applyBrandingColors(primaryHex: string, secondaryHex: string) {
   root.style.setProperty('--ring', hslString(ph, ps, pl));
 }
 
+/** Apply vertical-specific theme class on <html> */
+export function applyVerticalTheme(verticalType: string) {
+  const root = document.documentElement;
+  // Remove any existing vertical
+  root.removeAttribute('data-vertical');
+  // Apply new vertical theme
+  if (verticalType && verticalType !== 'kids') {
+    root.setAttribute('data-vertical', verticalType);
+  }
+}
+
 /** Load branding from org data and apply */
-export function loadAndApplyBranding(org: { primary_color?: string | null; secondary_color?: string | null }) {
+export function loadAndApplyBranding(org: { primary_color?: string | null; secondary_color?: string | null; vertical_type?: string }) {
   if (org.primary_color && org.secondary_color) {
     applyBrandingColors(org.primary_color, org.secondary_color);
   }
+  if (org.vertical_type) {
+    applyVerticalTheme(org.vertical_type);
+  }
 }
+
+/** Default Inky costume URLs per vertical */
+export const INKY_COSTUMES: Record<string, string> = {
+  kids: '', // default inky
+  schools: '',
+  medicine: '', // will be generated
+  construction: '',
+  workshops: '',
+  living: '',
+  culture: '',
+  students: '',
+};
