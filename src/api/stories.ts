@@ -21,16 +21,23 @@ export async function getStories(): Promise<Story[]> {
     favIds = new Set((favs || []).map(f => f.story_id));
   }
 
-  return (data || []).map(s => ({
-    id: s.id,
-    titlu: s.titlu,
-    continut: s.continut,
-    categorie: s.categorie as Story['categorie'],
-    varsta: s.varsta as Story['varsta'],
-    thumbnail: s.thumbnail || undefined,
-    audio_url: s.audio_url || undefined,
-    favorit: favIds.has(s.id),
-  }));
+  return (data || []).map(s => {
+    const hasVideo = !!(s as any).video_url;
+    const hasAudio = !!s.audio_url;
+    const media_type: Story['media_type'] = hasVideo ? 'video' : hasAudio ? 'audio' : 'text';
+    return {
+      id: s.id,
+      titlu: s.titlu,
+      continut: s.continut,
+      categorie: s.categorie as Story['categorie'],
+      varsta: s.varsta as Story['varsta'],
+      thumbnail: s.thumbnail || undefined,
+      audio_url: s.audio_url || undefined,
+      video_url: (s as any).video_url || undefined,
+      media_type,
+      favorit: favIds.has(s.id),
+    };
+  });
 }
 
 export async function createStory(story: Partial<Story>): Promise<Story> {

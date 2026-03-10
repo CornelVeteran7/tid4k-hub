@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BookOpen, Plus, Heart, Play, Pause, Download, Volume2, ArrowLeft, Square } from 'lucide-react';
+import { BookOpen, Plus, Heart, Play, Pause, Volume2, ArrowLeft, Square, Headphones, Video } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CATEGORIES = [
@@ -32,6 +32,51 @@ const AGE_COLORS: Record<string, string> = {
   '7-10': 'bg-warning/10 text-warning',
 };
 
+type MediaMode = 'all' | 'read' | 'audio' | 'video';
+
+const MEDIA_MODES: { value: MediaMode; label: string; description: string; icon: typeof BookOpen; emoji: string }[] = [
+  { value: 'read', label: 'Citește', description: 'Povești scrise', icon: BookOpen, emoji: '📖' },
+  { value: 'audio', label: 'Ascultă', description: 'Inky povestește', icon: Headphones, emoji: '🎧' },
+  { value: 'video', label: 'Video', description: 'Povești animate', icon: Video, emoji: '🎬' },
+];
+
+// Demo video stories for when DB is empty
+const DEMO_VIDEO_STORIES: Story[] = [
+  {
+    id: 'demo-video-1',
+    titlu: 'Inky și Steaua Căzătoare',
+    continut: 'Într-o noapte senină, Inky a văzut o stea căzătoare și a plecat într-o aventură magică prin pădure...',
+    categorie: 'distractive',
+    varsta: '3-5',
+    video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    thumbnail: undefined,
+    media_type: 'video',
+    favorit: false,
+  },
+  {
+    id: 'demo-video-2',
+    titlu: 'Vixie învață să împartă',
+    continut: 'Vixie avea o comoară de mere dar niciun prieten cu care să le mănânce. A învățat că bucuria vine din a împărți...',
+    categorie: 'morale',
+    varsta: '3-5',
+    video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    thumbnail: undefined,
+    media_type: 'video',
+    favorit: false,
+  },
+  {
+    id: 'demo-video-3',
+    titlu: 'Nuko și Curcubeul',
+    continut: 'După o ploaie de vară, Nuko a descoperit că fiecare culoare a curcubeului ascunde o lecție despre prietenie...',
+    categorie: 'educative',
+    varsta: '4-5',
+    video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    thumbnail: undefined,
+    media_type: 'video',
+    favorit: false,
+  },
+];
+
 // TTS cache
 const ttsCache = new Map<string, SpeechSynthesisUtterance>();
 
@@ -39,6 +84,7 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
   const [stories, setStories] = useState<Story[]>([]);
   const [category, setCategory] = useState('all');
+  const [mediaMode, setMediaMode] = useState<MediaMode>('all');
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
@@ -48,11 +94,17 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
   const [selectedCharacter, setSelectedCharacter] = useState<StoryCharacter>(storyCharacters[0]);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const progressIntervalRef = useRef<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const canCreate = user && areRol(user.status, 'profesor');
 
   useEffect(() => {
-    getStories().then(setStories);
+    getStories().then(data => {
+      // Merge with demo video stories (avoid duplicates)
+      const dbIds = new Set(data.map(s => s.id));
+      const demoToAdd = DEMO_VIDEO_STORIES.filter(d => !dbIds.has(d.id));
+      setStories([...data, ...demoToAdd]);
+    });
   }, []);
 
   // Cleanup TTS on unmount
@@ -63,7 +115,14 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
     };
   }, []);
 
-  const filtered = category === 'all' ? stories : stories.filter(s => s.categorie === category);
+  // Filter by category and media mode
+  const filtered = stories.filter(s => {
+    if (category !== 'all' && s.categorie !== category) return false;
+    if (mediaMode === 'read') return s.media_type !== 'video';
+    if (mediaMode === 'audio') return s.media_type === 'audio' || s.media_type === 'text'; // all text stories can be TTS'd
+    if (mediaMode === 'video') return s.media_type === 'video';
+    return true;
+  });
 
   const handleCreate = async () => {
     const s = await createStory(newStory as Partial<Story>);
@@ -77,57 +136,45 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
     setStories(prev => prev.map(s => s.id === id ? { ...s, favorit: !s.favorit } : s));
   };
 
-  // TTS Functions using browser SpeechSynthesis
+  // TTS Functions
   const handlePlayTTS = useCallback(() => {
     if (!selectedStory) return;
-
     if (isPlaying) {
-      // Pause
       window.speechSynthesis.pause();
       setIsPlaying(false);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       return;
     }
-
-    // Check if paused (resume)
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
       setIsPlaying(true);
       startProgressTracker(selectedStory.continut.length);
       return;
     }
-
-    // New utterance — check cache first
     window.speechSynthesis.cancel();
-
     let utterance: SpeechSynthesisUtterance;
     if (ttsCache.has(selectedStory.id)) {
       utterance = ttsCache.get(selectedStory.id)!;
     } else {
       utterance = new SpeechSynthesisUtterance(selectedStory.continut);
       utterance.lang = 'ro-RO';
-      // Try to find a Romanian voice
       const voices = window.speechSynthesis.getVoices();
       const roVoice = voices.find(v => v.lang.startsWith('ro'));
       if (roVoice) utterance.voice = roVoice;
       ttsCache.set(selectedStory.id, utterance);
     }
-
     utterance.rate = playbackSpeed;
-
     utterance.onend = () => {
       setIsPlaying(false);
       setProgress(100);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
-
     utterance.onerror = () => {
       setIsPlaying(false);
       setProgress(0);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       toast.error('TTS nu este disponibil în acest browser');
     };
-
     utteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
     setIsPlaying(true);
@@ -137,7 +184,7 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
 
   const startProgressTracker = (totalChars: number) => {
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    const estimatedDuration = (totalChars / 15) * 1000 / playbackSpeed; // ~15 chars/sec
+    const estimatedDuration = (totalChars / 15) * 1000 / playbackSpeed;
     const startTime = Date.now();
     progressIntervalRef.current = window.setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -156,14 +203,69 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
   };
 
-  // Update speed on existing utterance
   useEffect(() => {
     if (utteranceRef.current) {
       utteranceRef.current.rate = playbackSpeed;
     }
   }, [playbackSpeed]);
 
-  // Story Reader View
+  // Get media badge for story cards
+  const getMediaBadge = (story: Story) => {
+    if (story.media_type === 'video') return { icon: Video, label: 'Video', className: 'bg-destructive/10 text-destructive' };
+    if (story.media_type === 'audio') return { icon: Headphones, label: 'Audio', className: 'bg-accent/10 text-accent-foreground' };
+    return { icon: BookOpen, label: 'Text', className: 'bg-primary/10 text-primary' };
+  };
+
+  // Video Player View
+  if (selectedStory && selectedStory.media_type === 'video') {
+    return (
+      <div className="space-y-5 max-w-3xl mx-auto min-w-0">
+        <Button variant="ghost" className="gap-2" onClick={() => setSelectedStory(null)}>
+          <ArrowLeft className="h-4 w-4" /> Înapoi la povești
+        </Button>
+
+        <div>
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <Badge variant="secondary">{CATEGORIES.find(c => c.value === selectedStory.categorie)?.label}</Badge>
+            <Badge className={AGE_COLORS[selectedStory.varsta]}>{selectedStory.varsta} ani</Badge>
+            <Badge className="bg-destructive/10 text-destructive gap-1">
+              <Video className="h-3 w-3" /> Video
+            </Badge>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold">{selectedStory.titlu}</h1>
+        </div>
+
+        {/* Character narrator overlay */}
+        <div className="flex items-center gap-3 px-1">
+          <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center text-lg">
+            🦉
+          </div>
+          <p className="text-sm text-muted-foreground italic">
+            Povestită de <span className="font-semibold text-foreground">Inky</span> și prietenii
+          </p>
+        </div>
+
+        {/* Video Player */}
+        <Card className="glass-card overflow-hidden">
+          <div className="relative bg-black rounded-t-lg">
+            <video
+              ref={videoRef}
+              src={selectedStory.video_url}
+              controls
+              playsInline
+              poster={selectedStory.thumbnail}
+              className="w-full aspect-video"
+            />
+          </div>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground leading-relaxed">{selectedStory.continut}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Story Reader View (text + audio)
   if (selectedStory) {
     return (
       <div className="space-y-5 max-w-3xl mx-auto min-w-0">
@@ -215,7 +317,7 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
           </CardContent>
         </Card>
 
-        {/* Audio Player — fully wired TTS */}
+        {/* Audio Player — TTS */}
         <Card className="glass-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -308,6 +410,41 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
         )}
       </div>
 
+      {/* Media Mode Filter */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        {MEDIA_MODES.map(mode => {
+          const Icon = mode.icon;
+          const isActive = mediaMode === mode.value;
+          return (
+            <button
+              key={mode.value}
+              onClick={() => setMediaMode(prev => prev === mode.value ? 'all' : mode.value)}
+              className={`relative flex flex-col items-center gap-1.5 p-3 sm:p-4 rounded-xl border-2 transition-all ${
+                isActive
+                  ? 'border-primary bg-primary/5 scale-[1.02] shadow-md'
+                  : 'border-border bg-card hover:border-primary/30 hover:bg-muted/50'
+              }`}
+            >
+              <div className={`flex items-center gap-1.5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                <span className="text-lg">{mode.emoji}</span>
+                <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+              </div>
+              <span className={`text-xs sm:text-sm font-semibold ${isActive ? 'text-primary' : 'text-foreground'}`}>
+                {mode.label}
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground leading-tight text-center">
+                {mode.description}
+              </span>
+              {isActive && (
+                <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                  <span className="text-[8px] text-primary-foreground">✓</span>
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Category filter pills */}
       <ScrollArea className="w-full">
         <div className="flex gap-2 pb-2">
@@ -328,38 +465,58 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
 
+      {/* Empty state */}
+      {filtered.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground text-sm">Nicio poveste în această categorie.</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map(story => (
-          <Card
-            key={story.id}
-            className="glass-card cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5"
-            onClick={() => setSelectedStory(story)}
-          >
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex gap-1.5 flex-wrap">
-                  <Badge variant="secondary" className="text-xs">{CATEGORIES.find(c => c.value === story.categorie)?.label}</Badge>
-                  <Badge className={`text-xs ${AGE_COLORS[story.varsta]}`}>{story.varsta} ani</Badge>
+        {filtered.map(story => {
+          const mediaBadge = getMediaBadge(story);
+          const MediaIcon = mediaBadge.icon;
+          return (
+            <Card
+              key={story.id}
+              className="glass-card cursor-pointer hover:shadow-md transition-all hover:-translate-y-0.5"
+              onClick={() => setSelectedStory(story)}
+            >
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex gap-1.5 flex-wrap">
+                    <Badge variant="secondary" className="text-xs">{CATEGORIES.find(c => c.value === story.categorie)?.label}</Badge>
+                    <Badge className={`text-xs ${AGE_COLORS[story.varsta]}`}>{story.varsta} ani</Badge>
+                    <Badge className={`text-xs gap-1 ${mediaBadge.className}`}>
+                      <MediaIcon className="h-3 w-3" />
+                      {mediaBadge.label}
+                    </Badge>
+                  </div>
+                  <button
+                    onClick={e => { e.stopPropagation(); toggleFavorite(story.id); }}
+                    className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                  >
+                    <Heart className={`h-4 w-4 ${story.favorit ? 'fill-destructive text-destructive' : ''}`} />
+                  </button>
                 </div>
-                <button
-                  onClick={e => { e.stopPropagation(); toggleFavorite(story.id); }}
-                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                >
-                  <Heart className={`h-4 w-4 ${story.favorit ? 'fill-destructive text-destructive' : ''}`} />
-                </button>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <BookOpen className="h-5 w-5 text-primary" />
+                <div className="flex items-start gap-3">
+                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${
+                    story.media_type === 'video' ? 'bg-destructive/10' : 'bg-primary/10'
+                  }`}>
+                    {story.media_type === 'video'
+                      ? <Video className="h-5 w-5 text-destructive" />
+                      : <BookOpen className="h-5 w-5 text-primary" />
+                    }
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-sm truncate">{story.titlu}</h3>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{story.continut.slice(0, 100)}...</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-sm truncate">{story.titlu}</h3>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{story.continut.slice(0, 100)}...</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
