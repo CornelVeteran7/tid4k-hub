@@ -88,6 +88,9 @@ interface DisplayConfig {
   queue_service_points: string[];
   construction_tasks: ConstructionTask[];
   ssm_reminders: SSMReminder[];
+  timetable_today: TimetableSlide[];
+  timetable_current_period: number;
+  magazine_articles: MagazineSlide[];
 }
 
 /* ═══════════════════════════════════════════════════
