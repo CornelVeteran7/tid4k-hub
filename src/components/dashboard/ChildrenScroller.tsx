@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { getChildrenByGroup } from '@/api/children';
 import { useGroup } from '@/contexts/GroupContext';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Child } from '@/types';
 import { Phone, Mail } from 'lucide-react';
 import ChildDetailDialog from './ChildDetailDialog';
+import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 
 const PASTEL_COLORS = [
   'hsl(340 80% 85%)',
@@ -21,9 +23,13 @@ function getInitials(name: string) {
 
 export default function ChildrenScroller() {
   const { currentGroup } = useGroup();
+  const { user } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [selectedColor, setSelectedColor] = useState('');
+
+  const verticalType = (user?.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
 
   useEffect(() => {
     if (currentGroup) {
@@ -35,7 +41,7 @@ export default function ChildrenScroller() {
 
   return (
     <div className="space-y-2">
-      <h2 className="text-sm font-semibold text-muted-foreground px-1">Copiii grupei</h2>
+      <h2 className="text-sm font-semibold text-muted-foreground px-1">{verticalDef.summaryLabels.membersTitle}</h2>
       <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 lg:grid lg:grid-cols-3 xl:grid-cols-4 lg:overflow-x-visible lg:snap-none">
         {children.map((child, i) => (
           <div

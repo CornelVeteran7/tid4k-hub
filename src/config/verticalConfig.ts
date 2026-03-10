@@ -19,6 +19,23 @@ export interface VerticalDefinition {
   parentLabelPlural: string; // Plural form
   icon: string;
   groupTypeDefault: string;  // Default group.tip value
+  // Vertical-aware module labels
+  moduleLabels: {
+    prezenta: { title: string; subtitle: string };
+    imagini: { title: string; subtitle: string };
+    documente: { title: string; subtitle: string };
+    povesti: { title: string; subtitle: string };
+    ateliere: { title: string; subtitle: string };
+    meniu: { title: string; subtitle: string };
+    mesaje: { title: string; subtitle: string };
+  };
+  // Dashboard summary labels
+  summaryLabels: {
+    mealLabel: string;        // "Mic dejun" vs "Program" vs "Task curent"
+    activityLabel: string;    // "Activitate" vs "Curs curent" vs "Cabinet activ"
+    attendanceLabel: string;  // "Tendințe prezență" vs "Progres taskuri"
+    membersTitle: string;     // "Copiii grupei" vs "Pacienții cabinetului"
+  };
 }
 
 export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
@@ -36,6 +53,21 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Părinți',
     icon: '🧒',
     groupTypeDefault: 'gradinita',
+    moduleLabels: {
+      prezenta: { title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă' },
+      imagini: { title: 'IMAGINI', subtitle: 'Fotografii din activități' },
+      documente: { title: 'DOCUMENTE', subtitle: 'Fișiere PDF partajate' },
+      povesti: { title: 'POVEȘTI', subtitle: 'Povești pentru copii' },
+      ateliere: { title: 'ATELIERE', subtitle: 'Activități creative pentru copii' },
+      meniu: { title: 'MENIUL SĂPTĂMÂNII', subtitle: 'Meniul zilnic pentru copii' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu părinții' },
+    },
+    summaryLabels: {
+      mealLabel: 'Mic dejun',
+      activityLabel: 'Activitate',
+      attendanceLabel: 'Tendințe prezență (ultimele 30 zile)',
+      membersTitle: 'Copiii grupei',
+    },
   },
   schools: {
     label: 'Școli',
@@ -51,6 +83,21 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Părinți',
     icon: '🏫',
     groupTypeDefault: 'scoala',
+    moduleLabels: {
+      prezenta: { title: 'PREZENȚA', subtitle: 'Prezența elevilor la clasă' },
+      imagini: { title: 'GALERIE', subtitle: 'Fotografii din activități școlare' },
+      documente: { title: 'DOCUMENTE', subtitle: 'Materiale didactice și fișiere' },
+      povesti: { title: 'LECTURĂ', subtitle: 'Resurse de lectură suplimentară' },
+      ateliere: { title: 'PROIECTE', subtitle: 'Proiecte și activități extrașcolare' },
+      meniu: { title: 'CANTINA', subtitle: 'Meniul cantinei școlare' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare profesori-părinți' },
+    },
+    summaryLabels: {
+      mealLabel: 'Cantina',
+      activityLabel: 'Curs curent',
+      attendanceLabel: 'Tendințe prezență elevi (ultimele 30 zile)',
+      membersTitle: 'Elevii clasei',
+    },
   },
   medicine: {
     label: 'Medicină',
@@ -66,6 +113,21 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Aparținători',
     icon: '🏥',
     groupTypeDefault: 'scoala',
+    moduleLabels: {
+      prezenta: { title: 'PROGRAMĂRI', subtitle: 'Programările zilei' },
+      imagini: { title: 'GALERIE', subtitle: 'Imagini cabinet și echipă' },
+      documente: { title: 'DOCUMENTE', subtitle: 'Formulare și documente medicale' },
+      povesti: { title: 'INFORMAȚII', subtitle: 'Sfaturi și informații medicale' },
+      ateliere: { title: 'SERVICII', subtitle: 'Lista de servicii disponibile' },
+      meniu: { title: 'PROGRAM', subtitle: 'Programul cabinetelor' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare medic-pacient' },
+    },
+    summaryLabels: {
+      mealLabel: 'Program',
+      activityLabel: 'Cabinet activ',
+      attendanceLabel: 'Pacienți consultați (ultimele 30 zile)',
+      membersTitle: 'Pacienții cabinetului',
+    },
   },
   living: {
     label: 'Rezidențial',
@@ -81,6 +143,21 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Proprietari',
     icon: '🏢',
     groupTypeDefault: 'scoala',
+    moduleLabels: {
+      prezenta: { title: 'ÎNTREȚINERE', subtitle: 'Situația plăților lunare' },
+      imagini: { title: 'GALERIE', subtitle: 'Fotografii bloc și spații comune' },
+      documente: { title: 'DOCUMENTE', subtitle: 'Procese-verbale și acte' },
+      povesti: { title: 'INFORMAȚII', subtitle: 'Regulament și informații utile' },
+      ateliere: { title: 'LUCRĂRI', subtitle: 'Lucrări de întreținere și reparații' },
+      meniu: { title: 'CHELTUIELI', subtitle: 'Situația cheltuielilor comune' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu administrația' },
+    },
+    summaryLabels: {
+      mealLabel: 'Cheltuieli',
+      activityLabel: 'Lucrare curentă',
+      attendanceLabel: 'Activitate locatari (ultimele 30 zile)',
+      membersTitle: 'Locatarii blocului',
+    },
   },
   culture: {
     label: 'Cultură',
@@ -96,6 +173,21 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Spectatori',
     icon: '🎭',
     groupTypeDefault: 'scoala',
+    moduleLabels: {
+      prezenta: { title: 'BILETE', subtitle: 'Vânzări și rezervări bilete' },
+      imagini: { title: 'GALERIE', subtitle: 'Fotografii spectacole și repetiții' },
+      documente: { title: 'DOCUMENTE', subtitle: 'Programe și materiale' },
+      povesti: { title: 'REPERTORIU', subtitle: 'Spectacole din repertoriu' },
+      ateliere: { title: 'EVENIMENTE', subtitle: 'Evenimente și gale speciale' },
+      meniu: { title: 'PROGRAM', subtitle: 'Programul spectacolelor' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu echipa artistică' },
+    },
+    summaryLabels: {
+      mealLabel: 'Spectacol',
+      activityLabel: 'Repetiție curentă',
+      attendanceLabel: 'Spectatori (ultimele 30 zile)',
+      membersTitle: 'Echipa artistică',
+    },
   },
   students: {
     label: 'Universități',
@@ -111,6 +203,21 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Studenți',
     icon: '🎓',
     groupTypeDefault: 'scoala',
+    moduleLabels: {
+      prezenta: { title: 'PREZENȚA', subtitle: 'Prezența studenților la cursuri' },
+      imagini: { title: 'GALERIE', subtitle: 'Fotografii campus și evenimente' },
+      documente: { title: 'DOCUMENTE', subtitle: 'Cursuri și materiale didactice' },
+      povesti: { title: 'BIBLIOTECĂ', subtitle: 'Resurse bibliografice' },
+      ateliere: { title: 'CERCETARE', subtitle: 'Proiecte de cercetare' },
+      meniu: { title: 'CANTINA', subtitle: 'Meniul cantinei studențești' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu secretariatul' },
+    },
+    summaryLabels: {
+      mealLabel: 'Cantina',
+      activityLabel: 'Curs curent',
+      attendanceLabel: 'Prezență studenți (ultimele 30 zile)',
+      membersTitle: 'Studenții facultății',
+    },
   },
   construction: {
     label: 'Construcții',
@@ -126,6 +233,21 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Șefi echipă',
     icon: '🏗️',
     groupTypeDefault: 'scoala',
+    moduleLabels: {
+      prezenta: { title: 'PONTAJ', subtitle: 'Pontajul echipei pe șantier' },
+      imagini: { title: 'FOTO PROGRES', subtitle: 'Fotografii progres lucrări' },
+      documente: { title: 'DOCUMENTE', subtitle: 'Planuri și autorizații' },
+      povesti: { title: 'PROCEDURI', subtitle: 'Proceduri și instrucțiuni SSM' },
+      ateliere: { title: 'TASKURI', subtitle: 'Taskuri active pe șantier' },
+      meniu: { title: 'PROGRAM', subtitle: 'Programul echipelor' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu echipele' },
+    },
+    summaryLabels: {
+      mealLabel: 'Program azi',
+      activityLabel: 'Task curent',
+      attendanceLabel: 'Progres taskuri (ultimele 30 zile)',
+      membersTitle: 'Echipa de pe șantier',
+    },
   },
   workshops: {
     label: 'Service Auto',
@@ -141,6 +263,21 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Clienți',
     icon: '🔧',
     groupTypeDefault: 'scoala',
+    moduleLabels: {
+      prezenta: { title: 'PROGRAMĂRI', subtitle: 'Programările zilei în service' },
+      imagini: { title: 'GALERIE', subtitle: 'Fotografii lucrări și piese' },
+      documente: { title: 'DOCUMENTE', subtitle: 'Fișe tehnice și facturi' },
+      povesti: { title: 'CATALOG', subtitle: 'Catalog piese și accesorii' },
+      ateliere: { title: 'LUCRĂRI', subtitle: 'Lucrări active în service' },
+      meniu: { title: 'TARIFE', subtitle: 'Lista de tarife și servicii' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu clienții' },
+    },
+    summaryLabels: {
+      mealLabel: 'Programare',
+      activityLabel: 'Lucrare curentă',
+      attendanceLabel: 'Vehicule procesate (ultimele 30 zile)',
+      membersTitle: 'Clienții service-ului',
+    },
   },
 };
 

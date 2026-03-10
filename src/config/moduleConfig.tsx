@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { VERTICAL_DEFINITIONS, type VerticalType } from './verticalConfig';
 
 export type ModuleKey = 'prezenta' | 'imagini' | 'documente' | 'povesti' | 'ateliere' | 'meniu' | 'mesaje';
 
@@ -11,15 +12,34 @@ export interface ModuleSettings {
 
 export type ModuleConfig = Record<ModuleKey, ModuleSettings>;
 
-export const DEFAULT_MODULE_CONFIG: ModuleConfig = {
-  prezenta: { color: '#E8829A', title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă' },
-  imagini: { color: '#2ECC71', title: 'IMAGINI', subtitle: 'Fotografii din activități' },
-  documente: { color: '#3498DB', title: 'DOCUMENTE', subtitle: 'Fișiere PDF partajate' },
-  povesti: { color: '#9B59B6', title: 'POVEȘTI', subtitle: 'Povești pentru copii' },
-  ateliere: { color: '#FFC107', textColor: '#1a1a1a', title: 'ATELIERE', subtitle: 'Activități creative pentru copii' },
-  meniu: { color: '#FF8C42', title: 'MENIUL SĂPTĂMÂNII', subtitle: 'Meniul zilnic pentru copii' },
-  mesaje: { color: '#a19afe', title: 'MESAJE', subtitle: 'Comunicare cu părinții' },
+const BASE_COLORS: Record<ModuleKey, { color: string; textColor?: string }> = {
+  prezenta: { color: '#E8829A' },
+  imagini: { color: '#2ECC71' },
+  documente: { color: '#3498DB' },
+  povesti: { color: '#9B59B6' },
+  ateliere: { color: '#FFC107', textColor: '#1a1a1a' },
+  meniu: { color: '#FF8C42' },
+  mesaje: { color: '#a19afe' },
 };
+
+/** Build default config for a given vertical */
+export function buildDefaultConfig(vertical: VerticalType): ModuleConfig {
+  const def = VERTICAL_DEFINITIONS[vertical];
+  const keys: ModuleKey[] = ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje'];
+  const result = {} as ModuleConfig;
+  for (const key of keys) {
+    const labels = def.moduleLabels[key];
+    result[key] = {
+      ...BASE_COLORS[key],
+      title: labels.title,
+      subtitle: labels.subtitle,
+    };
+  }
+  return result;
+}
+
+// Fallback for backward compat
+export const DEFAULT_MODULE_CONFIG: ModuleConfig = buildDefaultConfig('kids');
 
 const STORAGE_KEY = 'tid4k_module_config';
 
@@ -31,8 +51,8 @@ function loadOverrides(): Partial<Record<ModuleKey, Partial<ModuleSettings>>> {
   return {};
 }
 
-function mergeConfig(overrides: Partial<Record<ModuleKey, Partial<ModuleSettings>>>): ModuleConfig {
-  const result = { ...DEFAULT_MODULE_CONFIG };
+function mergeConfig(base: ModuleConfig, overrides: Partial<Record<ModuleKey, Partial<ModuleSettings>>>): ModuleConfig {
+  const result = { ...base };
   for (const key of Object.keys(overrides) as ModuleKey[]) {
     if (result[key]) {
       result[key] = { ...result[key], ...overrides[key] };
@@ -49,10 +69,11 @@ interface ModuleConfigContextValue {
 
 const ModuleConfigContext = createContext<ModuleConfigContextValue | null>(null);
 
-export function ModuleConfigProvider({ children }: { children: React.ReactNode }) {
+export function ModuleConfigProvider({ children, vertical }: { children: React.ReactNode; vertical?: VerticalType }) {
   const [overrides, setOverrides] = useState<Partial<Record<ModuleKey, Partial<ModuleSettings>>>>(loadOverrides);
 
-  const config = React.useMemo(() => mergeConfig(overrides), [overrides]);
+  const baseConfig = React.useMemo(() => buildDefaultConfig(vertical || 'kids'), [vertical]);
+  const config = React.useMemo(() => mergeConfig(baseConfig, overrides), [baseConfig, overrides]);
 
   const updateModule = useCallback((key: ModuleKey, partial: Partial<ModuleSettings>) => {
     setOverrides(prev => {

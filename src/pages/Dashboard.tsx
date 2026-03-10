@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, memo, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGroup } from '@/contexts/GroupContext';
-import { getRoles, getRoleLabel } from '@/utils/roles';
+import { getRoles } from '@/utils/roles';
+import { getVerticalRoleLabel } from '@/config/verticalConfig';
 import { Badge } from '@/components/ui/badge';
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 import { Users, Camera, FileText, Clock, CalendarDays, Utensils, BookOpen, BarChart3 } from 'lucide-react';
@@ -124,18 +125,24 @@ function QuickStatsRow({ config }: { config: ModuleConfig }) {
   );
 }
 
-/* ── Desktop Summary Row (dynamic meal) ── */
-function DesktopSummary({ config }: { config: ModuleConfig }) {
+/* ── Desktop Summary Row (dynamic meal, vertical-aware) ── */
+function DesktopSummary({ config, verticalType }: { config: ModuleConfig; verticalType: VerticalType }) {
   const { meal, isWeekend } = useCurrentMeal();
-  const mealText = isWeekend ? 'Weekend — fără meniu' : (meal?.content || 'Se încarcă…');
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
+  const mealText = isWeekend ? 'Weekend — fără program' : (meal?.content || 'Se încarcă…');
+  const showMeal = ['kids', 'schools', 'students'].includes(verticalType);
 
   return (
     <div className="hidden lg:block mt-4 pt-3 border-t border-foreground/10">
       <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
-        <div className="flex items-center gap-1.5"><Utensils className="h-3 w-3 text-[hsl(28,80%,52%)]" /><span className="text-muted-foreground">{meal?.label || 'Meniu'}:</span></div>
-        <span className="col-span-2 font-semibold text-foreground truncate">{mealText}</span>
-        <div className="flex items-center gap-1.5"><BookOpen className="h-3 w-3 text-[hsl(271,47%,53%)]" /><span className="text-muted-foreground">Activitate:</span></div>
-        <span className="col-span-2 font-semibold text-foreground truncate">Pictură pe sticlă</span>
+        {showMeal && (
+          <>
+            <div className="flex items-center gap-1.5"><Utensils className="h-3 w-3 text-[hsl(28,80%,52%)]" /><span className="text-muted-foreground">{verticalDef.summaryLabels.mealLabel}:</span></div>
+            <span className="col-span-2 font-semibold text-foreground truncate">{mealText}</span>
+          </>
+        )}
+        <div className="flex items-center gap-1.5"><BookOpen className="h-3 w-3 text-[hsl(271,47%,53%)]" /><span className="text-muted-foreground">{verticalDef.summaryLabels.activityLabel}:</span></div>
+        <span className="col-span-2 font-semibold text-foreground truncate">—</span>
       </div>
     </div>
   );
@@ -329,7 +336,7 @@ const docCategoryData = [
   { name: 'Fotografii', value: 67, color: 'hsl(0,72%,50%)' },
 ];
 
-function DashboardCharts() {
+function DashboardCharts({ chartLabel }: { chartLabel: string }) {
   return (
     <div className="hidden lg:flex flex-col gap-5">
       {/* Attendance trends */}
@@ -347,7 +354,7 @@ function DashboardCharts() {
       >
         <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-2 mb-4">
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          Tendințe prezență (ultimele 30 zile)
+          {chartLabel}
         </h3>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={attendanceData}>
@@ -550,7 +557,7 @@ export default function Dashboard() {
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {roles.map(r => (
                   <Badge key={r} variant="secondary" className="bg-foreground/10 text-foreground/80 border-0 text-xs backdrop-blur-sm">
-                    {getRoleLabel(r)}
+                    {getVerticalRoleLabel(r, verticalType)}
                   </Badge>
                 ))}
               </div>
@@ -559,12 +566,12 @@ export default function Dashboard() {
               <QuickStatsRow config={config} />
 
               {/* Desktop: Rezumatul zilei details */}
-              <DesktopSummary config={config} />
+              <DesktopSummary config={config} verticalType={verticalType} />
             </div>
           </motion.div>
 
           {/* Desktop-only: Charts */}
-          <DashboardCharts />
+          <DashboardCharts chartLabel={verticalDef.summaryLabels.attendanceLabel} />
 
         </div>
 
