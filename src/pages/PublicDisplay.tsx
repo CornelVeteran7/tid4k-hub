@@ -323,6 +323,15 @@ export default function PublicDisplay() {
       medicineServices = (svcData || []) as { name: string }[];
     }
 
+    // Construction: load site info for display identification
+    let constructionSites: ConstructionSiteInfo[] = [];
+    if (org?.vertical_type === 'construction') {
+      const { data: sitesData } = await supabase.from('construction_sites')
+        .select('id, nume, beneficiar, contractor, numar_autorizatie, adresa, status')
+        .eq('organization_id', orgId).eq('status', 'activ').limit(5);
+      constructionSites = (sitesData || []) as ConstructionSiteInfo[];
+    }
+
     setConfig({
       panels: (panels || []).map((p: any) => ({
         id: p.id, tip: p.tip, continut: p.continut,
