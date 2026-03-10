@@ -300,7 +300,76 @@ export default function QRCancelarie() {
           </>
         )}
 
-        {/* ── AUTHENTICATED SECTION ── */}
+        {/* ── Construction: Tasks, Sites, SSM ── */}
+        {org?.vertical_type === 'construction' && (
+          <>
+            {/* SSM Safety Status */}
+            <Section icon={<ShieldCheck className="h-5 w-5" />} title="SSM — Securitate" color={primaryColor}>
+              <Card className={ssmStatus.total === 0 ? 'border-destructive/50' : ''}>
+                <CardContent className="p-4">
+                  {ssmStatus.total > 0 ? (
+                    <div className="flex items-center gap-3">
+                      <div className={`text-2xl font-bold ${ssmStatus.completed === ssmStatus.total ? 'text-green-600' : 'text-orange-500'}`}>
+                        {ssmStatus.completed}/{ssmStatus.total}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {ssmStatus.completed === ssmStatus.total ? '✅ Toate checklisturile completate azi' : '⏳ Checklisturi în curs'}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-destructive font-medium">❌ Niciun checklist SSM completat azi</p>
+                  )}
+                </CardContent>
+              </Card>
+            </Section>
+
+            {/* Today's tasks (read-only for guests) */}
+            {constructionTasks.length > 0 && (
+              <Section icon={<HardHat className="h-5 w-5" />} title="Sarcini active" color={primaryColor}>
+                {constructionTasks.map(task => (
+                  <Card key={task.id} className={`mb-3 ${task.prioritate === 'urgent' ? 'border-destructive/50' : ''}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-sm text-foreground">{task.titlu}</h3>
+                            {task.prioritate === 'urgent' && <Badge variant="destructive" className="text-xs">URGENT</Badge>}
+                            <Badge variant={task.status === 'in_progress' ? 'default' : 'secondary'} className="text-xs">
+                              {task.status === 'in_progress' ? 'În lucru' : 'De făcut'}
+                            </Badge>
+                          </div>
+                          {task.locatie && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-3 w-3" /> {task.locatie}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Section>
+            )}
+
+            {/* Site identification */}
+            {constructionSites.length > 0 && (
+              <Section icon={<FileText className="h-5 w-5" />} title="Identificare Șantier" color={primaryColor}>
+                {constructionSites.map(site => (
+                  <Card key={site.id} className="mb-3">
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-sm text-foreground">{site.nume}</h3>
+                      {site.adresa && <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1"><MapPin className="h-3 w-3" /> {site.adresa}</p>}
+                      {site.beneficiar && <p className="text-xs text-muted-foreground mt-1">Beneficiar: {site.beneficiar}</p>}
+                      {site.contractor && <p className="text-xs text-muted-foreground">Constructor: {site.contractor}</p>}
+                      {site.numar_autorizatie && <p className="text-xs text-muted-foreground">Aut. nr: {site.numar_autorizatie}</p>}
+                    </CardContent>
+                  </Card>
+                ))}
+              </Section>
+            )}
+          </>
+        )}
+
         {isAuthenticated ? (
           <AuthenticatedSection userId={user?.id || ''} orgId={org?.id || ''} primaryColor={primaryColor} />
         ) : (
