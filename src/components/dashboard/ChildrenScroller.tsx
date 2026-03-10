@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { getChildrenByGroup } from '@/api/children';
 import { useGroup } from '@/contexts/GroupContext';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Child } from '@/types';
 import { Phone, Mail } from 'lucide-react';
 import ChildDetailDialog from './ChildDetailDialog';
+import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 
 const PASTEL_COLORS = [
   'hsl(340 80% 85%)',
