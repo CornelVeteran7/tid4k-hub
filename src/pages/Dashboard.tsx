@@ -354,7 +354,7 @@ function DashboardCharts() {
       >
         <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-2 mb-4">
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          Tendințe prezență (ultimele 30 zile)
+          {chartLabel}
         </h3>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={attendanceData}>
