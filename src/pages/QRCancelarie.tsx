@@ -96,6 +96,18 @@ export default function QRCancelarie() {
         setMagazineArticles(magData || []);
       }
 
+      // Medicine-specific: doctors + services
+      if (orgData?.vertical_type === 'medicine') {
+        const [{ data: docData }, { data: svcData }] = await Promise.all([
+          supabase.from('doctor_profiles').select('name, specialization, credentials')
+            .eq('organization_id', orgId).eq('activ', true).order('ordine'),
+          supabase.from('medicine_services').select('name, price_from, price_to')
+            .eq('organization_id', orgId).eq('activ', true).order('ordine'),
+        ]);
+        setMedicineDoctors(docData || []);
+        setMedicineServices(svcData || []);
+      }
+
       setLoading(false);
     }
     load();
