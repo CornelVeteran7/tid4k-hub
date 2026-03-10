@@ -80,6 +80,18 @@ interface ConstructionSiteInfo {
   status: string;
 }
 
+interface CultureShowDisplay {
+  id: string;
+  title: string;
+  show_date: string;
+  show_time: string;
+  duration_minutes: number;
+  acts: number;
+  language: string;
+  has_surtitles: boolean;
+  status: string;
+}
+
 interface DisplayConfig {
   panels: DisplayPanel[];
   ticker_messages: string[];
@@ -87,6 +99,7 @@ interface DisplayConfig {
   org_id: string;
   org_name: string;
   org_logo?: string;
+  org_slug?: string;
   primary_color: string;
   secondary_color: string;
   vertical_type: string;
@@ -105,6 +118,7 @@ interface DisplayConfig {
   google_reviews_url: string;
   medicine_doctors: { name: string; specialization: string }[];
   medicine_services: { name: string }[];
+  culture_tonight_show: CultureShowDisplay | null;
 }
 
 /* ═══════════════════════════════════════════════════
