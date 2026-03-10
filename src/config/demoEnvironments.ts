@@ -62,6 +62,8 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     orgName: 'Clinica DentArt',
     icon: '🏥',
     color: '#ef4444',
+    primaryColor: '#b91c1c',
+    secondaryColor: '#ef4444',
     accounts: [
       { label: 'Pacient', description: 'Vede poziția în coadă', status: 'parinte', redirect: '/', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-1', 'Cabinet 1 - Ortodonție', 'scoala')], userName: 'Mihai Stanescu' },
       { label: 'Recepționist', description: 'Controlează coada, cheamă', status: 'secretara', redirect: '/', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-1', 'Cabinet 1', 'scoala'), g('cab-2', 'Cabinet 2', 'scoala'), g('cab-3', 'Cabinet 3', 'scoala')], userName: 'Laura Radu' },
