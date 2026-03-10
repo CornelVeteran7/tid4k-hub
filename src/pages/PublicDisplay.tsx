@@ -521,8 +521,9 @@ function PanelIndicators({ config }: { config: DisplayConfig }) {
 function VerticalContent({ config, isPortrait }: { config: DisplayConfig; isPortrait: boolean }) {
   switch (config.vertical_type) {
     case 'medicine':
-    case 'students':
       return <QueueContent config={config} />;
+    case 'students':
+      return <StudentsContent config={config} />;
     case 'construction':
       return <ConstructionContent config={config} />;
     case 'kids':
@@ -531,6 +532,10 @@ function VerticalContent({ config, isPortrait }: { config: DisplayConfig; isPort
       return <SchoolsContent config={config} isPortrait={isPortrait} />;
     case 'culture':
       return <CultureContent config={config} isPortrait={isPortrait} />;
+    case 'workshops':
+      return <WorkshopsContent config={config} isPortrait={isPortrait} />;
+    case 'living':
+      return <LivingContent config={config} isPortrait={isPortrait} />;
     default:
       return <DefaultContent config={config} isPortrait={isPortrait} />;
   }
