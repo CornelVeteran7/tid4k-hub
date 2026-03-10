@@ -108,7 +108,6 @@ function ProtectedRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <ModuleConfigProvider>
         <ExternalLinkProvider>
           <Toaster />
           <Sonner />
