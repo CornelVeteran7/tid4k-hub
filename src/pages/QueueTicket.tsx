@@ -78,7 +78,7 @@ export default function QueueTicket() {
       // Load medicine-specific data
       if (data.vertical_type === 'medicine') {
         const [{ data: svcData }, { data: docData }] = await Promise.all([
-          supabase.from('medicine_services').select('id, name, description, duration_minutes')
+          supabase.from('medicine_services').select('id, name, description, price_from, price_to, duration_minutes')
             .eq('organization_id', data.id).eq('activ', true).order('ordine'),
           supabase.from('doctor_profiles').select('id, name, photo_url, specialization, credentials, bio')
             .eq('organization_id', data.id).eq('activ', true).order('ordine'),
