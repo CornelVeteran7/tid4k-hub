@@ -23,6 +23,7 @@ interface QueueEntry {
   status: string;
   cabinet: string | null;
   note: string | null;
+  service_type: string | null;
   created_at: string;
   called_at: string | null;
   completed_at: string | null;
@@ -343,7 +344,10 @@ export default function QueueAdmin() {
                   <Card key={e.id}>
                     <CardContent className="p-3 flex items-center justify-between">
                       <div>
-                        <span className="text-lg font-bold">#{e.numar_tichet}</span>
+                      <span className="text-lg font-bold">#{e.numar_tichet}</span>
+                        {e.service_type && (
+                          <Badge variant="outline" className="text-[10px] mt-0.5">{e.service_type}</Badge>
+                        )}
                         <p className="text-xs text-muted-foreground">
                           {format(new Date(e.created_at), 'HH:mm')}
                           <span className="ml-1 text-primary">~{(idx + 1) * (avgWaitMinutes || avgMinutes)} min</span>

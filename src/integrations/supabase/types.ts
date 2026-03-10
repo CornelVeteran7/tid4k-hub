@@ -771,6 +771,53 @@ export type Database = {
           },
         ]
       }
+      doctor_profiles: {
+        Row: {
+          activ: boolean | null
+          bio: string | null
+          created_at: string
+          credentials: string | null
+          id: string
+          name: string
+          ordine: number | null
+          organization_id: string | null
+          photo_url: string | null
+          specialization: string | null
+        }
+        Insert: {
+          activ?: boolean | null
+          bio?: string | null
+          created_at?: string
+          credentials?: string | null
+          id?: string
+          name: string
+          ordine?: number | null
+          organization_id?: string | null
+          photo_url?: string | null
+          specialization?: string | null
+        }
+        Update: {
+          activ?: boolean | null
+          bio?: string | null
+          created_at?: string
+          credentials?: string | null
+          id?: string
+          name?: string
+          ordine?: number | null
+          organization_id?: string | null
+          photo_url?: string | null
+          specialization?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           categorie: string | null
@@ -1237,6 +1284,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "magazine_articles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicine_services: {
+        Row: {
+          activ: boolean | null
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          name: string
+          ordine: number | null
+          organization_id: string | null
+          price_from: number | null
+          price_to: number | null
+        }
+        Insert: {
+          activ?: boolean | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          name: string
+          ordine?: number | null
+          organization_id?: string | null
+          price_from?: number | null
+          price_to?: number | null
+        }
+        Update: {
+          activ?: boolean | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          name?: string
+          ordine?: number | null
+          organization_id?: string | null
+          price_from?: number | null
+          price_to?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicine_services_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1805,6 +1899,7 @@ export type Database = {
           note: string | null
           numar_tichet: number
           organization_id: string | null
+          service_type: string | null
           status: string
         }
         Insert: {
@@ -1816,6 +1911,7 @@ export type Database = {
           note?: string | null
           numar_tichet: number
           organization_id?: string | null
+          service_type?: string | null
           status?: string
         }
         Update: {
@@ -1827,6 +1923,7 @@ export type Database = {
           note?: string | null
           numar_tichet?: number
           organization_id?: string | null
+          service_type?: string | null
           status?: string
         }
         Relationships: [
