@@ -182,6 +182,8 @@ export interface Story {
   varsta: '3-4' | '4-5' | '5-6' | '3-5' | '5-7' | '7-10';
   thumbnail?: string;
   audio_url?: string;
+  video_url?: string;
+  media_type?: 'text' | 'audio' | 'video';
   favorit?: boolean;
 }
 
