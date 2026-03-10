@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Newspaper } from 'lucide-react';
+import { Newspaper, Stethoscope, Ticket as TicketIcon } from 'lucide-react';
 import { Megaphone, FileText, MessageSquare, Clock, Shield, Calendar, Users, LogIn, ChevronRight } from 'lucide-react';
 import { format, startOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ro } from 'date-fns/locale';
