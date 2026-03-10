@@ -45,6 +45,7 @@ import SurtitleAudienceView from "./pages/SurtitleAudienceView";
 import DigitalProgram from "./pages/DigitalProgram";
 
 import SponsorMap from "./pages/SponsorMap";
+import PublicWebsite from "./pages/PublicWebsite";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
