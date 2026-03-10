@@ -44,6 +44,9 @@ export default function QRCancelarie() {
   const [magazineArticles, setMagazineArticles] = useState<{ id: string; titlu: string; autor_nume: string; categorie: string }[]>([]);
   const [medicineDoctors, setMedicineDoctors] = useState<{ name: string; specialization: string; credentials: string }[]>([]);
   const [medicineServices, setMedicineServices] = useState<{ name: string; price_from: number; price_to: number }[]>([]);
+  const [constructionTasks, setConstructionTasks] = useState<{ id: string; titlu: string; status: string; prioritate: string; locatie: string }[]>([]);
+  const [constructionSites, setConstructionSites] = useState<{ id: string; nume: string; adresa: string; beneficiar: string; contractor: string; numar_autorizatie: string }[]>([]);
+  const [ssmStatus, setSsmStatus] = useState<{ completed: number; total: number }>({ completed: 0, total: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
