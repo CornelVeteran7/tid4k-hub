@@ -124,6 +124,20 @@ function getInitialDemoState(): { user: UserSession | null; isDemo: boolean } {
   try {
     if (sessionStorage.getItem('demo_mode') === '1') {
       const savedConfig = sessionStorage.getItem('demo_config');
+      // Re-apply branding colors on demo reload
+      try {
+        const brandingStr = sessionStorage.getItem('demo_branding');
+        if (brandingStr) {
+          const { primary, secondary } = JSON.parse(brandingStr);
+          if (primary && secondary) {
+            // Defer to avoid SSR issues
+            setTimeout(() => {
+              const { applyBrandingColors } = require('@/utils/branding');
+              applyBrandingColors(primary, secondary);
+            }, 0);
+          }
+        }
+      } catch {}
       if (savedConfig) {
         const config: DemoConfig = JSON.parse(savedConfig);
         return { user: buildDemoSession(config), isDemo: true };
