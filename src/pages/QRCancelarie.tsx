@@ -111,6 +111,24 @@ export default function QRCancelarie() {
         setMedicineServices(svcData || []);
       }
 
+      // Construction-specific: tasks, sites, SSM status
+      if (orgData?.vertical_type === 'construction') {
+        const todayDate = format(new Date(), 'yyyy-MM-dd');
+        const [{ data: tasksData }, { data: sitesData }, { data: ssmData }] = await Promise.all([
+          supabase.from('construction_tasks').select('id, titlu, status, prioritate, locatie')
+            .eq('organization_id', orgId).in('status', ['todo', 'in_progress'])
+            .order('created_at', { ascending: false }).limit(10),
+          supabase.from('construction_sites').select('id, nume, adresa, beneficiar, contractor, numar_autorizatie')
+            .eq('organization_id', orgId).eq('status', 'activ'),
+          supabase.from('ssm_checklists').select('id, status')
+            .eq('organization_id', orgId).eq('data', todayDate),
+        ]);
+        setConstructionTasks(tasksData || []);
+        setConstructionSites((sitesData || []) as any[]);
+        const ssmList = ssmData || [];
+        setSsmStatus({ completed: ssmList.filter((s: any) => s.status === 'completed').length, total: ssmList.length });
+      }
+
       setLoading(false);
     }
     load();
