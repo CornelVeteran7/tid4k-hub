@@ -32,6 +32,8 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     orgName: 'Grădinița Floarea Soarelui',
     icon: '🏫',
     color: '#3b82f6',
+    primaryColor: '#1E3A4C',
+    secondaryColor: '#2563b4',
     accounts: [
       { label: 'Părinte', description: 'Vede copilul, meniul, prezența', status: 'parinte', redirect: '/', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică')], userName: 'Maria Ionescu' },
       { label: 'Educatoare', description: 'Gestionează grupa, postează', status: 'profesor', redirect: '/', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică'), g('albinute', 'Grupa Mijlocie')], userName: 'Elena Popescu' },
