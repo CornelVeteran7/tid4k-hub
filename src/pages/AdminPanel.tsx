@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette, HelpCircle, BarChart3 } from 'lucide-react';
+import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette, HelpCircle, BarChart3, Monitor, Shield, Globe, SlidersHorizontal, Award } from 'lucide-react';
 import { getSchools } from '@/api/schools';
 import type { School as SchoolType } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,11 @@ import DocsTab from '@/components/admin/DocsTab';
 import BrandingTab from '@/components/admin/BrandingTab';
 import UserGuideTab from '@/components/admin/UserGuideTab';
 import BusinessIntelligenceTab from '@/components/admin/BusinessIntelligenceTab';
+import SponsorsTab from '@/components/admin/SponsorsTab';
+import SponsorPolicyTab from '@/components/admin/SponsorPolicyTab';
+import DisplayPreviewTab from '@/components/admin/DisplayPreviewTab';
+import WebsiteTab from '@/components/admin/WebsiteTab';
+import ModuleTogglesTab from '@/components/admin/ModuleTogglesTab';
 
 export default function AdminPanel() {
   const { user } = useAuth();
@@ -26,7 +31,6 @@ export default function AdminPanel() {
 
   useEffect(() => { getSchools().then(setSchools); }, []);
 
-  // Access control: only admin/director/inky
   if (!user || !checkIsAdmin(user.status, user.nume_prenume)) {
     return <Navigate to="/" replace />;
   }
@@ -39,6 +43,11 @@ export default function AdminPanel() {
     { value: 'orar', label: 'Orar', icon: Calendar, verticals: ['kids', 'schools', 'medicine', 'students', 'culture'] },
     { value: 'meniu', label: 'Meniu', icon: UtensilsCrossed, verticals: ['kids'] },
     { value: 'ateliere', label: 'Ateliere', icon: Paintbrush, verticals: ['kids'] },
+    { value: 'sponsori', label: 'Sponsori', icon: Award, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'politica', label: 'Politică Sponsori', icon: Shield, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'display', label: 'Display & QR', icon: Monitor, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'website', label: 'Website', icon: Globe, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'module', label: 'Module', icon: SlidersHorizontal, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'setari', label: 'Setări', icon: Settings, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'ghid', label: 'Ghid', icon: HelpCircle, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'docs', label: 'Docs', icon: BookOpen, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
@@ -47,10 +56,8 @@ export default function AdminPanel() {
   ];
   const visibleTabs = TABS.filter(t => t.verticals.includes(verticalType));
 
-
   return (
     <div className="space-y-5 pb-20 overflow-hidden">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-display font-bold flex items-center gap-2">
@@ -61,8 +68,6 @@ export default function AdminPanel() {
             Gestionează {verticalDef.entityLabelPlural.toLowerCase()}, utilizatorii și setările
           </p>
         </div>
-
-        {/* Global selector */}
         <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
           <SelectTrigger className="w-full sm:w-[260px] shrink-0">
             <SelectValue placeholder={`Selectează ${verticalDef.entityLabel.toLowerCase()}`} />
@@ -70,15 +75,12 @@ export default function AdminPanel() {
           <SelectContent>
             <SelectItem value="all">Toate {verticalDef.entityLabelPlural.toLowerCase()}</SelectItem>
             {schools.map(s => (
-              <SelectItem key={s.id} value={s.id.toString()}>
-                {s.nume}
-              </SelectItem>
+              <SelectItem key={s.id} value={s.id.toString()}>{s.nume}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue={visibleTabs[0]?.value || 'scoli'} className="space-y-4">
         <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
           <TabsList className="inline-flex w-auto min-w-full sm:min-w-0">
@@ -97,6 +99,11 @@ export default function AdminPanel() {
           <TabsContent value="orar"><ScheduleTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
           <TabsContent value="meniu"><MenuTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
           <TabsContent value="ateliere"><WorkshopsTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
+          <TabsContent value="sponsori"><SponsorsTab /></TabsContent>
+          <TabsContent value="politica"><SponsorPolicyTab /></TabsContent>
+          <TabsContent value="display"><DisplayPreviewTab /></TabsContent>
+          <TabsContent value="website"><WebsiteTab /></TabsContent>
+          <TabsContent value="module"><ModuleTogglesTab /></TabsContent>
           <TabsContent value="setari"><SettingsTab schoolId={selectedSchoolId} schools={schools} /></TabsContent>
           <TabsContent value="ghid"><UserGuideTab /></TabsContent>
           <TabsContent value="docs"><DocsTab /></TabsContent>

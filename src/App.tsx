@@ -45,6 +45,7 @@ import SurtitleAudienceView from "./pages/SurtitleAudienceView";
 import DigitalProgram from "./pages/DigitalProgram";
 
 import SponsorMap from "./pages/SponsorMap";
+import PublicWebsite from "./pages/PublicWebsite";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
@@ -141,6 +142,7 @@ const App = () => (
                 <Route path="/surtitle/operate/:showId" element={<SurtitleOperator />} />
                 <Route path="/program/:showId" element={<DigitalProgram />} />
                 <Route path="/queue/:orgSlug" element={<QueueTicket />} />
+                <Route path="/site/:orgSlug" element={<PublicWebsite />} />
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
             </AuthProvider>
