@@ -91,6 +91,9 @@ interface DisplayConfig {
   timetable_today: TimetableSlide[];
   timetable_current_period: number;
   magazine_articles: MagazineSlide[];
+  google_reviews_url: string;
+  medicine_doctors: { name: string; specialization: string }[];
+  medicine_services: { name: string }[];
 }
 
 /* ═══════════════════════════════════════════════════
@@ -278,6 +281,10 @@ export default function PublicDisplay() {
     // Load queue config for avg wait time
     let queueAvgWait = 10;
     let queueServicePoints: string[] = [];
+    let googleReviewsUrl = '';
+    let medicineDoctors: { name: string; specialization: string }[] = [];
+    let medicineServices: { name: string }[] = [];
+
     if (org?.vertical_type === 'medicine' || org?.vertical_type === 'students') {
       const { data: qc } = await supabase.from('queue_config')
         .select('avg_service_minutes, service_points')
@@ -286,10 +293,23 @@ export default function PublicDisplay() {
         queueAvgWait = qc.avg_service_minutes;
         queueServicePoints = Array.isArray(qc.service_points) ? qc.service_points as string[] : [];
       }
-      // Calculate actual avg from completed tickets if available
-      const completedEntries = queueEntries.filter(e => e.status === 'completed' || e.status === 'called');
-      const withWait = queueEntries.filter(e => (e.status === 'called' || e.status === 'serving') && e.called_at && e.created_at);
-      // Use real data if we have completed tickets
+    }
+
+    if (org?.vertical_type === 'medicine') {
+      const [{ data: gConfig }, { data: docData }, { data: svcData }] = await Promise.all([
+        supabase.from('org_config').select('config_value')
+          .eq('organization_id', orgId).eq('config_key', 'google_business_url').maybeSingle(),
+        supabase.from('doctor_profiles').select('name, specialization')
+          .eq('organization_id', orgId).eq('activ', true).order('ordine').limit(6),
+        supabase.from('medicine_services').select('name')
+          .eq('organization_id', orgId).eq('activ', true).order('ordine').limit(8),
+      ]);
+      if (gConfig?.config_value) {
+        const val = gConfig.config_value as any;
+        googleReviewsUrl = typeof val === 'string' ? val : val?.url || '';
+      }
+      medicineDoctors = (docData || []) as { name: string; specialization: string }[];
+      medicineServices = (svcData || []) as { name: string }[];
     }
 
     setConfig({
@@ -318,6 +338,9 @@ export default function PublicDisplay() {
       timetable_today: timetableToday,
       timetable_current_period: timetableCurrentPeriod,
       magazine_articles: magazineArticles,
+      google_reviews_url: googleReviewsUrl,
+      medicine_doctors: medicineDoctors,
+      medicine_services: medicineServices,
     });
     setLoading(false);
   }, [orgSlug]);
@@ -809,13 +832,102 @@ function QueueContent({ config }: { config: DisplayConfig }) {
           </div>
         </div>
       </div>
+
+      {/* Medicine: rotating info strip (doctors + services + Google Reviews) */}
+      {config.vertical_type === 'medicine' && (config.medicine_doctors.length > 0 || config.medicine_services.length > 0 || config.google_reviews_url) && (
+        <MedicineInfoStrip config={config} />
+      )}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   CONSTRUCTION Content: Tasks + SSM
+   Medicine Info Strip — rotating doctors, services, Google Reviews
    ═══════════════════════════════════════════════════ */
+
+function MedicineInfoStrip({ config }: { config: DisplayConfig }) {
+  const slides: React.ReactNode[] = [];
+
+  // Doctor profiles slide
+  if (config.medicine_doctors.length > 0) {
+    slides.push(
+      <div key="doctors" className="flex items-center" style={{ gap: 32 }}>
+        <div style={{ fontSize: 18, fontWeight: 700, opacity: 0.7, minWidth: 140 }}>🩺 Echipa medicală</div>
+        <div className="flex" style={{ gap: 16 }}>
+          {config.medicine_doctors.map((d, i) => (
+            <div key={i} className="rounded-xl" style={{ background: 'rgba(255,255,255,0.1)', padding: '8px 16px' }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{d.name}</div>
+              <div style={{ fontSize: 11, opacity: 0.5 }}>{d.specialization}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Services slide
+  if (config.medicine_services.length > 0) {
+    slides.push(
+      <div key="services" className="flex items-center" style={{ gap: 32 }}>
+        <div style={{ fontSize: 18, fontWeight: 700, opacity: 0.7, minWidth: 140 }}>📋 Servicii</div>
+        <div className="flex flex-wrap" style={{ gap: 10 }}>
+          {config.medicine_services.map((s, i) => (
+            <div key={i} className="rounded-lg" style={{ background: 'rgba(255,255,255,0.08)', padding: '6px 14px', fontSize: 14 }}>
+              {s.name}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Google Reviews CTA slide
+  if (config.google_reviews_url) {
+    slides.push(
+      <div key="reviews" className="flex items-center justify-center" style={{ gap: 24 }}>
+        <div className="text-center">
+          <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>⭐ Vă mulțumim pentru vizită!</div>
+          <div style={{ fontSize: 16, opacity: 0.6 }}>Lăsați o recenzie pe Google</div>
+        </div>
+        <div className="rounded-xl" style={{ background: '#fff', padding: 10 }}>
+          <QRCodeSVG value={config.google_reviews_url} size={72} />
+        </div>
+      </div>
+    );
+  }
+
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const duration = 6000;
+    const fadeTimer = setTimeout(() => setVisible(false), duration - 600);
+    const switchTimer = setTimeout(() => {
+      setSlideIdx(prev => (prev + 1) % slides.length);
+      setVisible(true);
+    }, duration);
+    return () => { clearTimeout(fadeTimer); clearTimeout(switchTimer); };
+  }, [slideIdx, slides.length]);
+
+  if (slides.length === 0) return null;
+
+  return (
+    <div className="absolute left-0 right-0 z-10 rounded-2xl" style={{
+      bottom: config.ticker_messages.length > 0 ? 60 : 12,
+      margin: '0 60px',
+      background: 'rgba(0,0,0,0.5)',
+      backdropFilter: 'blur(20px)',
+      padding: '16px 28px',
+      transition: 'opacity 0.5s ease',
+      opacity: visible ? 1 : 0,
+    }}>
+      {slides[slideIdx % slides.length]}
+    </div>
+  );
+}
+
+
 
 function ConstructionContent({ config }: { config: DisplayConfig }) {
   return (
