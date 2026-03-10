@@ -155,12 +155,15 @@ export default function TutorialOverlay() {
     const spaceBelow = window.innerHeight - spotlightRect.bottom;
     const showBelow = spaceBelow > 220 || spotlightRect.top < 200;
 
+    const tooltipWidth = Math.min(320, window.innerWidth - 32);
+    const tooltipLeft = (window.innerWidth - tooltipWidth) / 2;
+
     tooltipStyle = {
       position: 'fixed',
       top: showBelow ? below : undefined,
       bottom: showBelow ? undefined : window.innerHeight - above,
-      left: Math.max(16, Math.min(centerX - 160, window.innerWidth - 336)),
-      width: 320,
+      left: tooltipLeft,
+      width: tooltipWidth,
       zIndex: 60,
     };
   } else {
