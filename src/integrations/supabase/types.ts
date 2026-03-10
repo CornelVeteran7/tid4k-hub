@@ -306,6 +306,45 @@ export type Database = {
           },
         ]
       }
+      club_memberships: {
+        Row: {
+          club_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          club_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          club_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_memberships_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "school_clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       construction_costs: {
         Row: {
           cantitate: number | null
@@ -1854,6 +1893,51 @@ export type Database = {
           },
         ]
       }
+      school_clubs: {
+        Row: {
+          advisor_teacher_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          organization_id: string | null
+        }
+        Insert: {
+          advisor_teacher_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          organization_id?: string | null
+        }
+        Update: {
+          advisor_teacher_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          organization_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_clubs_advisor_teacher_id_fkey"
+            columns: ["advisor_teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_clubs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schools: {
         Row: {
           activ: boolean | null
@@ -2470,6 +2554,132 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "surtitle_shows_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          id: string
+          name: string
+          organization_id: string | null
+          qr_code_url: string | null
+          subjects: string[] | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          organization_id?: string | null
+          qr_code_url?: string | null
+          subjects?: string[] | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string | null
+          qr_code_url?: string | null
+          subjects?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timetable_config: {
+        Row: {
+          break_durations: Json
+          created_at: string
+          id: string
+          organization_id: string
+          period_duration_minutes: number
+          periods_per_day: number
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          break_durations?: Json
+          created_at?: string
+          id?: string
+          organization_id: string
+          period_duration_minutes?: number
+          periods_per_day?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Update: {
+          break_durations?: Json
+          created_at?: string
+          id?: string
+          organization_id?: string
+          period_duration_minutes?: number
+          periods_per_day?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_config_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timetable_entries: {
+        Row: {
+          class_id: string
+          created_at: string
+          day_of_week: number
+          id: string
+          organization_id: string | null
+          period_number: number
+          room: string
+          subject: string
+          teacher_name: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          day_of_week: number
+          id?: string
+          organization_id?: string | null
+          period_number: number
+          room?: string
+          subject: string
+          teacher_name?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          organization_id?: string | null
+          period_number?: number
+          room?: string
+          subject?: string
+          teacher_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_entries_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
