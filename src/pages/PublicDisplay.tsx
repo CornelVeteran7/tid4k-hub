@@ -9,6 +9,22 @@ import { ro } from 'date-fns/locale';
    Types
    ═══════════════════════════════════════════════════ */
 
+interface TimetableSlide {
+  class_id: string;
+  period_number: number;
+  subject: string;
+  teacher_name: string;
+  room: string;
+}
+
+interface MagazineSlide {
+  id: string;
+  titlu: string;
+  autor_nume: string;
+  categorie: string;
+  continut: string;
+}
+
 interface DisplayPanel {
   id: string;
   tip: string;
@@ -72,6 +88,9 @@ interface DisplayConfig {
   queue_service_points: string[];
   construction_tasks: ConstructionTask[];
   ssm_reminders: SSMReminder[];
+  timetable_today: TimetableSlide[];
+  timetable_current_period: number;
+  magazine_articles: MagazineSlide[];
 }
 
 /* ═══════════════════════════════════════════════════
@@ -217,6 +236,38 @@ export default function PublicDisplay() {
         : Promise.resolve({ data: [] as any[] }),
     ]);
 
+    // Schools: load timetable + magazine
+    let timetableToday: TimetableSlide[] = [];
+    let timetableCurrentPeriod = 0;
+    let magazineArticles: MagazineSlide[] = [];
+    if (org?.vertical_type === 'schools') {
+      const [{ data: ttEntries }, { data: magData }] = await Promise.all([
+        dayNum <= 5
+          ? supabase.from('timetable_entries').select('class_id, period_number, subject, teacher_name, room')
+              .eq('organization_id', orgId).eq('day_of_week', dayNum).order('period_number')
+          : Promise.resolve({ data: [] as any[] }),
+        supabase.from('magazine_articles').select('id, titlu, autor_nume, categorie, continut')
+          .eq('organization_id', orgId).eq('status', 'published')
+          .order('published_at', { ascending: false }).limit(5),
+      ]);
+      timetableToday = (ttEntries || []) as TimetableSlide[];
+      magazineArticles = (magData || []) as MagazineSlide[];
+      // Determine current period from timetable_config
+      const { data: ttConfig } = await supabase.from('timetable_config').select('*')
+        .eq('organization_id', orgId).maybeSingle();
+      if (ttConfig) {
+        const [sH, sM] = (ttConfig.start_time || '08:00').split(':').map(Number);
+        let cur = sH * 60 + sM;
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        const breaks = (ttConfig.break_durations as number[]) || [];
+        for (let p = 0; p < ttConfig.periods_per_day; p++) {
+          const end = cur + ttConfig.period_duration_minutes;
+          if (nowMin >= cur && nowMin < end) { timetableCurrentPeriod = p + 1; break; }
+          cur = end + (breaks[p] || 10);
+        }
+      }
+    }
+
     const tickerMsgs = [
       ...(ticker || []).map((t: any) => t.mesaj),
       ...(announcements || []).map((a: any) => a.titlu),
@@ -264,6 +315,9 @@ export default function PublicDisplay() {
       queue_service_points: queueServicePoints,
       construction_tasks: (tasksData || []) as ConstructionTask[],
       ssm_reminders: (ssmData || []) as SSMReminder[],
+      timetable_today: timetableToday,
+      timetable_current_period: timetableCurrentPeriod,
+      magazine_articles: magazineArticles,
     });
     setLoading(false);
   }, [orgSlug]);
@@ -402,9 +456,111 @@ function VerticalContent({ config, isPortrait }: { config: DisplayConfig; isPort
       return <ConstructionContent config={config} />;
     case 'kids':
       return <KidsContent config={config} isPortrait={isPortrait} />;
+    case 'schools':
+      return <SchoolsContent config={config} isPortrait={isPortrait} />;
     default:
       return <DefaultContent config={config} isPortrait={isPortrait} />;
   }
+}
+
+/* ═══════════════════════════════════════════════════
+   SCHOOLS Content: timetable + magazine + slideshow
+   ═══════════════════════════════════════════════════ */
+
+function SchoolsContent({ config, isPortrait }: { config: DisplayConfig; isPortrait: boolean }) {
+  const DAYS_SHORT = ['Luni', 'Marți', 'Mier.', 'Joi', 'Vineri'];
+  // Group timetable entries by class (show first class found)
+  const classes = [...new Set(config.timetable_today.map(e => e.class_id))];
+
+  return (
+    <>
+      <PanelSlideshow panels={config.panels} primaryColor={config.primary_color} />
+
+      <div className="absolute left-0 right-0 z-10 flex" style={{
+        bottom: config.ticker_messages.length > 0 ? 60 : 12,
+        padding: '0 48px',
+        gap: 24,
+      }}>
+        {/* Timetable — current period highlighted */}
+        {config.timetable_today.length > 0 && (
+          <div className="rounded-2xl" style={{
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(20px)',
+            padding: 20,
+            flex: isPortrait ? '1' : '0 0 420px',
+            maxHeight: 320,
+            overflowY: 'auto',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, opacity: 0.9 }}>
+              📅 Orar azi {classes.length > 0 && <span style={{ fontSize: 12, opacity: 0.6 }}>({classes[0]})</span>}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {config.timetable_today
+                .filter(e => e.class_id === classes[0])
+                .sort((a, b) => a.period_number - b.period_number)
+                .map(e => {
+                  const isCurrent = e.period_number === config.timetable_current_period;
+                  return (
+                    <div key={e.period_number} className="flex items-center" style={{
+                      gap: 10,
+                      background: isCurrent ? 'rgba(34,197,94,0.2)' : 'transparent',
+                      borderRadius: 8,
+                      padding: isCurrent ? '6px 10px' : '2px 10px',
+                      border: isCurrent ? '1px solid rgba(34,197,94,0.4)' : 'none',
+                    }}>
+                      <span style={{ fontSize: 13, fontFamily: "'Space Mono', monospace", opacity: 0.6, width: 42 }}>
+                        Ora {e.period_number}
+                      </span>
+                      <div style={{ height: 8, width: 8, borderRadius: '50%', background: isCurrent ? '#22c55e' : config.primary_color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 14, fontWeight: isCurrent ? 600 : 400 }}>{e.subject}</span>
+                      {e.teacher_name && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 'auto' }}>{e.teacher_name}</span>}
+                      {e.room && <span style={{ fontSize: 11, opacity: 0.3 }}>· {e.room}</span>}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
+        {/* Magazine highlights */}
+        {config.magazine_articles.length > 0 && (
+          <div className="rounded-2xl" style={{
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(20px)',
+            padding: 20,
+            flex: isPortrait ? '1' : '0 0 380px',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, opacity: 0.9 }}>
+              📰 Revista Școlii
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {config.magazine_articles.slice(0, 3).map(a => (
+                <div key={a.id} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 14px' }}>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>{a.titlu}</div>
+                  <div style={{ fontSize: 11, opacity: 0.5, marginTop: 2 }}>de {a.autor_nume} · {a.categorie}</div>
+                  <div style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }} className="line-clamp-2">{a.continut}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* QR codes */}
+        {config.qr_codes.length > 0 && (
+          <div className="flex items-end" style={{ gap: 16, marginLeft: 'auto' }}>
+            {config.qr_codes.map(qr => (
+              <div key={qr.label} className="flex flex-col items-center" style={{ gap: 4 }}>
+                <div className="rounded-xl" style={{ background: '#fff', padding: 8 }}>
+                  <QRCodeSVG value={qr.url} size={72} />
+                </div>
+                <span style={{ fontSize: 11, opacity: 0.5 }}>{qr.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
 }
 
 /* ═══════════════════════════════════════════════════

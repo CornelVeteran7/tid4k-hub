@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Newspaper } from 'lucide-react';
 import { Megaphone, FileText, MessageSquare, Clock, Shield, Calendar, Users, LogIn, ChevronRight } from 'lucide-react';
 import { format, startOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -39,6 +40,8 @@ export default function QRCancelarie() {
   const [org, setOrg] = useState<OrgInfo | null>(null);
   const [announcements, setAnnouncements] = useState<PublicAnnouncement[]>([]);
   const [scheduleToday, setScheduleToday] = useState<{ ora: string; materie: string; profesor: string; culoare: string }[]>([]);
+  const [timetableToday, setTimetableToday] = useState<{ period_number: number; subject: string; teacher_name: string; room: string; class_id: string }[]>([]);
+  const [magazineArticles, setMagazineArticles] = useState<{ id: string; titlu: string; autor_nume: string; categorie: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -73,6 +76,23 @@ export default function QRCancelarie() {
         .eq('zi', todayRO)
         .order('ora');
       setScheduleToday(schedData || []);
+
+      // Schools-specific: timetable + magazine
+      if (orgData?.vertical_type === 'schools') {
+        const dayOfWeek = new Date().getDay();
+        const dayNum = dayOfWeek === 0 ? 7 : dayOfWeek;
+        const [{ data: ttData }, { data: magData }] = await Promise.all([
+          dayNum <= 5
+            ? supabase.from('timetable_entries').select('period_number, subject, teacher_name, room, class_id')
+                .eq('organization_id', orgId).eq('day_of_week', dayNum).order('period_number')
+            : Promise.resolve({ data: [] as any[] }),
+          supabase.from('magazine_articles').select('id, titlu, autor_nume, categorie')
+            .eq('organization_id', orgId).eq('status', 'published')
+            .order('published_at', { ascending: false }).limit(5),
+        ]);
+        setTimetableToday(ttData || []);
+        setMagazineArticles(magData || []);
+      }
 
       setLoading(false);
     }
@@ -151,6 +171,46 @@ export default function QRCancelarie() {
                 ))}
               </CardContent>
             </Card>
+          </Section>
+        )}
+
+        {/* ── PUBLIC: Schools Timetable ── */}
+        {timetableToday.length > 0 && (
+          <Section icon={<Calendar className="h-5 w-5" />} title="Orar azi" color={primaryColor}>
+            {(() => {
+              const classes = [...new Set(timetableToday.map(e => e.class_id))];
+              return classes.slice(0, 3).map(cls => (
+                <Card key={cls} className="mb-3">
+                  <CardContent className="p-4">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">{cls}</p>
+                    <div className="space-y-1.5">
+                      {timetableToday.filter(e => e.class_id === cls).map(e => (
+                        <div key={e.period_number} className="flex items-center gap-3 text-sm">
+                          <span className="font-mono text-muted-foreground w-12 text-xs">Ora {e.period_number}</span>
+                          <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: primaryColor }} />
+                          <span className="text-foreground font-medium">{e.subject}</span>
+                          {e.teacher_name && <span className="text-muted-foreground text-xs ml-auto">{e.teacher_name}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ));
+            })()}
+          </Section>
+        )}
+
+        {/* ── PUBLIC: Magazine articles ── */}
+        {magazineArticles.length > 0 && (
+          <Section icon={<Newspaper className="h-5 w-5" />} title="Revista Școlii" color={primaryColor}>
+            {magazineArticles.map(a => (
+              <Card key={a.id} className="mb-3">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-sm text-foreground">{a.titlu}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">de {a.autor_nume} · {a.categorie}</p>
+                </CardContent>
+              </Card>
+            ))}
           </Section>
         )}
 
