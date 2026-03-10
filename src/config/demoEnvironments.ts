@@ -77,6 +77,8 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     orgName: 'SC Constructorul SRL',
     icon: '🏗️',
     color: '#22c55e',
+    primaryColor: '#b45309',
+    secondaryColor: '#d97706',
     accounts: [
       { label: 'Patron', description: 'Toate șantierele, costuri, echipe', status: 'director', redirect: '/', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala'), g('sant-2', 'Vila Popescu', 'scoala')], userName: 'Gheorghe Dobre' },
       { label: 'Șef Echipă', description: 'Taskuri echipă, programare', status: 'profesor', redirect: '/', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala')], userName: 'Vasile Niță' },
