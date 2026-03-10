@@ -89,9 +89,13 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
 
   useEffect(() => {
     if (selectedConvo && user) {
-      getMessages(selectedConvo.grupa, user.id, selectedConvo.id).then(setMessages);
+      if (isDemo) {
+        setMessages(getDemoMessages(vertical, selectedConvo.id));
+      } else {
+        getMessages(selectedConvo.grada, user.id, selectedConvo.id).then(setMessages);
+      }
     }
-  }, [selectedConvo, user]);
+  }, [selectedConvo, user, isDemo, vertical]);
 
   // Real-time subscription for new messages
   useEffect(() => {
