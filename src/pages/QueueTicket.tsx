@@ -30,6 +30,8 @@ interface MedicineService {
   id: string;
   name: string;
   description: string;
+  price_from: number;
+  price_to: number;
   duration_minutes: number;
 }
 
