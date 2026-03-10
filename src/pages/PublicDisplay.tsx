@@ -832,6 +832,11 @@ function QueueContent({ config }: { config: DisplayConfig }) {
           </div>
         </div>
       </div>
+
+      {/* Medicine: rotating info strip (doctors + services + Google Reviews) */}
+      {config.vertical_type === 'medicine' && (config.medicine_doctors.length > 0 || config.medicine_services.length > 0 || config.google_reviews_url) && (
+        <MedicineInfoStrip config={config} />
+      )}
     </div>
   );
 }
