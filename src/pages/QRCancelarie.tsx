@@ -300,6 +300,24 @@ export default function QRCancelarie() {
           </>
         )}
 
+        {/* ── Culture: Program + Surtitles links ── */}
+        {org?.vertical_type === 'culture' && (
+          <Section icon={<Theater className="h-5 w-5" />} title="Program & Supratitrare" color={primaryColor}>
+            <Card>
+              <CardContent className="p-4 text-center space-y-3">
+                <p className="text-sm text-muted-foreground">Accesați programul digital al spectacolului sau supratitrarea live</p>
+                <div className="flex gap-2 justify-center">
+                  <Button variant="outline" size="sm" asChild className="gap-1.5">
+                    <a href={`/surtitle/${orgSlug}`}>
+                      <Theater className="h-4 w-4" /> Supratitrare live
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Section>
+        )}
+
         {/* ── Construction: Tasks, Sites, SSM ── */}
         {org?.vertical_type === 'construction' && (
           <>
