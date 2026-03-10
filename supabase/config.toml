@@ -2,3 +2,9 @@ project_id = "xhhcgspdobgmtumzmbjt"
 
 [functions.seed-demo-orgs]
 verify_jwt = false
+
+[functions.create-contribution-checkout]
+verify_jwt = false
+
+[functions.stripe-contribution-webhook]
+verify_jwt = false
