@@ -54,7 +54,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     icon: '🧒',
     groupTypeDefault: 'gradinita',
     moduleLabels: {
-      prezenta: { title: 'PREZENȚA', subtitle: 'Cine a venit azi la grupă' },
+      prezenta: { title: 'PREZENȚA ȘI CONTRIBUȚIE', subtitle: 'Prezență, contribuții și plată online' },
       imagini: { title: 'IMAGINI', subtitle: 'Fotografii din activități' },
       documente: { title: 'DOCUMENTE', subtitle: 'Fișiere PDF partajate' },
       povesti: { title: 'POVEȘTI', subtitle: 'Povești pentru copii' },
