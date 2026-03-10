@@ -318,6 +318,30 @@ export default function QRCancelarie() {
           </Section>
         )}
 
+        {/* ── Workshops: Services + appointments ── */}
+        {org?.vertical_type === 'workshops' && (
+          <Section icon={<Clock className="h-5 w-5" />} title="Servicii & Programări" color={primaryColor}>
+            <Card>
+              <CardContent className="p-4 text-center space-y-2">
+                <p className="text-sm text-muted-foreground">Contactați-ne pentru programări sau scanați QR-ul de pe display</p>
+                <p className="text-xs text-muted-foreground">Service auto · Diagnosticare · Reparații · ITP</p>
+              </CardContent>
+            </Card>
+          </Section>
+        )}
+
+        {/* ── Living: Building info ── */}
+        {org?.vertical_type === 'living' && (
+          <Section icon={<Shield className="h-5 w-5" />} title="Informații Bloc" color={primaryColor}>
+            <Card>
+              <CardContent className="p-4 text-center space-y-2">
+                <p className="text-sm text-muted-foreground">Anunțuri, program întreținere și contact administrație</p>
+                {isAuthenticated && <p className="text-xs text-primary font-medium">Conectat — vedeți situația apartamentului</p>}
+              </CardContent>
+            </Card>
+          </Section>
+        )}
+
         {/* ── Construction: Tasks, Sites, SSM ── */}
         {org?.vertical_type === 'construction' && (
           <>
