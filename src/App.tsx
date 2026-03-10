@@ -36,6 +36,7 @@ import VideoGenerationPage from "./pages/VideoGeneration";
 import QueueAdmin from "./pages/QueueAdmin";
 import QueueTicket from "./pages/QueueTicket";
 import Contributions from "./pages/Contributions";
+import SponsorMap from "./pages/SponsorMap";
 import NotFound from "./pages/NotFound";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
