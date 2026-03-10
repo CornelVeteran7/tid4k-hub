@@ -18,6 +18,8 @@ export interface DemoEnvironment {
   orgName: string;
   icon: string;
   color: string;
+  primaryColor: string;
+  secondaryColor: string;
   accounts: DemoAccount[];
 }
 

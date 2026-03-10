@@ -63,6 +63,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const refreshNotifications = useCallback(async () => {
     if (!user) return;
 
+    // In demo mode, return static mock notifications instead of hitting Supabase
+    const isDemo = sessionStorage.getItem('demo_mode') === '1';
+    if (isDemo) {
+      const readIds = readIdsRef.current;
+      const mockNotifs: NotificationItem[] = [
+        { id: 'ann-demo-1', type: 'announcement', title: 'Bun venit în modul demo!', description: 'Explorați toate funcționalitățile', timestamp: new Date().toISOString(), read: readIds.has('ann-demo-1'), navigateTo: '/anunturi', icon: 'megaphone' },
+        { id: 'ann-demo-2', type: 'announcement', title: 'Actualizare platformă', description: 'Versiune nouă disponibilă', timestamp: new Date(Date.now() - 3600000).toISOString(), read: readIds.has('ann-demo-2'), navigateTo: '/anunturi', icon: 'megaphone' },
+        { id: 'msg-demo-1', type: 'message', title: 'Mesaj demo', description: 'Aceasta este o conversație demo', timestamp: new Date(Date.now() - 7200000).toISOString(), read: readIds.has('msg-demo-1'), navigateTo: '/mesaje', icon: 'message' },
+      ];
+      setUnreadMessages(mockNotifs.filter(n => n.type === 'message' && !n.read).length);
+      setNewAnnouncements(mockNotifs.filter(n => n.type !== 'message' && !n.read).length);
+      setNotifications(mockNotifs);
+      return;
+    }
+
     try {
       const [conversations, announcements, workshopOfMonth] = await Promise.all([
         getConversations(user.id),
