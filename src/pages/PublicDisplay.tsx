@@ -456,9 +456,111 @@ function VerticalContent({ config, isPortrait }: { config: DisplayConfig; isPort
       return <ConstructionContent config={config} />;
     case 'kids':
       return <KidsContent config={config} isPortrait={isPortrait} />;
+    case 'schools':
+      return <SchoolsContent config={config} isPortrait={isPortrait} />;
     default:
       return <DefaultContent config={config} isPortrait={isPortrait} />;
   }
+}
+
+/* ═══════════════════════════════════════════════════
+   SCHOOLS Content: timetable + magazine + slideshow
+   ═══════════════════════════════════════════════════ */
+
+function SchoolsContent({ config, isPortrait }: { config: DisplayConfig; isPortrait: boolean }) {
+  const DAYS_SHORT = ['Luni', 'Marți', 'Mier.', 'Joi', 'Vineri'];
+  // Group timetable entries by class (show first class found)
+  const classes = [...new Set(config.timetable_today.map(e => e.class_id))];
+
+  return (
+    <>
+      <PanelSlideshow panels={config.panels} primaryColor={config.primary_color} />
+
+      <div className="absolute left-0 right-0 z-10 flex" style={{
+        bottom: config.ticker_messages.length > 0 ? 60 : 12,
+        padding: '0 48px',
+        gap: 24,
+      }}>
+        {/* Timetable — current period highlighted */}
+        {config.timetable_today.length > 0 && (
+          <div className="rounded-2xl" style={{
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(20px)',
+            padding: 20,
+            flex: isPortrait ? '1' : '0 0 420px',
+            maxHeight: 320,
+            overflowY: 'auto',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, opacity: 0.9 }}>
+              📅 Orar azi {classes.length > 0 && <span style={{ fontSize: 12, opacity: 0.6 }}>({classes[0]})</span>}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {config.timetable_today
+                .filter(e => e.class_id === classes[0])
+                .sort((a, b) => a.period_number - b.period_number)
+                .map(e => {
+                  const isCurrent = e.period_number === config.timetable_current_period;
+                  return (
+                    <div key={e.period_number} className="flex items-center" style={{
+                      gap: 10,
+                      background: isCurrent ? 'rgba(34,197,94,0.2)' : 'transparent',
+                      borderRadius: 8,
+                      padding: isCurrent ? '6px 10px' : '2px 10px',
+                      border: isCurrent ? '1px solid rgba(34,197,94,0.4)' : 'none',
+                    }}>
+                      <span style={{ fontSize: 13, fontFamily: "'Space Mono', monospace", opacity: 0.6, width: 42 }}>
+                        Ora {e.period_number}
+                      </span>
+                      <div style={{ height: 8, width: 8, borderRadius: '50%', background: isCurrent ? '#22c55e' : config.primary_color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 14, fontWeight: isCurrent ? 600 : 400 }}>{e.subject}</span>
+                      {e.teacher_name && <span style={{ fontSize: 12, opacity: 0.4, marginLeft: 'auto' }}>{e.teacher_name}</span>}
+                      {e.room && <span style={{ fontSize: 11, opacity: 0.3 }}>· {e.room}</span>}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
+        {/* Magazine highlights */}
+        {config.magazine_articles.length > 0 && (
+          <div className="rounded-2xl" style={{
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(20px)',
+            padding: 20,
+            flex: isPortrait ? '1' : '0 0 380px',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, opacity: 0.9 }}>
+              📰 Revista Școlii
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {config.magazine_articles.slice(0, 3).map(a => (
+                <div key={a.id} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: '10px 14px' }}>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>{a.titlu}</div>
+                  <div style={{ fontSize: 11, opacity: 0.5, marginTop: 2 }}>de {a.autor_nume} · {a.categorie}</div>
+                  <div style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }} className="line-clamp-2">{a.continut}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* QR codes */}
+        {config.qr_codes.length > 0 && (
+          <div className="flex items-end" style={{ gap: 16, marginLeft: 'auto' }}>
+            {config.qr_codes.map(qr => (
+              <div key={qr.label} className="flex flex-col items-center" style={{ gap: 4 }}>
+                <div className="rounded-xl" style={{ background: '#fff', padding: 8 }}>
+                  <QRCodeSVG value={qr.url} size={72} />
+                </div>
+                <span style={{ fontSize: 11, opacity: 0.5 }}>{qr.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
 }
 
 /* ═══════════════════════════════════════════════════

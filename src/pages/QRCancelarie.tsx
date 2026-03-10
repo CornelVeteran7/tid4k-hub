@@ -77,6 +77,23 @@ export default function QRCancelarie() {
         .order('ora');
       setScheduleToday(schedData || []);
 
+      // Schools-specific: timetable + magazine
+      if (orgData?.vertical_type === 'schools') {
+        const dayOfWeek = new Date().getDay();
+        const dayNum = dayOfWeek === 0 ? 7 : dayOfWeek;
+        const [{ data: ttData }, { data: magData }] = await Promise.all([
+          dayNum <= 5
+            ? supabase.from('timetable_entries').select('period_number, subject, teacher_name, room, class_id')
+                .eq('organization_id', orgId).eq('day_of_week', dayNum).order('period_number')
+            : Promise.resolve({ data: [] as any[] }),
+          supabase.from('magazine_articles').select('id, titlu, autor_nume, categorie')
+            .eq('organization_id', orgId).eq('status', 'published')
+            .order('published_at', { ascending: false }).limit(5),
+        ]);
+        setTimetableToday(ttData || []);
+        setMagazineArticles(magData || []);
+      }
+
       setLoading(false);
     }
     load();
