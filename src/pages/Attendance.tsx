@@ -549,9 +549,11 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
           <TabsTrigger value="stats" className="gap-1.5">
             <BarChart3 className="h-3.5 w-3.5" /> Statistici
           </TabsTrigger>
-          <TabsTrigger value="contributions" className="gap-1.5">
-            <Coins className="h-3.5 w-3.5" /> Contribuții
-          </TabsTrigger>
+          {isKidsVertical && (
+            <TabsTrigger value="contributions" className="gap-1.5">
+              <Coins className="h-3.5 w-3.5" /> Contribuții
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* ── Weekly Tab ── */}
