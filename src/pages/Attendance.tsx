@@ -520,7 +520,7 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
         <div className="rounded-2xl p-5 text-black" style={{ backgroundColor: '#FFC107' }}>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-display font-bold uppercase tracking-wide">Prezența și Contribuție</h1>
+              <h1 className="text-xl font-display font-bold uppercase tracking-wide">{isKidsVertical ? 'Prezența și Contribuție' : 'Prezența'}</h1>
               <p className="text-sm font-medium opacity-80">{currentGroup?.nume || 'Selectează o grupă'}</p>
               <p className="text-xs opacity-70 mt-0.5">{format(new Date(), 'd MMMM yyyy', { locale: ro })}</p>
               {isParent && (
