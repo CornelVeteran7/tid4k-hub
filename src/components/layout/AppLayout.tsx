@@ -57,7 +57,8 @@ function SidebarDecorationComponent({ vertical }: { vertical: string }) {
 // Secondary nav — items NOT on the dashboard
 const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; moduleKey?: string; verticals?: string[] }[] = [
 { path: '/prezenta', label: 'Prezența', icon: ClipboardList, roles: ['profesor', 'parinte', 'director', 'administrator', 'secretara'], verticals: ['kids', 'schools'] },
-{ path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'orar' },
+{ path: '/orar', label: 'Orar', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'orar', verticals: ['kids', 'medicine', 'culture', 'living', 'students', 'construction', 'workshops'] },
+{ path: '/orar-avansat', label: 'Orar Avansat', icon: Calendar, roles: ['profesor', 'parinte', 'director', 'administrator'], verticals: ['schools'] },
 { path: '/anunturi', label: 'Anunțuri', icon: Megaphone, roles: ['profesor', 'parinte', 'director', 'administrator'], moduleKey: 'anunturi' },
 { path: '/povesti', label: 'Povești', icon: BookOpen, roles: ['profesor', 'parinte', 'director', 'administrator'], verticals: ['kids'] },
 { path: '/santiere', label: 'Șantiere', icon: HardHat, roles: ['profesor', 'director', 'administrator'], verticals: ['construction'] },
