@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, memo, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { BackgroundDecorations } from '@/components/decorations/VerticalDecorations';
 import { useGroup } from '@/contexts/GroupContext';
 import { getRoles } from '@/utils/roles';
 import { getVerticalRoleLabel } from '@/config/verticalConfig';
