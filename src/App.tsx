@@ -31,6 +31,7 @@ import ConstructionWorker from "./pages/ConstructionWorker";
 import InventoryPage from "./pages/Inventory";
 import SSMPage from "./pages/SSM";
 import MagazinePage from "./pages/Magazine";
+import AdvancedTimetable from "./pages/AdvancedTimetable";
 import SurtitlesPage from "./pages/Surtitles";
 import VideoGenerationPage from "./pages/VideoGeneration";
 import QueueAdmin from "./pages/QueueAdmin";
