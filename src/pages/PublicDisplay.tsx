@@ -502,6 +502,8 @@ function VerticalContent({ config, isPortrait }: { config: DisplayConfig; isPort
       return <KidsContent config={config} isPortrait={isPortrait} />;
     case 'schools':
       return <SchoolsContent config={config} isPortrait={isPortrait} />;
+    case 'culture':
+      return <CultureContent config={config} isPortrait={isPortrait} />;
     default:
       return <DefaultContent config={config} isPortrait={isPortrait} />;
   }
