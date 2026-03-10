@@ -336,7 +336,7 @@ const docCategoryData = [
   { name: 'Fotografii', value: 67, color: 'hsl(0,72%,50%)' },
 ];
 
-function DashboardCharts() {
+function DashboardCharts({ chartLabel }: { chartLabel: string }) {
   return (
     <div className="hidden lg:flex flex-col gap-5">
       {/* Attendance trends */}
