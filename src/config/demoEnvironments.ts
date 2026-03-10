@@ -92,6 +92,8 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     orgName: 'Auto Service Popescu',
     icon: '🔧',
     color: '#78716c',
+    primaryColor: '#57534e',
+    secondaryColor: '#78716c',
     accounts: [
       { label: 'Proprietar', description: 'Inventar, programări, facturi', status: 'director', redirect: '/', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Marian Popescu' },
       { label: 'Mecanic', description: 'Inventar piese, fișe vehicul', status: 'profesor', redirect: '/', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Dan Stoica' },
