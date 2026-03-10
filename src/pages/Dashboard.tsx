@@ -557,7 +557,7 @@ export default function Dashboard() {
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {roles.map(r => (
                   <Badge key={r} variant="secondary" className="bg-foreground/10 text-foreground/80 border-0 text-xs backdrop-blur-sm">
-                    {getRoleLabel(r)}
+                    {getVerticalRoleLabel(r, verticalType)}
                   </Badge>
                 ))}
               </div>
