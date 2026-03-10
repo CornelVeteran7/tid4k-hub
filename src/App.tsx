@@ -127,7 +127,6 @@ const App = () => (
             </AuthProvider>
           </BrowserRouter>
         </ExternalLinkProvider>
-      </ModuleConfigProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
