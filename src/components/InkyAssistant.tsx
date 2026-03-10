@@ -249,7 +249,7 @@ export default function InkyAssistant() {
           }
           className="h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-lg border border-primary/20 flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 glass-card p-0"
         >
-          <img src={costumeUrl || inkyImg} alt="Inky Assistant" className="h-[90%] w-[90%] object-contain" />
+          <img src={costumeUrl || verticalCostume} alt="Inky Assistant" className="h-[90%] w-[90%] object-contain" />
         </motion.button>
       </div>
     </>
