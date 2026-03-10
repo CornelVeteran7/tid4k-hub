@@ -158,6 +158,7 @@ export default function InkyAssistant() {
   const stilInky = sponsorAction?.stilInky;
   const sponsorBg = stilInky?.bg_color || sponsorAction?.sponsorColor || '#e1001a';
   const costumeUrl = stilInky?.costume_url;
+  const verticalCostume = VERTICAL_COSTUMES[user.vertical_type || 'kids'] || inkyImg;
 
   return (
     <>
