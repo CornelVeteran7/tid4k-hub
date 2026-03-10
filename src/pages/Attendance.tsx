@@ -146,7 +146,9 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
         body: { child_id: childId, month, year, amount, child_name: childName },
       });
       if (error) throw error;
-      if (data?.url) {
+      if (data?.mock) {
+        toast.info(data.message || 'Plata online va fi disponibilă în curând. Stripe nu este configurat.');
+      } else if (data?.url) {
         window.location.href = data.url;
       } else {
         toast.error('Nu s-a putut genera link-ul de plată.');
