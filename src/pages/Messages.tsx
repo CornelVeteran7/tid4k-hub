@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getConversations, getMessages, sendMessage } from '@/api/messages';
+import { getDemoConversations, getDemoMessages } from '@/data/demoMessages';
 import type { Conversation, Message } from '@/types';
+import type { VerticalType } from '@/config/verticalConfig';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -56,12 +58,22 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
 
   const { isDemo } = useAuth();
 
+  const vertical = (user?.vertical_type || 'kids') as VerticalType;
+
+  // Load conversations - demo or real
   useEffect(() => {
-    if (user && !isDemo) getConversations(user.id).then(c => {
-      setConversations(c);
-      setFilteredConvos(c);
-    });
-  }, [user, isDemo]);
+    if (!user) return;
+    if (isDemo) {
+      const demoConvos = getDemoConversations(vertical);
+      setConversations(demoConvos);
+      setFilteredConvos(demoConvos);
+    } else {
+      getConversations(user.id).then(c => {
+        setConversations(c);
+        setFilteredConvos(c);
+      });
+    }
+  }, [user, isDemo, vertical]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -77,14 +89,17 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
 
   useEffect(() => {
     if (selectedConvo && user) {
-      getMessages(selectedConvo.grupa, user.id, selectedConvo.id).then(setMessages);
+      if (isDemo) {
+        setMessages(getDemoMessages(vertical, selectedConvo.id));
+      } else {
+        getMessages(selectedConvo.grupa, user.id, selectedConvo.id).then(setMessages);
+      }
     }
-  }, [selectedConvo, user]);
+  }, [selectedConvo, user, isDemo, vertical]);
 
   // Real-time subscription for new messages
   useEffect(() => {
-    if (!selectedConvo) return;
-    
+    if (!selectedConvo || isDemo) return;
     import('@/integrations/supabase/client').then(({ supabase: sb }) => {
       const channel = sb
         .channel(`messages:${selectedConvo.id}`)
@@ -125,16 +140,36 @@ export default function Messages({ embedded }: { embedded?: boolean }) {
     if (!newMessage.trim() || !selectedConvo || !user || isSending) return;
     setIsSending(true);
     try {
-      const msg = await sendMessage(selectedConvo.grupa, selectedConvo.contact_id, newMessage);
-      setMessages(prev => [...prev, msg]);
-      setNewMessage('');
-      // Update conversation preview
-      setConversations(prev => prev.map(c =>
-        c.id === selectedConvo.id
-          ? { ...c, ultimul_mesaj: newMessage, data_ultimul_mesaj: new Date().toISOString() }
-          : c
-      ));
-      inputRef.current?.focus();
+      if (isDemo) {
+        // Local-only demo message
+        const demoMsg: Message = {
+          id: `demo-msg-${Date.now()}`,
+          expeditor: user.id,
+          expeditor_nume: user.nume_prenume,
+          destinatar: selectedConvo.contact_id,
+          mesaj: newMessage,
+          data: new Date().toISOString(),
+          citit: false,
+        };
+        setMessages(prev => [...prev, demoMsg]);
+        setNewMessage('');
+        setConversations(prev => prev.map(c =>
+          c.id === selectedConvo.id
+            ? { ...c, ultimul_mesaj: newMessage, data_ultimul_mesaj: new Date().toISOString() }
+            : c
+        ));
+        inputRef.current?.focus();
+      } else {
+        const msg = await sendMessage(selectedConvo.grupa, selectedConvo.contact_id, newMessage);
+        setMessages(prev => [...prev, msg]);
+        setNewMessage('');
+        setConversations(prev => prev.map(c =>
+          c.id === selectedConvo.id
+            ? { ...c, ultimul_mesaj: newMessage, data_ultimul_mesaj: new Date().toISOString() }
+            : c
+        ));
+        inputRef.current?.focus();
+      }
     } finally {
       setIsSending(false);
     }
