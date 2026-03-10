@@ -48,6 +48,8 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     orgName: 'Școala Gimnazială Nr. 183',
     icon: '📚',
     color: '#6366f1',
+    primaryColor: '#4338ca',
+    secondaryColor: '#6366f1',
     accounts: [
       { label: 'Părinte', description: 'Vede copilul, orarul, mesaje', status: 'parinte', redirect: '/', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala')], userName: 'Ion Popescu' },
       { label: 'Profesor', description: 'Orar, prezență, revistă', status: 'profesor', redirect: '/', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala'), g('cls-5a', 'Clasa a V-a A', 'scoala')], userName: 'Prof. Andrei Popa' },
