@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Newspaper, Stethoscope, Ticket as TicketIcon, HardHat, ShieldCheck } from 'lucide-react';
+import { Newspaper, Stethoscope, Ticket as TicketIcon, HardHat, ShieldCheck, Theater } from 'lucide-react';
 import { Megaphone, FileText, MessageSquare, Clock, Shield, Calendar, Users, LogIn, ChevronRight, MapPin } from 'lucide-react';
 import { format, startOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -298,6 +298,24 @@ export default function QRCancelarie() {
               </Section>
             )}
           </>
+        )}
+
+        {/* ── Culture: Program + Surtitles links ── */}
+        {org?.vertical_type === 'culture' && (
+          <Section icon={<Theater className="h-5 w-5" />} title="Program & Supratitrare" color={primaryColor}>
+            <Card>
+              <CardContent className="p-4 text-center space-y-3">
+                <p className="text-sm text-muted-foreground">Accesați programul digital al spectacolului sau supratitrarea live</p>
+                <div className="flex gap-2 justify-center">
+                  <Button variant="outline" size="sm" asChild className="gap-1.5">
+                    <a href={`/surtitle/${orgSlug}`}>
+                      <Theater className="h-4 w-4" /> Supratitrare live
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Section>
         )}
 
         {/* ── Construction: Tasks, Sites, SSM ── */}

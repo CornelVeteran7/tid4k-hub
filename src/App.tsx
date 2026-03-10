@@ -37,6 +37,10 @@ import VideoGenerationPage from "./pages/VideoGeneration";
 import QueueAdmin from "./pages/QueueAdmin";
 import QueueTicket from "./pages/QueueTicket";
 import MedicineAdmin from "./pages/MedicineAdmin";
+import CultureShowEditor from "./pages/CultureShowEditor";
+import SurtitleOperator from "./pages/SurtitleOperator";
+import SurtitleAudienceView from "./pages/SurtitleAudienceView";
+import DigitalProgram from "./pages/DigitalProgram";
 
 import SponsorMap from "./pages/SponsorMap";
 import NotFound from "./pages/NotFound";
@@ -96,6 +100,7 @@ function ProtectedRoutes() {
             <Route path="/revista" element={<MagazinePage />} />
             <Route path="/orar-avansat" element={<AdvancedTimetable />} />
             <Route path="/supratitrare" element={<SurtitlesPage />} />
+            <Route path="/spectacole" element={<CultureShowEditor />} />
             <Route path="/video" element={<VideoGenerationPage />} />
             <Route path="/coada" element={<QueueAdmin />} />
             <Route path="/cabinet" element={<MedicineAdmin />} />
@@ -127,6 +132,9 @@ const App = () => (
                 <Route path="/display/:orgSlug" element={<PublicDisplay />} />
                 <Route path="/qr/:orgSlug" element={<QRCancelarie />} />
                 <Route path="/surtitle/:orgSlug" element={<SurtitleAudiencePage />} />
+                <Route path="/surtitle/audience/:showId" element={<SurtitleAudienceView />} />
+                <Route path="/surtitle/operate/:showId" element={<SurtitleOperator />} />
+                <Route path="/program/:showId" element={<DigitalProgram />} />
                 <Route path="/queue/:orgSlug" element={<QueueTicket />} />
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>

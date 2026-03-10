@@ -792,6 +792,115 @@ export type Database = {
           },
         ]
       }
+      culture_shows: {
+        Row: {
+          acts: number | null
+          created_at: string
+          director_note: string | null
+          duration_minutes: number | null
+          has_surtitles: boolean | null
+          house_info: Json | null
+          id: string
+          language: string | null
+          organization_id: string | null
+          show_date: string
+          show_time: string | null
+          status: string
+          synopsis: string | null
+          title: string
+        }
+        Insert: {
+          acts?: number | null
+          created_at?: string
+          director_note?: string | null
+          duration_minutes?: number | null
+          has_surtitles?: boolean | null
+          house_info?: Json | null
+          id?: string
+          language?: string | null
+          organization_id?: string | null
+          show_date: string
+          show_time?: string | null
+          status?: string
+          synopsis?: string | null
+          title: string
+        }
+        Update: {
+          acts?: number | null
+          created_at?: string
+          director_note?: string | null
+          duration_minutes?: number | null
+          has_surtitles?: boolean | null
+          house_info?: Json | null
+          id?: string
+          language?: string | null
+          organization_id?: string | null
+          show_date?: string
+          show_time?: string | null
+          status?: string
+          synopsis?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "culture_shows_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      culture_surtitle_blocks: {
+        Row: {
+          act_number: number | null
+          created_at: string
+          id: string
+          scene_number: number | null
+          sequence_number: number
+          show_id: string
+          stage_direction: string | null
+          text_de: string | null
+          text_en: string | null
+          text_fr: string | null
+          text_ro: string | null
+        }
+        Insert: {
+          act_number?: number | null
+          created_at?: string
+          id?: string
+          scene_number?: number | null
+          sequence_number?: number
+          show_id: string
+          stage_direction?: string | null
+          text_de?: string | null
+          text_en?: string | null
+          text_fr?: string | null
+          text_ro?: string | null
+        }
+        Update: {
+          act_number?: number | null
+          created_at?: string
+          id?: string
+          scene_number?: number | null
+          sequence_number?: number
+          show_id?: string
+          stage_direction?: string | null
+          text_de?: string | null
+          text_en?: string | null
+          text_fr?: string | null
+          text_ro?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "culture_surtitle_blocks_show_id_fkey"
+            columns: ["show_id"]
+            isOneToOne: false
+            referencedRelation: "culture_shows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_profiles: {
         Row: {
           activ: boolean | null
@@ -2106,6 +2215,88 @@ export type Database = {
           },
         ]
       }
+      show_cast: {
+        Row: {
+          artist_bio: string | null
+          artist_name: string
+          artist_photo_url: string | null
+          created_at: string
+          id: string
+          role_name: string
+          show_id: string
+          sort_order: number | null
+        }
+        Insert: {
+          artist_bio?: string | null
+          artist_name: string
+          artist_photo_url?: string | null
+          created_at?: string
+          id?: string
+          role_name?: string
+          show_id: string
+          sort_order?: number | null
+        }
+        Update: {
+          artist_bio?: string | null
+          artist_name?: string
+          artist_photo_url?: string | null
+          created_at?: string
+          id?: string
+          role_name?: string
+          show_id?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "show_cast_show_id_fkey"
+            columns: ["show_id"]
+            isOneToOne: false
+            referencedRelation: "culture_shows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      show_sponsors: {
+        Row: {
+          created_at: string
+          id: string
+          show_id: string
+          sort_order: number | null
+          sponsor_logo_url: string | null
+          sponsor_name: string
+          sponsor_url: string | null
+          tier: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          show_id: string
+          sort_order?: number | null
+          sponsor_logo_url?: string | null
+          sponsor_name: string
+          sponsor_url?: string | null
+          tier?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          show_id?: string
+          sort_order?: number | null
+          sponsor_logo_url?: string | null
+          sponsor_name?: string
+          sponsor_url?: string | null
+          tier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "show_sponsors_show_id_fkey"
+            columns: ["show_id"]
+            isOneToOne: false
+            referencedRelation: "culture_shows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sponsor_campaigns: {
         Row: {
           afisari: number | null
@@ -2647,6 +2838,48 @@ export type Database = {
             columns: ["show_id"]
             isOneToOne: false
             referencedRelation: "surtitle_shows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surtitle_live: {
+        Row: {
+          current_block_id: string | null
+          id: string
+          is_blackout: boolean | null
+          is_live: boolean | null
+          show_id: string
+          updated_at: string
+        }
+        Insert: {
+          current_block_id?: string | null
+          id?: string
+          is_blackout?: boolean | null
+          is_live?: boolean | null
+          show_id: string
+          updated_at?: string
+        }
+        Update: {
+          current_block_id?: string | null
+          id?: string
+          is_blackout?: boolean | null
+          is_live?: boolean | null
+          show_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surtitle_live_current_block_id_fkey"
+            columns: ["current_block_id"]
+            isOneToOne: false
+            referencedRelation: "culture_surtitle_blocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surtitle_live_show_id_fkey"
+            columns: ["show_id"]
+            isOneToOne: true
+            referencedRelation: "culture_shows"
             referencedColumns: ["id"]
           },
         ]
