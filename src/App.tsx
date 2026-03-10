@@ -95,7 +95,7 @@ function ProtectedRoutes() {
             <Route path="/supratitrare" element={<SurtitlesPage />} />
             <Route path="/video" element={<VideoGenerationPage />} />
             <Route path="/coada" element={<QueueAdmin />} />
-            <Route path="/contributii" element={<Contributions />} />
+            <Route path="/contributii" element={<Navigate to="/prezenta" replace />} />
             <Route path="/harta-locatii" element={<SponsorMap />} />
             <Route path="/superadmin" element={<SuperAdmin />} />
             <Route path="*" element={<NotFound />} />

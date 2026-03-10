@@ -57,7 +57,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       prezenta: { title: 'PREZENȚA ȘI CONTRIBUȚIE', subtitle: 'Prezență, contribuții și plată online' },
       imagini: { title: 'IMAGINI', subtitle: 'Fotografii din activități' },
       documente: { title: 'DOCUMENTE', subtitle: 'Fișiere PDF partajate' },
-      povesti: { title: 'POVEȘTI', subtitle: 'Povești pentru copii' },
+      povesti: { title: 'POVEȘTI', subtitle: 'Citește, ascultă sau privește povești cu Inky' },
       ateliere: { title: 'ATELIERE', subtitle: 'Activități creative pentru copii' },
       meniu: { title: 'MENIUL SĂPTĂMÂNII', subtitle: 'Meniul zilnic pentru copii' },
       mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu părinții' },
