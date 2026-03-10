@@ -75,6 +75,7 @@ const SECONDARY_NAV: { path: string; label: string; icon: any; roles: string[]; 
 
 // Admin nav — role-gated
 const ADMIN_NAV = [
+{ path: '/harta-locatii', label: 'Hartă Locații', icon: MapPin, roles: ['director', 'administrator'] },
 { path: '/sponsori', label: 'Sponsori', icon: Award, roles: ['director', 'administrator'] },
 { path: '/rapoarte', label: 'Rapoarte', icon: BarChart3, roles: ['director', 'administrator'] },
 { path: '/settings', label: 'Configurări', icon: Settings, roles: ['director', 'administrator'] },
