@@ -1,150 +1,141 @@
 
 
-# Plan: Workshop Management System + Admin Push & Documentation
+# Implementation Plan: Vertical Theming, Decorations, Sponsor Maps & Feature Toggles
 
 ## Overview
 
-This plan adds a complete **Workshop (Ateliere) management system** to the Admin Panel, enabling admins to create, edit, and push workshops to one or all school units. The dashboard "ATELIERE" module card will show this month's workshop preview directly (without opening), and push notifications will alert teachers about new workshops.
+Three workstreams to make each of the 8 verticals visually and functionally distinct:
+
+1. **Per-vertical color themes** applied on switch
+2. **Vertical-specific decorative SVG elements** (both sidebar + background)
+3. **Per-vertical sponsor page with interactive map**
+4. **Feature toggle system** stored in Supabase `org_config`
+5. **Fix notification errors** in demo mode
 
 ---
 
-## What Gets Built
+## 1. Fix Demo Notification Errors
 
-### 1. Workshop Data Model & API
+**File**: `src/contexts/NotificationContext.tsx`
 
-**New file: `src/api/workshops.ts`**
-
-Types and mock data for workshops:
-
-```text
-Workshop {
-  id_atelier: number
-  titlu: string
-  descriere: string
-  luna: string (YYYY-MM)
-  imagine_url: string
-  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
-  materiale: string[]
-  instructor: string
-  durata_minute: number
-  scoli_target: string[] (['all'] or specific school IDs)
-  publicat: boolean
-  data_creare: string
-  data_publicare?: string
-}
-```
-
-API functions:
-- `getWorkshops(schoolId?, luna?)` -- fetch workshops, optionally filtered
-- `getWorkshopOfMonth(schoolId?)` -- returns this month's active published workshop
-- `createWorkshop(data)` -- create new
-- `updateWorkshop(id, data)` -- edit
-- `deleteWorkshop(id)` -- remove
-- `publishWorkshop(id, scoli_target)` -- mark as published + push to units
-- Mock data: 2-3 workshops for the current month
-
-### 2. Admin Panel: New "Ateliere" Tab
-
-**New file: `src/components/admin/WorkshopsTab.tsx`**
-
-A new tab in the Admin Panel (`/admin`) with:
-
-- **School selector awareness**: respects the global "Toate unitatile" / specific school filter at top of admin page
-- **Workshop list**: cards showing title, month, category badge, publish status, target schools
-- **Create/Edit dialog**: form with title, description, category, image URL, materials list, instructor, duration, school target (one / all)
-- **Publish button**: marks workshop as published; when target is "all", pushes to every school. Shows confirmation with school count.
-- **Status indicators**: Draft (gray), Published (green), showing which schools received it
-
-Changes to `src/pages/AdminPanel.tsx`:
-- Add `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` to TABS
-- Import and render `<WorkshopsTab>` in the new TabsContent
-- The tab respects `selectedSchoolId` (all vs specific)
-
-### 3. Dashboard: Workshop Preview on Module Card
-
-**Modified: `src/components/dashboard/ModuleHub.tsx`**
-
-The "ATELIERE" card currently shows just a title and count. Change it to:
-- Fetch `getWorkshopOfMonth()` on mount
-- Display workshop title + short description directly on the card (below the subtitle), so teachers see it without tapping
-- Add a small "Luna: Martie 2026" label and category badge on the card face
-- Keep the card tappable to open full workshop detail
-
-**Modified: `src/components/dashboard/ModuleCard.tsx`**
-
-Add optional `preview` prop (ReactNode) that renders below the subtitle when provided. Only the "ateliere" card will use this prop.
-
-### 4. Notification System: Workshop Push Notifications
-
-**Modified: `src/contexts/NotificationContext.tsx`**
-
-- Import `getWorkshopOfMonth` from workshops API
-- Add `'workshop'` as a new notification type in `NotificationItem`
-- In `refreshNotifications`, check if there's a published workshop for this month that hasn't been seen (track via localStorage key `tid4k_seen_workshop_[id]`)
-- Generate notification: "Atelier nou: [titlu]" with link to open the ateliere module
-
-**Modified: `src/components/layout/AppLayout.tsx`**
-
-- Add `Paintbrush` icon handling for `workshop` notification type in the popover renderer (distinct purple color)
-
-### 5. Documentation
-
-**New file: `docs/WORKSHOPS.md`**
-
-Three sections:
-1. **For Admins**: How to create workshops, target specific schools or all, publish flow, editing after publish
-2. **For Developers/AI**: API endpoints table, TypeScript interfaces, component architecture, notification integration
-3. **API Reference**: Full endpoint spec for backend implementation
-
-```text
-POST /ateliere.php?action=create        -- Create workshop
-POST /ateliere.php?action=update        -- Edit workshop
-POST /ateliere.php?action=publish       -- Publish + push to schools
-GET  /ateliere.php?action=list          -- List workshops (filters: school_id, luna)
-GET  /ateliere.php?action=current       -- This month's active workshop
-POST /ateliere.php?action=delete        -- Delete workshop
-POST /ateliere.php?action=notify        -- Trigger push notifications
-```
+Add early return in `refreshNotifications` when `isDemo` is true. Return static mock notifications instead of hitting Supabase with invalid demo UUIDs.
 
 ---
 
-## Technical Details
+## 2. Per-Vertical Color Themes
 
-### File Changes Summary
+**Files**: `src/config/demoEnvironments.ts`, `src/components/WhiteLabelSwitcher.tsx`, `src/contexts/AuthContext.tsx`
 
-| File | Action | What |
-|------|--------|------|
-| `src/api/workshops.ts` | NEW | Workshop types, mock data, API functions |
-| `src/components/admin/WorkshopsTab.tsx` | NEW | Full admin UI for workshop CRUD + publish |
-| `docs/WORKSHOPS.md` | NEW | Documentation for admins and devs |
-| `src/pages/AdminPanel.tsx` | EDIT | Add "Ateliere" tab (icon + TabsContent) |
-| `src/components/dashboard/ModuleCard.tsx` | EDIT | Add optional `preview` prop |
-| `src/components/dashboard/ModuleHub.tsx` | EDIT | Fetch workshop of month, pass preview to ateliere card |
-| `src/contexts/NotificationContext.tsx` | EDIT | Add workshop notification type |
-| `src/components/layout/AppLayout.tsx` | EDIT | Render workshop notification icon in popover |
+Add `primaryColor` and `secondaryColor` to `DemoEnvironment` interface and each entry:
 
-### Patterns Followed
+| Vertical | Primary | Secondary |
+|---|---|---|
+| Kids | `#1E3A4C` (navy) | `#2563b4` (blue) |
+| Schools | `#4338ca` (indigo) | `#6366f1` (violet) |
+| Medicine | `#b91c1c` (deep red) | `#ef4444` (red) |
+| Construction | `#b45309` (amber-brown) | `#d97706` (amber) |
+| Workshops | `#57534e` (stone) | `#78716c` (gray) |
+| Living | `#166534` (deep green) | `#22c55e` (fresh green) |
+| Culture | `#92400e` (gold) | `#b91c1c` (crimson) |
+| Students | `#0e7490` (teal) | `#06b6d4` (cyan) |
 
-- Same `USE_MOCK` toggle pattern as all other API files
-- Same collapsible card admin UI pattern as SettingsTab/SchoolsTab
-- Same notification item pattern with `type`, `icon`, `navigateTo`
-- School selector `selectedSchoolId` passed through just like other admin tabs
-- `framer-motion` animations consistent with existing module cards
+In `WhiteLabelSwitcher.switchTo()`, call `applyBrandingColors(env.primaryColor, env.secondaryColor)` after setting the demo user. Persist colors in sessionStorage and re-apply on reload in AuthContext init.
 
-### Workshop Card Preview Rendering
+---
 
-On the dashboard, the ATELIERE module card will show:
+## 3. Vertical-Specific Decorative SVGs
 
-```text
-+------------------------------------------+
-| [Paintbrush icon]  ATELIERE              |
-|                    Activitati creative     |
-|   ┌─────────────────────────────┐         |
-|   │ Pictură pe sticlă           │  [10]   |
-|   │ Artă · Martie 2026          │         |
-|   └─────────────────────────────┘         |
-+------------------------------------------+
-```
+**New file**: `src/components/decorations/VerticalDecorations.tsx`
 
-This preview text appears only when a workshop-of-the-month exists.
+Two exported components:
+- `BackgroundDecorations({ vertical })` — replaces flowers/bees in Dashboard `BackgroundShapes`
+- `SidebarDecorations({ vertical })` — replaces flower/bee in AppLayout `SidebarDecoration`
+
+Contour/topographic lines stay the SAME across all verticals. Only the themed objects change:
+
+| Vertical | Decorative Elements |
+|---|---|
+| Kids | Flowers, bees, butterflies (current) |
+| Schools | Books, pencils, rulers, graduation cap |
+| Medicine | Tooth, stethoscope, pill, medical cross |
+| Construction | Bricks, hard hat, crane hook, truck |
+| Workshops | Wrench, gear, car silhouette, checklist |
+| Living | Bed, sun, plant/leaf, house outline |
+| Culture | Theater masks, musical note, spotlight, curtain |
+| Students | Laptop, coffee cup, notebook, lightbulb |
+
+Each set: 4-6 line-art SVG elements positioned at similar coordinates to current flowers/bees. All drawn with stroke-only (no fill) to match the existing aesthetic.
+
+**Modified files**:
+- `src/pages/Dashboard.tsx` — `BackgroundShapes()` keeps contour lines, delegates themed objects to `<BackgroundDecorations />`
+- `src/components/layout/AppLayout.tsx` — `SidebarDecoration()` keeps contour lines, delegates to `<SidebarDecorations />`
+
+---
+
+## 4. Per-Vertical Sponsor Page with Interactive Map
+
+**New dependency**: `leaflet` + `react-leaflet` (open-source, no API key needed)
+
+**New file**: `src/pages/SponsorMap.tsx`
+
+Each vertical gets a sponsor/locations page showing:
+- An interactive Leaflet map with pins for relevant locations
+- Demo data per vertical (schools, clinics, workshops, construction sites, etc.)
+- Clicking a pin shows a popup with name, address, and vertical-specific details
+- Below the map: a grid of location cards with photos and info
+
+**New file**: `src/data/demoLocations.ts` — demo location data per vertical with lat/lng coordinates (Bucharest area)
+
+**Route**: Add `/harta-locatii` route in `src/App.tsx`
+
+**Navigation**: Add map link to sidebar nav, visible for all verticals
+
+---
+
+## 5. Feature Toggle System (Supabase org_config)
+
+**Database**: No schema changes needed — uses existing `org_config` table with `config_key = 'feature_toggles'`
+
+**New file**: `src/hooks/useFeatureToggles.ts`
+- Reads `org_config` for key `feature_toggles` 
+- Returns `{ isEnabled(featureKey): boolean, toggles, loading }`
+- In demo mode, returns defaults from `verticalConfig.defaultModules`
+
+**SuperAdmin UI**: Add a "Feature Toggles" section to `SuperAdminTemplates.tsx` or a new tab
+- Grid of toggleable features: messaging, daily tasks, voting, attendance, documents, etc.
+- Per-vertical assignment matrix
+- Save to `org_config` via `upsertOrgConfig`
+
+This creates an extensible system where new verticals can be added from SuperAdmin by selecting which features to enable, without code changes.
+
+---
+
+## 6. Files Summary
+
+| File | Action |
+|---|---|
+| `src/contexts/NotificationContext.tsx` | Add demo mode guard |
+| `src/config/demoEnvironments.ts` | Add color fields |
+| `src/components/WhiteLabelSwitcher.tsx` | Apply branding on switch |
+| `src/contexts/AuthContext.tsx` | Re-apply branding on demo reload |
+| `src/components/decorations/VerticalDecorations.tsx` | NEW — 8 themed SVG sets |
+| `src/pages/Dashboard.tsx` | Refactor BackgroundShapes |
+| `src/components/layout/AppLayout.tsx` | Refactor SidebarDecoration |
+| `src/pages/SponsorMap.tsx` | NEW — interactive map page |
+| `src/data/demoLocations.ts` | NEW — demo location data |
+| `src/hooks/useFeatureToggles.ts` | NEW — feature toggle hook |
+| `src/App.tsx` | Add map route |
+| `package.json` | Add leaflet, react-leaflet |
+
+---
+
+## 7. Execution Order
+
+1. Fix notification errors (unblocks clean testing)
+2. Add color themes + apply on switch
+3. Create vertical decorations component
+4. Refactor Dashboard + AppLayout to use decorations
+5. Install Leaflet, build sponsor map page
+6. Build feature toggle hook + SuperAdmin UI
+7. Test all 8 verticals end-to-end
 
