@@ -986,25 +986,50 @@ function ConstructionContent({ config }: { config: DisplayConfig }) {
         )}
       </div>
 
-      {/* Right: SSM + Date */}
-      <div className="flex flex-col" style={{ width: 420 }}>
-        <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 20 }}>⚠️ SSM</div>
-        {config.ssm_reminders.length > 0 ? (
-          <div className="flex flex-col" style={{ gap: 10 }}>
-            {config.ssm_reminders.map(r => (
-              <div key={r.id} className="rounded-xl" style={{
-                padding: '14px 18px',
-                background: r.tip === 'danger' ? 'rgba(239,68,68,0.15)' :
-                  r.tip === 'warning' ? 'rgba(249,115,22,0.15)' : 'rgba(255,255,255,0.06)',
-                borderLeft: `4px solid ${r.tip === 'danger' ? '#ef4444' : r.tip === 'warning' ? '#f97316' : 'rgba(255,255,255,0.2)'}`,
+      {/* Right: SSM status + Site identification + Date */}
+      <div className="flex flex-col" style={{ width: 420, gap: 16 }}>
+        {/* SSM checklist status */}
+        <div>
+          <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 16 }}>⚠️ SSM</div>
+          {config.ssm_checklists_today.length > 0 ? (
+            <div className="flex flex-col" style={{ gap: 10 }}>
+              {config.ssm_checklists_today.map(c => (
+                <div key={c.id} className="rounded-xl" style={{
+                  padding: '14px 18px',
+                  background: c.status === 'completed' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                  borderLeft: `4px solid ${c.status === 'completed' ? '#22c55e' : '#ef4444'}`,
+                }}>
+                  <div style={{ fontSize: 18 }}>
+                    {c.status === 'completed' ? '✅ Checklist completat' : '⏳ Checklist în curs'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl" style={{
+              background: 'rgba(239,68,68,0.15)', padding: 20,
+              borderLeft: '4px solid #ef4444',
+            }}>
+              <div style={{ fontSize: 18, fontWeight: 600 }}>❌ Checklist SSM necompletat azi!</div>
+              <div style={{ fontSize: 14, opacity: 0.6, marginTop: 4 }}>Completați checklistul zilnic de securitate</div>
+            </div>
+          )}
+        </div>
+
+        {/* Site identification — Legea 50/1991 */}
+        {config.construction_sites.length > 0 && (
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, opacity: 0.6 }}>📋 Identificare Șantier</div>
+            {config.construction_sites.map(site => (
+              <div key={site.id} className="rounded-xl" style={{
+                background: 'rgba(255,255,255,0.06)', padding: '12px 16px', marginBottom: 8,
               }}>
-                <div style={{ fontSize: 18 }}>{r.mesaj}</div>
+                <div style={{ fontSize: 16, fontWeight: 600 }}>{site.nume}</div>
+                {site.beneficiar && <div style={{ fontSize: 12, opacity: 0.5 }}>Beneficiar: {site.beneficiar}</div>}
+                {site.contractor && <div style={{ fontSize: 12, opacity: 0.5 }}>Constructor: {site.contractor}</div>}
+                {site.numar_autorizatie && <div style={{ fontSize: 12, opacity: 0.5 }}>Aut. nr: {site.numar_autorizatie}</div>}
               </div>
             ))}
-          </div>
-        ) : (
-          <div className="rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', padding: 20, textAlign: 'center', opacity: 0.3 }}>
-            <div style={{ fontSize: 18 }}>Niciun avertisment activ</div>
           </div>
         )}
 
