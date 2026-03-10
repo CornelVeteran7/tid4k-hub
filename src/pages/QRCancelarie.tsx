@@ -228,6 +228,57 @@ export default function QRCancelarie() {
           </Section>
         )}
 
+        {/* ── Medicine: Queue link + Services + Doctors ── */}
+        {org?.vertical_type === 'medicine' && (
+          <>
+            <Section icon={<TicketIcon className="h-5 w-5" />} title="Coadă" color={primaryColor}>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-3">Ia un număr de ordine fără a te autentifica</p>
+                  <Button asChild className="gap-2">
+                    <a href={`/queue/${orgSlug}`}>
+                      <TicketIcon className="h-4 w-4" /> Ia un număr
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            </Section>
+
+            {medicineDoctors.length > 0 && (
+              <Section icon={<Stethoscope className="h-5 w-5" />} title="Echipa medicală" color={primaryColor}>
+                {medicineDoctors.map((doc, i) => (
+                  <Card key={i} className="mb-3">
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-sm text-foreground">{doc.name}</h3>
+                      <p className="text-xs text-primary">{doc.specialization}</p>
+                      {doc.credentials && <p className="text-xs text-muted-foreground mt-0.5">{doc.credentials}</p>}
+                    </CardContent>
+                  </Card>
+                ))}
+              </Section>
+            )}
+
+            {medicineServices.length > 0 && (
+              <Section icon={<FileText className="h-5 w-5" />} title="Servicii" color={primaryColor}>
+                <Card>
+                  <CardContent className="p-4 space-y-2">
+                    {medicineServices.map((svc, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm">
+                        <span className="text-foreground">{svc.name}</span>
+                        {(svc.price_from > 0 || svc.price_to > 0) && (
+                          <span className="text-muted-foreground text-xs">
+                            {svc.price_from === svc.price_to ? `${svc.price_from} lei` : `${svc.price_from}–${svc.price_to} lei`}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </Section>
+            )}
+          </>
+        )}
+
         {/* ── AUTHENTICATED SECTION ── */}
         {isAuthenticated ? (
           <AuthenticatedSection userId={user?.id || ''} orgId={org?.id || ''} primaryColor={primaryColor} />
