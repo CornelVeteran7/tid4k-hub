@@ -185,7 +185,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
       <div className="flex flex-1 overflow-hidden">
       {/* ===== DESKTOP SIDEBAR — persistent, minimal ===== */}
       <aside className="hidden lg:flex lg:relative w-64 bg-sidebar text-sidebar-foreground flex-col shrink-0 relative overflow-hidden">
-        <SidebarDecoration />
+        <SidebarDecorationComponent vertical={verticalType} />
         {/* Logo */}
         <div className="flex items-center px-4 py-5 border-b border-sidebar-border">
           <img src={logoWhite} alt="InfoDisplay" className="h-11" />
