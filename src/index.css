@@ -108,6 +108,126 @@
     --sidebar-border: 200 25% 13%;
     --sidebar-ring: 200 42% 48%;
   }
+  }
+
+  /* ═══════════════════════════════════════════
+     Vertical-specific theme overrides
+     Applied via data-vertical attribute on <html>
+     ═══════════════════════════════════════════ */
+
+  /* CULTURE — Dark opera theme: deep crimson, gold, noir */
+  [data-vertical="culture"] {
+    --background: 0 0% 6%;
+    --foreground: 40 20% 90%;
+    --card: 0 10% 10%;
+    --card-foreground: 40 20% 90%;
+    --popover: 0 10% 10%;
+    --popover-foreground: 40 20% 90%;
+    --primary: 0 55% 35%;
+    --primary-foreground: 40 30% 95%;
+    --secondary: 0 15% 14%;
+    --secondary-foreground: 40 15% 80%;
+    --muted: 0 8% 12%;
+    --muted-foreground: 40 10% 55%;
+    --accent: 40 60% 45%;
+    --accent-foreground: 0 0% 5%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 145 50% 35%;
+    --success-foreground: 0 0% 100%;
+    --warning: 40 80% 50%;
+    --warning-foreground: 0 0% 5%;
+    --border: 0 10% 16%;
+    --input: 0 10% 16%;
+    --ring: 0 55% 35%;
+    --glass-bg: 0 10% 10% / 0.8;
+    --glass-border: 0 15% 20% / 0.5;
+    --gradient-primary: linear-gradient(135deg, hsl(0 55% 35%), hsl(40 60% 45%));
+    --sidebar-background: 0 10% 7%;
+    --sidebar-foreground: 40 15% 85%;
+    --sidebar-primary: 0 55% 40%;
+    --sidebar-primary-foreground: 40 30% 95%;
+    --sidebar-accent: 0 20% 14%;
+    --sidebar-accent-foreground: 40 15% 85%;
+    --sidebar-border: 0 12% 14%;
+    --sidebar-ring: 40 60% 45%;
+  }
+
+  /* MEDICINE — Clean, clinical, trust-blue + white */
+  [data-vertical="medicine"] {
+    --background: 200 25% 97%;
+    --foreground: 210 20% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 20% 15%;
+    --primary: 200 65% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 15% 93%;
+    --secondary-foreground: 200 30% 25%;
+    --muted: 200 10% 95%;
+    --muted-foreground: 200 10% 45%;
+    --accent: 180 50% 35%;
+    --accent-foreground: 0 0% 100%;
+    --success: 160 55% 40%;
+    --success-foreground: 0 0% 100%;
+    --border: 200 12% 90%;
+    --input: 200 12% 90%;
+    --ring: 200 65% 38%;
+    --sidebar-background: 200 50% 18%;
+    --sidebar-foreground: 200 15% 92%;
+    --sidebar-accent: 200 45% 25%;
+    --sidebar-accent-foreground: 200 15% 92%;
+    --sidebar-border: 200 35% 22%;
+  }
+
+  /* CONSTRUCTION — Industrial, muted earth tones, professional */
+  [data-vertical="construction"] {
+    --background: 35 8% 95%;
+    --foreground: 30 15% 15%;
+    --card: 35 6% 98%;
+    --card-foreground: 30 15% 15%;
+    --primary: 25 30% 30%;
+    --primary-foreground: 35 20% 95%;
+    --secondary: 35 8% 90%;
+    --secondary-foreground: 30 15% 25%;
+    --muted: 35 6% 92%;
+    --muted-foreground: 30 8% 45%;
+    --accent: 35 45% 42%;
+    --accent-foreground: 0 0% 100%;
+    --warning: 30 75% 48%;
+    --warning-foreground: 0 0% 5%;
+    --border: 35 8% 86%;
+    --input: 35 8% 86%;
+    --ring: 25 30% 30%;
+    --sidebar-background: 25 20% 16%;
+    --sidebar-foreground: 35 12% 88%;
+    --sidebar-accent: 25 18% 22%;
+    --sidebar-accent-foreground: 35 12% 88%;
+    --sidebar-border: 25 15% 20%;
+  }
+
+  /* WORKSHOPS — Professional automotive, slate-steel */
+  [data-vertical="workshops"] {
+    --background: 215 10% 95%;
+    --foreground: 215 15% 15%;
+    --card: 215 8% 98%;
+    --card-foreground: 215 15% 15%;
+    --primary: 215 25% 28%;
+    --primary-foreground: 215 15% 95%;
+    --secondary: 215 8% 90%;
+    --secondary-foreground: 215 15% 25%;
+    --muted: 215 6% 92%;
+    --muted-foreground: 215 8% 45%;
+    --accent: 215 35% 38%;
+    --accent-foreground: 0 0% 100%;
+    --border: 215 8% 86%;
+    --input: 215 8% 86%;
+    --ring: 215 25% 28%;
+    --sidebar-background: 215 18% 16%;
+    --sidebar-foreground: 215 10% 88%;
+    --sidebar-accent: 215 15% 22%;
+    --sidebar-accent-foreground: 215 10% 88%;
+    --sidebar-border: 215 12% 20%;
+  }
 }
 
 @layer base {
