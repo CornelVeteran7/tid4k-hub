@@ -159,8 +159,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isDemo, setIsDemo] = useState(initialDemo.isDemo);
   const isDemoRef = useRef(initialDemo.isDemo);
 
-  const setDemoUser = useCallback(() => {
-    setUser(DEMO_SESSION);
+  const setDemoUser = useCallback((config?: DemoConfig) => {
+    if (config) {
+      const session = buildDemoSession(config);
+      setUser(session);
+      try { sessionStorage.setItem('demo_config', JSON.stringify(config)); } catch {}
+    } else {
+      setUser(DEMO_SESSION);
+      try { sessionStorage.removeItem('demo_config'); } catch {}
+    }
     setIsDemo(true);
     isDemoRef.current = true;
     setIsLoading(false);
