@@ -25,7 +25,6 @@ import InkyAssistant from '@/components/InkyAssistant';
 import TutorialOverlay from '@/components/TutorialOverlay';
 import QuickUpload from '@/components/QuickUpload';
 import WhiteLabelSwitcher from '@/components/WhiteLabelSwitcher';
-import QuickUpload from '@/components/QuickUpload';
 
 /* Decorative SVG background for sidebar — white contour lines + flower + bee */
 function SidebarDecoration() {
