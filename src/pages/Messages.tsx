@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getConversations, getMessages, sendMessage } from '@/api/messages';
+import { getDemoConversations, getDemoMessages } from '@/data/demoMessages';
 import type { Conversation, Message } from '@/types';
+import type { VerticalType } from '@/config/verticalConfig';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
