@@ -281,6 +281,10 @@ export default function PublicDisplay() {
     // Load queue config for avg wait time
     let queueAvgWait = 10;
     let queueServicePoints: string[] = [];
+    let googleReviewsUrl = '';
+    let medicineDoctors: { name: string; specialization: string }[] = [];
+    let medicineServices: { name: string }[] = [];
+
     if (org?.vertical_type === 'medicine' || org?.vertical_type === 'students') {
       const { data: qc } = await supabase.from('queue_config')
         .select('avg_service_minutes, service_points')
@@ -289,10 +293,23 @@ export default function PublicDisplay() {
         queueAvgWait = qc.avg_service_minutes;
         queueServicePoints = Array.isArray(qc.service_points) ? qc.service_points as string[] : [];
       }
-      // Calculate actual avg from completed tickets if available
-      const completedEntries = queueEntries.filter(e => e.status === 'completed' || e.status === 'called');
-      const withWait = queueEntries.filter(e => (e.status === 'called' || e.status === 'serving') && e.called_at && e.created_at);
-      // Use real data if we have completed tickets
+    }
+
+    if (org?.vertical_type === 'medicine') {
+      const [{ data: gConfig }, { data: docData }, { data: svcData }] = await Promise.all([
+        supabase.from('org_config').select('config_value')
+          .eq('organization_id', orgId).eq('config_key', 'google_business_url').maybeSingle(),
+        supabase.from('doctor_profiles').select('name, specialization')
+          .eq('organization_id', orgId).eq('activ', true).order('ordine').limit(6),
+        supabase.from('medicine_services').select('name')
+          .eq('organization_id', orgId).eq('activ', true).order('ordine').limit(8),
+      ]);
+      if (gConfig?.config_value) {
+        const val = gConfig.config_value as any;
+        googleReviewsUrl = typeof val === 'string' ? val : val?.url || '';
+      }
+      medicineDoctors = (docData || []) as { name: string; specialization: string }[];
+      medicineServices = (svcData || []) as { name: string }[];
     }
 
     setConfig({
@@ -321,6 +338,9 @@ export default function PublicDisplay() {
       timetable_today: timetableToday,
       timetable_current_period: timetableCurrentPeriod,
       magazine_articles: magazineArticles,
+      google_reviews_url: googleReviewsUrl,
+      medicine_doctors: medicineDoctors,
+      medicine_services: medicineServices,
     });
     setLoading(false);
   }, [orgSlug]);
