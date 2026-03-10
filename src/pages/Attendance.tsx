@@ -398,6 +398,8 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
 export default function Attendance({ embedded }: { embedded?: boolean }) {
   const { currentGroup } = useGroup();
   const { user } = useAuth();
+  const verticalType = (user?.vertical_type || 'kids') as string;
+  const isKidsVertical = verticalType === 'kids';
   const [monday, setMonday] = useState(() => getMonday(new Date()));
   const [data, setData] = useState<WeeklyAttendanceData | null>(null);
   const [loading, setLoading] = useState(true);
