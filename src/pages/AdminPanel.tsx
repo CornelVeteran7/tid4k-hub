@@ -23,6 +23,7 @@ import SponsorPolicyTab from '@/components/admin/SponsorPolicyTab';
 import DisplayPreviewTab from '@/components/admin/DisplayPreviewTab';
 import WebsiteTab from '@/components/admin/WebsiteTab';
 import ModuleTogglesTab from '@/components/admin/ModuleTogglesTab';
+import ThemeEditorTab from '@/components/admin/ThemeEditorTab';
 
 export default function AdminPanel() {
   const { user } = useAuth();
