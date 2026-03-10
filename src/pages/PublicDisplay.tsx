@@ -367,6 +367,7 @@ export default function PublicDisplay() {
       org_id: orgId,
       org_name: org?.name || orgSlug || 'InfoDisplay',
       org_logo: org?.logo_url || undefined,
+      org_slug: orgSlug || '',
       primary_color: org?.primary_color || '#4F46E5',
       secondary_color: org?.secondary_color || '#7C3AED',
       vertical_type: org?.vertical_type || 'kids',
@@ -387,6 +388,7 @@ export default function PublicDisplay() {
       google_reviews_url: googleReviewsUrl,
       medicine_doctors: medicineDoctors,
       medicine_services: medicineServices,
+      culture_tonight_show: cultureTonightShow,
     });
     setLoading(false);
   }, [orgSlug]);
