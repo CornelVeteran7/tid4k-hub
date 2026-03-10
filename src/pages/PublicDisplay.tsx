@@ -91,6 +91,9 @@ interface DisplayConfig {
   timetable_today: TimetableSlide[];
   timetable_current_period: number;
   magazine_articles: MagazineSlide[];
+  google_reviews_url: string;
+  medicine_doctors: { name: string; specialization: string }[];
+  medicine_services: { name: string }[];
 }
 
 /* ═══════════════════════════════════════════════════
