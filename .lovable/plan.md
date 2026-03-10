@@ -1,150 +1,80 @@
 
 
-# Plan: Workshop Management System + Admin Push & Documentation
+# Guest Access System — Plan
 
-## Overview
+## Problem
+Currently, the QR portal (`/qr/:orgSlug`) works for anonymous visitors and authenticated users, but there's no formal **guest session** system. There are no daily-rotating QR tokens, no bot protection, no session expiry, and role labels like "Spectator" or "Profesor" appear in places where guests shouldn't see them.
 
-This plan adds a complete **Workshop (Ateliere) management system** to the Admin Panel, enabling admins to create, edit, and push workshops to one or all school units. The dashboard "ATELIERE" module card will show this month's workshop preview directly (without opening), and push notifications will alert teachers about new workshops.
+## What We're Building
 
----
+### 1. Daily Rotating QR Tokens
+- **New table**: `guest_tokens (id, org_id, token text unique, valid_date date, created_at)`
+- Each org gets a new random token generated daily (via edge function or on-demand)
+- The `/display/:orgSlug` page generates QR codes pointing to `/qr/:orgSlug?t=<daily_token>` instead of plain `/qr/:orgSlug`
+- The QR portal validates the token against today's date — expired/invalid tokens show a "Scan the QR code on the display" message instead of content
+- RLS: anon SELECT where `valid_date = current_date`
 
-## What Gets Built
+### 2. Guest Session Management
+- When a valid token is verified, store `{ orgSlug, token, guestSessionStart }` in `localStorage`
+- Sessions hard-expire at midnight (client-side check on every page load)
+- After midnight, localStorage is cleared and guest must re-scan
+- No Supabase auth session created for guests — purely client-side with server-validated token
 
-### 1. Workshop Data Model & API
+### 3. Invisible Captcha (Cloudflare Turnstile)
+- Add Turnstile widget on the QR landing page — fires once on first visit
+- **Edge function** `validate-guest-token` handles: token validation + Turnstile response verification
+- Returns a short-lived guest JWT (or signed cookie) on success
+- Requires a Turnstile site key (public, in code) and secret key (in Supabase secrets)
 
-**New file: `src/api/workshops.ts`**
+### 4. QR Portal Refactor (`/qr/:orgSlug`)
+- **Remove** role labels from guest view (no "Spectator", "Profesor" badges)
+- **Landing state**: If no valid session, show org branding + two buttons:
+  - "Continuă ca vizitator" → validates token + Turnstile → enters guest mode
+  - "Autentificare" → redirects to `/login/:orgSlug`
+- **Guest mode**: Shows vertical-appropriate public content (same data as display: announcements, schedule, menu, documents, sponsors, photos, events, queue)
+- **Authenticated mode**: Shows everything guest sees + personal data (own child's attendance, own apartment balance, etc.)
+- Content shown per vertical:
+  - **Kids**: Announcements, menu, schedule, photos, documents, sponsors
+  - **Schools**: Announcements, timetable, magazine, documents, sponsors
+  - **Medicine**: Announcements, queue (take ticket), doctors, services, sponsors
+  - **Construction**: Announcements, SSM status, active tasks (no names), site info
+  - **Workshops**: Announcements, services list, appointment slots, sponsors
+  - **Living**: Announcements, maintenance schedule, emergency contacts, sponsors
+  - **Culture**: Announcements, show program, surtitle links, sponsors
+  - **Students**: Announcements, queue, events, documents, sponsors
 
-Types and mock data for workshops:
+### 5. Display QR Code Update
+- `PublicDisplay.tsx` generates QR using today's token URL instead of static slug
+- Token is fetched/created on display load via `guest_tokens` table
+- QR refreshes at midnight automatically
 
-```text
-Workshop {
-  id_atelier: number
-  titlu: string
-  descriere: string
-  luna: string (YYYY-MM)
-  imagine_url: string
-  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
-  materiale: string[]
-  instructor: string
-  durata_minute: number
-  scoli_target: string[] (['all'] or specific school IDs)
-  publicat: boolean
-  data_creare: string
-  data_publicare?: string
-}
-```
+### 6. Security Measures
+- **Rate limiting**: The `validate-guest-token` edge function limits requests per IP (60/min) using a simple in-memory counter (or Supabase table for persistence)
+- **Token entropy**: 12-character alphanumeric tokens (62^12 combinations)
+- **No token reuse**: Each org gets exactly one valid token per day
+- **Turnstile**: Blocks automated scrapers from consuming API calls
 
-API functions:
-- `getWorkshops(schoolId?, luna?)` -- fetch workshops, optionally filtered
-- `getWorkshopOfMonth(schoolId?)` -- returns this month's active published workshop
-- `createWorkshop(data)` -- create new
-- `updateWorkshop(id, data)` -- edit
-- `deleteWorkshop(id)` -- remove
-- `publishWorkshop(id, scoli_target)` -- mark as published + push to units
-- Mock data: 2-3 workshops for the current month
+## Files to Create/Edit
 
-### 2. Admin Panel: New "Ateliere" Tab
+| File | Action |
+|------|--------|
+| `supabase/migrations/xxx_guest_tokens.sql` | Create `guest_tokens` table + RLS |
+| `supabase/functions/validate-guest-token/index.ts` | Token + Turnstile validation edge function |
+| `supabase/config.toml` | Add `verify_jwt = false` for the new function |
+| `src/pages/QRCancelarie.tsx` | Refactor: add landing screen, remove role labels, token validation flow |
+| `src/pages/PublicDisplay.tsx` | Update QR generation to use daily token |
+| `src/hooks/useGuestSession.ts` | New hook: manage guest localStorage session + midnight expiry |
+| `src/api/guestTokens.ts` | API helpers for token fetch/create |
 
-**New file: `src/components/admin/WorkshopsTab.tsx`**
+## Required Secrets
+- **Cloudflare Turnstile Site Key** (public — goes in code)
+- **Cloudflare Turnstile Secret Key** (private — goes in Supabase secrets)
 
-A new tab in the Admin Panel (`/admin`) with:
+We'll need to ask you for these keys before implementing the Turnstile integration.
 
-- **School selector awareness**: respects the global "Toate unitatile" / specific school filter at top of admin page
-- **Workshop list**: cards showing title, month, category badge, publish status, target schools
-- **Create/Edit dialog**: form with title, description, category, image URL, materials list, instructor, duration, school target (one / all)
-- **Publish button**: marks workshop as published; when target is "all", pushes to every school. Shows confirmation with school count.
-- **Status indicators**: Draft (gray), Published (green), showing which schools received it
-
-Changes to `src/pages/AdminPanel.tsx`:
-- Add `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` to TABS
-- Import and render `<WorkshopsTab>` in the new TabsContent
-- The tab respects `selectedSchoolId` (all vs specific)
-
-### 3. Dashboard: Workshop Preview on Module Card
-
-**Modified: `src/components/dashboard/ModuleHub.tsx`**
-
-The "ATELIERE" card currently shows just a title and count. Change it to:
-- Fetch `getWorkshopOfMonth()` on mount
-- Display workshop title + short description directly on the card (below the subtitle), so teachers see it without tapping
-- Add a small "Luna: Martie 2026" label and category badge on the card face
-- Keep the card tappable to open full workshop detail
-
-**Modified: `src/components/dashboard/ModuleCard.tsx`**
-
-Add optional `preview` prop (ReactNode) that renders below the subtitle when provided. Only the "ateliere" card will use this prop.
-
-### 4. Notification System: Workshop Push Notifications
-
-**Modified: `src/contexts/NotificationContext.tsx`**
-
-- Import `getWorkshopOfMonth` from workshops API
-- Add `'workshop'` as a new notification type in `NotificationItem`
-- In `refreshNotifications`, check if there's a published workshop for this month that hasn't been seen (track via localStorage key `tid4k_seen_workshop_[id]`)
-- Generate notification: "Atelier nou: [titlu]" with link to open the ateliere module
-
-**Modified: `src/components/layout/AppLayout.tsx`**
-
-- Add `Paintbrush` icon handling for `workshop` notification type in the popover renderer (distinct purple color)
-
-### 5. Documentation
-
-**New file: `docs/WORKSHOPS.md`**
-
-Three sections:
-1. **For Admins**: How to create workshops, target specific schools or all, publish flow, editing after publish
-2. **For Developers/AI**: API endpoints table, TypeScript interfaces, component architecture, notification integration
-3. **API Reference**: Full endpoint spec for backend implementation
-
-```text
-POST /ateliere.php?action=create        -- Create workshop
-POST /ateliere.php?action=update        -- Edit workshop
-POST /ateliere.php?action=publish       -- Publish + push to schools
-GET  /ateliere.php?action=list          -- List workshops (filters: school_id, luna)
-GET  /ateliere.php?action=current       -- This month's active workshop
-POST /ateliere.php?action=delete        -- Delete workshop
-POST /ateliere.php?action=notify        -- Trigger push notifications
-```
-
----
-
-## Technical Details
-
-### File Changes Summary
-
-| File | Action | What |
-|------|--------|------|
-| `src/api/workshops.ts` | NEW | Workshop types, mock data, API functions |
-| `src/components/admin/WorkshopsTab.tsx` | NEW | Full admin UI for workshop CRUD + publish |
-| `docs/WORKSHOPS.md` | NEW | Documentation for admins and devs |
-| `src/pages/AdminPanel.tsx` | EDIT | Add "Ateliere" tab (icon + TabsContent) |
-| `src/components/dashboard/ModuleCard.tsx` | EDIT | Add optional `preview` prop |
-| `src/components/dashboard/ModuleHub.tsx` | EDIT | Fetch workshop of month, pass preview to ateliere card |
-| `src/contexts/NotificationContext.tsx` | EDIT | Add workshop notification type |
-| `src/components/layout/AppLayout.tsx` | EDIT | Render workshop notification icon in popover |
-
-### Patterns Followed
-
-- Same `USE_MOCK` toggle pattern as all other API files
-- Same collapsible card admin UI pattern as SettingsTab/SchoolsTab
-- Same notification item pattern with `type`, `icon`, `navigateTo`
-- School selector `selectedSchoolId` passed through just like other admin tabs
-- `framer-motion` animations consistent with existing module cards
-
-### Workshop Card Preview Rendering
-
-On the dashboard, the ATELIERE module card will show:
-
-```text
-+------------------------------------------+
-| [Paintbrush icon]  ATELIERE              |
-|                    Activitati creative     |
-|   ┌─────────────────────────────┐         |
-|   │ Pictură pe sticlă           │  [10]   |
-|   │ Artă · Martie 2026          │         |
-|   └─────────────────────────────┘         |
-+------------------------------------------+
-```
-
-This preview text appears only when a workshop-of-the-month exists.
+## What This Does NOT Change
+- No changes to existing authenticated flows
+- No changes to admin panel, dashboard, or any existing page design
+- No new roles or role labels
+- Existing `/qr/:orgSlug` content logic stays the same — just wrapped in the guest session gate
 
