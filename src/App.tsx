@@ -36,6 +36,7 @@ import SurtitlesPage from "./pages/Surtitles";
 import VideoGenerationPage from "./pages/VideoGeneration";
 import QueueAdmin from "./pages/QueueAdmin";
 import QueueTicket from "./pages/QueueTicket";
+import MedicineAdmin from "./pages/MedicineAdmin";
 
 import SponsorMap from "./pages/SponsorMap";
 import NotFound from "./pages/NotFound";
