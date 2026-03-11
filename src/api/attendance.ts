@@ -41,6 +41,8 @@ export async function getAttendance(grupa: string, data: string): Promise<Attend
     nume_prenume_copil: c.nume_prenume,
     prezent: attendanceMap.get(c.id)?.prezent ?? false,
     observatii: attendanceMap.get(c.id)?.observatii ?? '',
+    marked_at: attendanceMap.get(c.id)?.marked_at ?? undefined,
+    scanned_by_parent: attendanceMap.get(c.id)?.scanned_by_parent ?? false,
   }));
 
   return { data, records };
