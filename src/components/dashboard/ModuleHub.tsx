@@ -103,7 +103,7 @@ interface ModuleHubProps {
 export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
-  const [workshopOfMonth, setWorkshopOfMonth] = useState<Workshop | null>(null);
+  const [workshopOfMonth, setWorkshopOfMonth] = useState<ExternalWorkshop | null>(null);
   // dragIdx state kept only for non-edit mode (not used but harmless)
   const { config } = useModuleConfig();
 
