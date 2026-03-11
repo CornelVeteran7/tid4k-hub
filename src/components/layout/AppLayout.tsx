@@ -141,9 +141,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   // Ensure data-vertical attribute is always in sync with current user vertical
   const currentVertical = (user?.vertical_type || 'kids') as VerticalType;
   useEffect(() => {
-    import('@/utils/branding').then(({ applyVerticalTheme }) => {
-      applyVerticalTheme(currentVertical);
-    });
+    applyVerticalTheme(currentVertical);
   }, [currentVertical]);
 
   if (!user) return null;
