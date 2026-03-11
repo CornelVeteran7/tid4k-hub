@@ -17,6 +17,7 @@ const Documents = lazy(() => import('@/pages/Documents'));
 const Messages = lazy(() => import('@/pages/Messages'));
 const Stories = lazy(() => import('@/pages/Stories'));
 const WeeklyMenu = lazy(() => import('@/pages/WeeklyMenu'));
+const AteliereEducative = lazy(() => import('@/pages/AteliereEducative'));
 
 export interface ModuleVisibility {
   prezenta: boolean;
