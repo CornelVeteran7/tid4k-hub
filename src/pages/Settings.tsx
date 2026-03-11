@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Palette, LayoutGrid, Users, Monitor, Link2, Wrench } from 'lucide-react';
+import { Building2, Palette, LayoutGrid, Users, Monitor, Link2, Wrench, CreditCard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { isAdmin as checkIsAdmin } from '@/utils/roles';
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
