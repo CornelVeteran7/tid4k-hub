@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { getConversations } from '@/api/messages';
 import { getAnnouncements } from '@/api/announcements';
 import { getWorkshopOfMonth } from '@/api/workshops';
+import { getPolls } from '@/api/polls';
 import type { Conversation, Announcement } from '@/types';
 
 export interface NotificationItem {
