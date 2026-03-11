@@ -82,20 +82,6 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
   const mesajeEnabled = isEnabled('mesaje');
   const sondajeEnabled = isEnabled('sondaje');
 
-  // Guest users only see the contact form
-  if (isGuest && guestOrgId) {
-    return (
-      <div className="space-y-4 min-w-0">
-        {!embedded && (
-          <h1 className="text-xl sm:text-2xl font-display font-bold">Contact</h1>
-        )}
-        <div className="h-[calc(100dvh-10rem)] rounded-xl overflow-hidden border border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
-          <GuestMessageForm orgId={guestOrgId} orgName={guestOrgName} />
-        </div>
-      </div>
-    );
-  }
-
   const userRoles = user?.status || '';
   const isDirector = areRol(userRoles, 'director') || areRol(userRoles, 'administrator') || areRol(userRoles, 'inky');
   const isTeacher = areRol(userRoles, 'profesor');
