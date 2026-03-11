@@ -131,6 +131,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Spectator', description: 'Program, bilete, supratitrare', status: 'parinte', redirect: '/', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala')], userName: 'Spectator Demo' },
       { label: 'Operator', description: 'Controlează supratitrarea live', status: 'profesor', redirect: '/', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala')], userName: 'Operator Supratitrare' },
       { label: 'Director Artistic', description: 'Program, spectacole, setări', status: 'director', redirect: '/admin', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala'), g('sala-mica', 'Sala Mică', 'scoala')], userName: 'Dir. Artistic' },
+      { label: 'Vizitator', description: 'Program, supratitrare live', status: 'guest', redirect: '/surtitle/demo-culture', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
