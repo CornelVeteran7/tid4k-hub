@@ -224,7 +224,20 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async () => {
+  // Guest users only see the contact form — placed after all hooks
+  if (isGuest && guestOrgId) {
+    return (
+      <div className="space-y-4 min-w-0">
+        {!embedded && (
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Contact</h1>
+        )}
+        <div className="h-[calc(100dvh-10rem)] rounded-xl overflow-hidden border border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
+          <GuestMessageForm orgId={guestOrgId} orgName={guestOrgName} />
+        </div>
+      </div>
+    );
+  }
+
     if (!newMessage.trim() || !selectedConvo || !user || isSending) return;
     setIsSending(true);
     try {
