@@ -10,11 +10,13 @@ import { Users, Camera, FileText, Clock, CalendarDays, Utensils, BookOpen, BarCh
 import { motion } from 'framer-motion';
 import { useModuleConfig, type ModuleConfig } from '@/config/moduleConfig';
 import { getMenu } from '@/api/menu';
+import { getAttendance } from '@/api/attendance';
 import { format } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility, loadModuleOrder, saveModuleOrder } from '@/components/dashboard/ModuleHub';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
+import AttendanceGrid from '@/components/dashboard/AttendanceGrid';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 import type { MenuItem } from '@/types';
