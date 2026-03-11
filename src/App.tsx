@@ -9,6 +9,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ExternalLinkProvider } from "@/contexts/ExternalLinkContext";
 import { ModuleConfigProvider } from "@/config/moduleConfig";
 import { AppLayout } from "@/components/layout/AppLayout";
+import WhiteLabelSwitcher from "@/components/WhiteLabelSwitcher";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -55,6 +56,13 @@ import SurtitleAudiencePage from "./pages/SurtitleAudience";
 import SuperAdmin from "./pages/SuperAdmin";
 import DemoEntry from "./pages/DemoEntry";
 const queryClient = new QueryClient();
+
+// Demo development tool — visible on all pages when in demo mode
+function DemoTool() {
+  const { isDemo } = useAuth();
+  if (!isDemo) return null;
+  return <WhiteLabelSwitcher />;
+}
 
 function ProtectedRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -145,6 +153,8 @@ const App = () => (
                 <Route path="/site/:orgSlug" element={<PublicWebsite />} />
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
+              {/* Demo tool visible on all pages when in demo mode */}
+              <DemoTool />
             </AuthProvider>
           </BrowserRouter>
         </ExternalLinkProvider>
