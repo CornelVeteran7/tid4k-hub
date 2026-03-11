@@ -516,7 +516,7 @@ const UI_SECTIONS: DocSection[] = [
       <div className="space-y-1 text-sm text-muted-foreground">
         <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/admin/ThemeEditorTab.tsx</code></p>
         <p>Două secțiuni: preset-uri per vertical (culorile default) și override per organizație specifică.</p>
-        <p>Persistare: <code className="bg-muted px-1 rounded text-xs">org_config</code> table, keys: <code className="bg-muted px-1 rounded text-xs">vertical_theme_{type}</code> și <code className="bg-muted px-1 rounded text-xs">theme_override</code></p>
+        <p>Persistare: <code className="bg-muted px-1 rounded text-xs">org_config</code> table, keys: <code className="bg-muted px-1 rounded text-xs">vertical_theme_preset</code> și <code className="bg-muted px-1 rounded text-xs">theme_override</code></p>
       </div>
     ),
   },
