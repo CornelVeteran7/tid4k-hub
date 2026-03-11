@@ -162,16 +162,21 @@ function BackgroundShapes() {
   const { user } = useAuth();
   const verticalType = (user?.vertical_type || 'kids') as VerticalType;
 
+  // Dark verticals need light strokes and higher opacity
+  const isDarkVertical = verticalType === 'culture';
+  const contourStroke = isDarkVertical ? 'hsl(40 30% 65%)' : 'hsl(200 42% 21%)';
+  const svgOpacity = isDarkVertical ? 'opacity-[0.14]' : 'opacity-[0.09]';
+
   return (
     <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
       <svg
-        className="w-full h-full opacity-[0.09]"
+        className={`w-full h-full ${svgOpacity}`}
         viewBox="0 0 1440 1024"
         preserveAspectRatio="xMidYMid slice"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <g stroke="hsl(200 42% 21%)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+        <g stroke={contourStroke} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
           {/* Layer 1 — top */}
           <path d="M-40,70 C60,20 180,140 320,80 C460,20 540,150 720,60 C900,−30 1020,160 1180,70 C1340,−20 1400,100 1480,50" />
           <path d="M-40,130 C80,180 200,50 370,130 C540,210 620,40 800,140 C980,240 1060,60 1230,140 C1400,220 1440,80 1480,130" />

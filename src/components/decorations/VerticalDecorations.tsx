@@ -588,10 +588,23 @@ const DECORATION_MAP: Record<VerticalType, React.FC<{ stroke: string; opacity: n
   students: StudentsDecorations,
 };
 
+/** Stroke colors per vertical — light strokes for dark backgrounds */
+const BACKGROUND_STROKE: Record<string, string> = {
+  culture: 'hsl(40 30% 70%)',   // gold-tinted for dark noir
+  kids: 'hsl(200 42% 21%)',
+  schools: 'hsl(200 42% 21%)',
+  medicine: 'hsl(200 50% 35%)',
+  construction: 'hsl(30 20% 30%)',
+  workshops: 'hsl(215 20% 30%)',
+  living: 'hsl(145 25% 30%)',
+  students: 'hsl(200 42% 21%)',
+};
+
 /** Background decorations — replaces flowers/bees in Dashboard BackgroundShapes */
 export function BackgroundDecorations({ vertical }: { vertical: VerticalType }) {
   const Component = DECORATION_MAP[vertical] || KidsDecorations;
-  return <Component stroke="hsl(200 42% 21%)" opacity={1} />;
+  const stroke = BACKGROUND_STROKE[vertical] || BACKGROUND_STROKE.kids;
+  return <Component stroke={stroke} opacity={1} />;
 }
 
 /** Sidebar decorations — separate smaller SVGs placed in sidebar space, NOT scaled from background */
