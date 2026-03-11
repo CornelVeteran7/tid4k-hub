@@ -95,6 +95,11 @@ export default function SponsorMap() {
               </Marker>
             ))}
           </MapContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-muted-foreground">
+              <p className="text-sm">Nu sunt locații disponibile</p>
+            </div>
+          )}
         </div>
       </motion.div>
 
