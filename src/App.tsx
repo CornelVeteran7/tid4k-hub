@@ -9,6 +9,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ExternalLinkProvider } from "@/contexts/ExternalLinkContext";
 import { ModuleConfigProvider } from "@/config/moduleConfig";
 import { AppLayout } from "@/components/layout/AppLayout";
+import WhiteLabelSwitcher from "@/components/WhiteLabelSwitcher";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
