@@ -26,7 +26,9 @@ export default function QuickUpload() {
   const pendingCategory = useRef<string | null>(null);
   const location = useLocation();
   const { currentGroup } = useGroup();
+  const { user } = useAuth();
 
+  const canUpload = isStaff(user?.status || '', user?.nume_prenume || '');
   const isAdminPage = ADMIN_PATHS.some(p => location.pathname.startsWith(p));
 
   const handleDblClick = useCallback((e: MouseEvent) => {
