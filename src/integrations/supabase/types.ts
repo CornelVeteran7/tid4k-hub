@@ -2089,6 +2089,138 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_options: {
+        Row: {
+          id: string
+          label: string
+          poll_id: string
+          position: number
+        }
+        Insert: {
+          id?: string
+          label: string
+          poll_id: string
+          position?: number
+        }
+        Update: {
+          id?: string
+          label?: string
+          poll_id?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_votes: {
+        Row: {
+          created_at: string
+          free_text: string | null
+          id: string
+          option_id: string | null
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          free_text?: string | null
+          id?: string
+          option_id?: string | null
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          free_text?: string | null
+          id?: string
+          option_id?: string | null
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      polls: {
+        Row: {
+          created_at: string
+          created_by: string
+          deadline: string
+          description: string | null
+          id: string
+          is_closed: boolean
+          organization_id: string
+          poll_type: string
+          results_visibility: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          deadline: string
+          description?: string | null
+          id?: string
+          is_closed?: boolean
+          organization_id: string
+          poll_type?: string
+          results_visibility?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          deadline?: string
+          description?: string | null
+          id?: string
+          is_closed?: boolean
+          organization_id?: string
+          poll_type?: string
+          results_visibility?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "polls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "polls_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
