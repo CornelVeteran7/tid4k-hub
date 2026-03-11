@@ -497,6 +497,7 @@ export default function Dashboard() {
               moduleOrder={moduleOrder}
               onReorder={(order) => { setModuleOrder(order); saveModuleOrder(order); }}
               verticalModules={verticalDef.defaultModules}
+              cardVariant={verticalDef.cardVariant}
             />
           </div>
 
