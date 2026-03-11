@@ -399,10 +399,22 @@ export default function Dashboard() {
     });
   }, []);
 
+  // Load today's attendance count
+  useEffect(() => {
+    if (!currentGroup) return;
+    const today = format(new Date(), 'yyyy-MM-dd');
+    getAttendance(currentGroup.id, today).then(day => {
+      const p = day.records.filter(r => r.prezent).length;
+      setAttendanceCount({ present: p, total: day.records.length });
+    }).catch(() => {});
+  }, [currentGroup]);
+
   if (!user) return null;
 
   const roles = getRoles(user.status);
   const verticalType = (user.vertical_type || 'kids') as VerticalType;
+  const verticalDef = VERTICAL_DEFINITIONS[verticalType];
+  const attendanceLabel = `${attendanceCount.present}/${attendanceCount.total}`;
   const verticalDef = VERTICAL_DEFINITIONS[verticalType];
 
   return (
