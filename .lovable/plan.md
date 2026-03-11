@@ -1,20 +1,20 @@
 
 
-# Plan: Workshop Management System + Admin Push & Documentation
+# Plan: Sistem de Management Ateliere + Notificări Admin & Documentație
 
-## Overview
+## Prezentare generală
 
-This plan adds a complete **Workshop (Ateliere) management system** to the Admin Panel, enabling admins to create, edit, and push workshops to one or all school units. The dashboard "ATELIERE" module card will show this month's workshop preview directly (without opening), and push notifications will alert teachers about new workshops.
+Acest plan adaugă un **sistem complet de management al Atelierelor** în Panoul de Administrare, permițând administratorilor să creeze, editeze și să publice ateliere către una sau toate unitățile școlare. Cardul modulului „ATELIERE" de pe dashboard va afișa previzualizarea atelierului lunii direct (fără deschidere), iar notificările push vor alerta profesorii despre atelierele noi.
 
 ---
 
-## What Gets Built
+## Ce se construiește
 
-### 1. Workshop Data Model & API
+### 1. Modelul de date și API-ul pentru Ateliere
 
-**New file: `src/api/workshops.ts`**
+**Fișier nou: `src/api/workshops.ts`**
 
-Types and mock data for workshops:
+Tipuri și date mock pentru ateliere:
 
 ```text
 Workshop {
@@ -27,117 +27,117 @@ Workshop {
   materiale: string[]
   instructor: string
   durata_minute: number
-  scoli_target: string[] (['all'] or specific school IDs)
+  scoli_target: string[] (['all'] sau ID-uri specifice de școli)
   publicat: boolean
   data_creare: string
   data_publicare?: string
 }
 ```
 
-API functions:
-- `getWorkshops(schoolId?, luna?)` -- fetch workshops, optionally filtered
-- `getWorkshopOfMonth(schoolId?)` -- returns this month's active published workshop
-- `createWorkshop(data)` -- create new
-- `updateWorkshop(id, data)` -- edit
-- `deleteWorkshop(id)` -- remove
-- `publishWorkshop(id, scoli_target)` -- mark as published + push to units
-- Mock data: 2-3 workshops for the current month
+Funcții API:
+- `getWorkshops(schoolId?, luna?)` -- obține atelierele, opțional filtrate
+- `getWorkshopOfMonth(schoolId?)` -- returnează atelierul activ publicat al lunii curente
+- `createWorkshop(data)` -- creare nou
+- `updateWorkshop(id, data)` -- editare
+- `deleteWorkshop(id)` -- ștergere
+- `publishWorkshop(id, scoli_target)` -- marchează ca publicat + trimite către unități
+- Date mock: 2-3 ateliere pentru luna curentă
 
-### 2. Admin Panel: New "Ateliere" Tab
+### 2. Panoul de administrare: Tab nou „Ateliere"
 
-**New file: `src/components/admin/WorkshopsTab.tsx`**
+**Fișier nou: `src/components/admin/WorkshopsTab.tsx`**
 
-A new tab in the Admin Panel (`/admin`) with:
+Un tab nou în Panoul de Administrare (`/admin`) cu:
 
-- **School selector awareness**: respects the global "Toate unitatile" / specific school filter at top of admin page
-- **Workshop list**: cards showing title, month, category badge, publish status, target schools
-- **Create/Edit dialog**: form with title, description, category, image URL, materials list, instructor, duration, school target (one / all)
-- **Publish button**: marks workshop as published; when target is "all", pushes to every school. Shows confirmation with school count.
-- **Status indicators**: Draft (gray), Published (green), showing which schools received it
+- **Conștientizare selector școală**: respectă filtrul global „Toate unitatile" / școală specifică din partea de sus a paginii admin
+- **Lista atelierelor**: carduri care arată titlul, luna, insigna categoriei, starea publicării, școlile țintă
+- **Dialog creare/editare**: formular cu titlu, descriere, categorie, URL imagine, lista materiale, instructor, durată, școală țintă (una / toate)
+- **Buton publicare**: marchează atelierul ca publicat; când ținta este „toate", trimite către fiecare școală. Afișează confirmare cu numărul de școli.
+- **Indicatori de stare**: Ciornă (gri), Publicat (verde), arătând care școli l-au primit
 
-Changes to `src/pages/AdminPanel.tsx`:
-- Add `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` to TABS
-- Import and render `<WorkshopsTab>` in the new TabsContent
-- The tab respects `selectedSchoolId` (all vs specific)
+Modificări în `src/pages/AdminPanel.tsx`:
+- Adaugă `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` la TABS
+- Importă și randează `<WorkshopsTab>` în noul TabsContent
+- Tab-ul respectă `selectedSchoolId` (toate vs. specifică)
 
-### 3. Dashboard: Workshop Preview on Module Card
+### 3. Dashboard: Previzualizare atelier pe cardul modulului
 
-**Modified: `src/components/dashboard/ModuleHub.tsx`**
+**Modificat: `src/components/dashboard/ModuleHub.tsx`**
 
-The "ATELIERE" card currently shows just a title and count. Change it to:
-- Fetch `getWorkshopOfMonth()` on mount
-- Display workshop title + short description directly on the card (below the subtitle), so teachers see it without tapping
-- Add a small "Luna: Martie 2026" label and category badge on the card face
-- Keep the card tappable to open full workshop detail
+Cardul „ATELIERE" arată în prezent doar un titlu și un contor. Se va schimba la:
+- Obține `getWorkshopOfMonth()` la montare
+- Afișează titlul atelierului + descriere scurtă direct pe card (sub subtitlu), astfel încât profesorii să o vadă fără a apăsa
+- Adaugă o etichetă mică „Luna: Martie 2026" și insigna categoriei pe fața cardului
+- Cardul rămâne apăsabil pentru a deschide detaliul complet al atelierului
 
-**Modified: `src/components/dashboard/ModuleCard.tsx`**
+**Modificat: `src/components/dashboard/ModuleCard.tsx`**
 
-Add optional `preview` prop (ReactNode) that renders below the subtitle when provided. Only the "ateliere" card will use this prop.
+Adaugă prop opțional `preview` (ReactNode) care se randează sub subtitlu atunci când este furnizat. Doar cardul „ateliere" va folosi acest prop.
 
-### 4. Notification System: Workshop Push Notifications
+### 4. Sistemul de notificări: Notificări push pentru ateliere
 
-**Modified: `src/contexts/NotificationContext.tsx`**
+**Modificat: `src/contexts/NotificationContext.tsx`**
 
-- Import `getWorkshopOfMonth` from workshops API
-- Add `'workshop'` as a new notification type in `NotificationItem`
-- In `refreshNotifications`, check if there's a published workshop for this month that hasn't been seen (track via localStorage key `tid4k_seen_workshop_[id]`)
-- Generate notification: "Atelier nou: [titlu]" with link to open the ateliere module
+- Importă `getWorkshopOfMonth` din API-ul de ateliere
+- Adaugă `'workshop'` ca tip nou de notificare în `NotificationItem`
+- În `refreshNotifications`, verifică dacă există un atelier publicat pentru luna curentă care nu a fost văzut (urmărit prin cheia localStorage `tid4k_seen_workshop_[id]`)
+- Generează notificare: „Atelier nou: [titlu]" cu link pentru a deschide modulul de ateliere
 
-**Modified: `src/components/layout/AppLayout.tsx`**
+**Modificat: `src/components/layout/AppLayout.tsx`**
 
-- Add `Paintbrush` icon handling for `workshop` notification type in the popover renderer (distinct purple color)
+- Adaugă gestionarea iconiței `Paintbrush` pentru tipul de notificare `workshop` în renderul popover (culoare violet distinctă)
 
-### 5. Documentation
+### 5. Documentație
 
-**New file: `docs/WORKSHOPS.md`**
+**Fișier nou: `docs/WORKSHOPS.md`**
 
-Three sections:
-1. **For Admins**: How to create workshops, target specific schools or all, publish flow, editing after publish
-2. **For Developers/AI**: API endpoints table, TypeScript interfaces, component architecture, notification integration
-3. **API Reference**: Full endpoint spec for backend implementation
+Trei secțiuni:
+1. **Pentru administratori**: Cum se creează atelierele, cum se vizează școli specifice sau toate, fluxul de publicare, editarea după publicare
+2. **Pentru dezvoltatori/AI**: Tabel endpoint-uri API, interfețe TypeScript, arhitectura componentelor, integrarea notificărilor
+3. **Referință API**: Specificație completă a endpoint-urilor pentru implementarea backend
 
 ```text
-POST /ateliere.php?action=create        -- Create workshop
-POST /ateliere.php?action=update        -- Edit workshop
-POST /ateliere.php?action=publish       -- Publish + push to schools
-GET  /ateliere.php?action=list          -- List workshops (filters: school_id, luna)
-GET  /ateliere.php?action=current       -- This month's active workshop
-POST /ateliere.php?action=delete        -- Delete workshop
-POST /ateliere.php?action=notify        -- Trigger push notifications
+POST /ateliere.php?action=create        -- Creare atelier
+POST /ateliere.php?action=update        -- Editare atelier
+POST /ateliere.php?action=publish       -- Publicare + trimitere către școli
+GET  /ateliere.php?action=list          -- Listare ateliere (filtre: school_id, luna)
+GET  /ateliere.php?action=current       -- Atelierul activ al lunii curente
+POST /ateliere.php?action=delete        -- Ștergere atelier
+POST /ateliere.php?action=notify        -- Declanșare notificări push
 ```
 
 ---
 
-## Technical Details
+## Detalii tehnice
 
-### File Changes Summary
+### Rezumatul modificărilor de fișiere
 
-| File | Action | What |
-|------|--------|------|
-| `src/api/workshops.ts` | NEW | Workshop types, mock data, API functions |
-| `src/components/admin/WorkshopsTab.tsx` | NEW | Full admin UI for workshop CRUD + publish |
-| `docs/WORKSHOPS.md` | NEW | Documentation for admins and devs |
-| `src/pages/AdminPanel.tsx` | EDIT | Add "Ateliere" tab (icon + TabsContent) |
-| `src/components/dashboard/ModuleCard.tsx` | EDIT | Add optional `preview` prop |
-| `src/components/dashboard/ModuleHub.tsx` | EDIT | Fetch workshop of month, pass preview to ateliere card |
-| `src/contexts/NotificationContext.tsx` | EDIT | Add workshop notification type |
-| `src/components/layout/AppLayout.tsx` | EDIT | Render workshop notification icon in popover |
+| Fișier | Acțiune | Ce face |
+|--------|---------|---------|
+| `src/api/workshops.ts` | NOU | Tipuri atelier, date mock, funcții API |
+| `src/components/admin/WorkshopsTab.tsx` | NOU | UI complet admin pentru CRUD ateliere + publicare |
+| `docs/WORKSHOPS.md` | NOU | Documentație pentru administratori și dezvoltatori |
+| `src/pages/AdminPanel.tsx` | EDITARE | Adaugă tab „Ateliere" (iconiță + TabsContent) |
+| `src/components/dashboard/ModuleCard.tsx` | EDITARE | Adaugă prop opțional `preview` |
+| `src/components/dashboard/ModuleHub.tsx` | EDITARE | Obține atelierul lunii, pasează preview către cardul ateliere |
+| `src/contexts/NotificationContext.tsx` | EDITARE | Adaugă tip notificare atelier |
+| `src/components/layout/AppLayout.tsx` | EDITARE | Randează iconiță notificare atelier în popover |
 
-### Patterns Followed
+### Tipare respectate
 
-- Same `USE_MOCK` toggle pattern as all other API files
-- Same collapsible card admin UI pattern as SettingsTab/SchoolsTab
-- Same notification item pattern with `type`, `icon`, `navigateTo`
-- School selector `selectedSchoolId` passed through just like other admin tabs
-- `framer-motion` animations consistent with existing module cards
+- Același model de comutare `USE_MOCK` ca în toate celelalte fișiere API
+- Același model UI admin cu carduri pliabile ca în SettingsTab/SchoolsTab
+- Același model de element notificare cu `type`, `icon`, `navigateTo`
+- Selectorul de școală `selectedSchoolId` pasat la fel ca în celelalte tab-uri admin
+- Animații `framer-motion` consistente cu cardurile de modul existente
 
-### Workshop Card Preview Rendering
+### Randarea previzualizării cardului atelier
 
-On the dashboard, the ATELIERE module card will show:
+Pe dashboard, cardul modulului ATELIERE va afișa:
 
 ```text
 +------------------------------------------+
-| [Paintbrush icon]  ATELIERE              |
+| [Iconiță Paintbrush]  ATELIERE           |
 |                    Activitati creative     |
 |   ┌─────────────────────────────┐         |
 |   │ Pictură pe sticlă           │  [10]   |
@@ -146,5 +146,4 @@ On the dashboard, the ATELIERE module card will show:
 +------------------------------------------+
 ```
 
-This preview text appears only when a workshop-of-the-month exists.
-
+Această previzualizare apare doar când există un atelier al lunii.
