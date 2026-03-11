@@ -238,6 +238,7 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
     );
   }
 
+  const handleSend = async () => {
     if (!newMessage.trim() || !selectedConvo || !user || isSending) return;
     setIsSending(true);
     try {
