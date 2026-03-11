@@ -450,15 +450,18 @@ export default function Dashboard() {
             </div>
 
             <div className="p-5 lg:pt-0">
-              {/* Mobile only: show name (desktop shows in header) */}
+              {/* Mobile only: show name + rezumatul zilei */}
               <h1 className="text-xl font-display font-bold text-foreground truncate lg:hidden">
                 Bun venit, {user.nume_prenume.split(' ')[0]}! 👋
               </h1>
+              <p className="text-xs text-muted-foreground mt-0.5 lg:hidden">
+                Rezumatul zilei{currentGroup ? ` · ${currentGroup.nume}` : ''}
+              </p>
               {/* Desktop: show group info more prominently */}
               <h1 className="hidden lg:block text-lg font-display font-bold text-foreground truncate">
                 {currentGroup?.nume || 'Dashboard'}
               </h1>
-              <p className="text-muted-foreground text-sm mt-0.5">
+              <p className="hidden lg:block text-muted-foreground text-sm mt-0.5">
                 {currentGroup ? `${verticalDef.entityLabel}` : `Selectează ${verticalDef.entityLabel.toLowerCase()}`}
               </p>
               <div className="flex flex-wrap gap-1.5 mt-2">
@@ -470,7 +473,7 @@ export default function Dashboard() {
               </div>
 
               {/* Quick stats row */}
-              <QuickStatsRow config={config} />
+              <QuickStatsRow config={config} onPrezentaClick={() => setShowAttendanceGrid(true)} attendanceLabel={attendanceLabel} />
 
               {/* Desktop: Rezumatul zilei details */}
               <DesktopSummary config={config} verticalType={verticalType} />
