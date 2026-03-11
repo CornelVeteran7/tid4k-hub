@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useGroup } from '@/contexts/GroupContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isStaff } from '@/utils/roles';
 import { uploadDocument } from '@/api/documents';
 import { Camera, FileText, X, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +26,9 @@ export default function QuickUpload() {
   const pendingCategory = useRef<string | null>(null);
   const location = useLocation();
   const { currentGroup } = useGroup();
+  const { user } = useAuth();
 
+  const canUpload = isStaff(user?.status || '', user?.nume_prenume || '');
   const isAdminPage = ADMIN_PATHS.some(p => location.pathname.startsWith(p));
 
   const handleDblClick = useCallback((e: MouseEvent) => {
@@ -87,7 +91,7 @@ export default function QuickUpload() {
     y: Math.min(pickerPos.y, window.innerHeight - 260),
   };
 
-  if (isAdminPage) return null;
+  if (isAdminPage || !canUpload) return null;
 
   return (
     <>

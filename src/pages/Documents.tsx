@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isStaff } from '@/utils/roles';
 import { getDocuments, deleteDocument, uploadDocument } from '@/api/documents';
 import { supabase } from '@/integrations/supabase/client';
 import type { DocumentItem } from '@/types';
@@ -25,6 +27,8 @@ const CATEGORIES = [
 
 export default function Documents({ embedded }: { embedded?: boolean }) {
   const { currentGroup } = useGroup();
+  const { user } = useAuth();
+  const canManage = isStaff(user?.status || '', user?.nume_prenume || '');
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<string>('all');
@@ -65,23 +69,25 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
           <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}>
             {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid className="h-4 w-4" />}
           </Button>
-          <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2" size="sm"><Upload className="h-4 w-4" /> Încarcă</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Încarcă document</DialogTitle>
-              </DialogHeader>
-              <UploadForm
-                groupId={currentGroup?.id || ''}
-                onUploaded={(doc) => {
-                  setDocuments(prev => [doc, ...prev]);
-                  setUploadOpen(false);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+          {canManage && (
+            <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2" size="sm"><Upload className="h-4 w-4" /> Încarcă</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Încarcă document</DialogTitle>
+                </DialogHeader>
+                <UploadForm
+                  groupId={currentGroup?.id || ''}
+                  onUploaded={(doc) => {
+                    setDocuments(prev => [doc, ...prev]);
+                    setUploadOpen(false);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -134,10 +140,19 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
                   </p>
                 </div>
                 <div className="flex gap-1 mt-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {/* Parents can only download documents (PDF), not images */}
+                  {(canManage || doc.tip_fisier === 'pdf') && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                      <a href={doc.url} download target="_blank" rel="noopener noreferrer">
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  )}
+                  {canManage && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

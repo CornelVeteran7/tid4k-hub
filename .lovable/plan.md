@@ -1,93 +1,149 @@
 
 
-# Plan: Guest & Parent Access Restrictions
+# Plan: Sistem de Management Ateliere + Notificări Admin & Documentație
 
-## Summary
+## Prezentare generală
 
-Three areas of change: (1) restrict which modules guests see on the main dashboard, (2) restrict image/document download behavior for guests, (3) prevent uploads for guests and parents. Plus: allow guests to see/book workshops.
+Acest plan adaugă un **sistem complet de management al Atelierelor** în Panoul de Administrare, permițând administratorilor să creeze, editeze și să publice ateliere către una sau toate unitățile școlare. Cardul modulului „ATELIERE" de pe dashboard va afișa previzualizarea atelierului lunii direct (fără deschidere), iar notificările push vor alerta profesorii despre atelierele noi.
 
-## Current Architecture
+---
 
-- **Guests** access via `/qr/:orgSlug` (QRCancelarie) — this is a standalone page, NOT the main Dashboard. Guests never see the main Dashboard or ModuleHub.
-- **Authenticated users** (parents, teachers, directors) access the main Dashboard with ModuleHub.
-- The `QuickUpload` component is in `AppLayout.tsx` — only rendered for authenticated users (AppLayout is only used in authenticated routes).
-- Documents page (`Documents.tsx`) shows upload button + delete button to everyone currently.
+## Ce se construiește
 
-## Changes Needed
+### 1. Modelul de date și API-ul pentru Ateliere
 
-### 1. QRCancelarie — Add Workshops Section for Guests (kids vertical)
+**Fișier nou: `src/api/workshops.ts`**
 
-**File: `src/pages/QRCancelarie.tsx`**
+Tipuri și date mock pentru ateliere:
 
-Currently guests on kids vertical see: Announcements, Schedule. Need to add:
-- **Ateliere (Workshops)** section: Load external workshops from DB, display cards, allow booking via ExternalLinkContext link
-- Remove the generic "mesaje, documente" text from the guest bottom section — guests don't get those
-
-Add a new section after schedule for `kids` vertical:
-```tsx
-{org?.vertical_type === 'kids' && (
-  <Section icon={<Paintbrush />} title="Ateliere Educative">
-    {/* Workshop of the month card + link to all */}
-  </Section>
-)}
+```text
+Workshop {
+  id_atelier: number
+  titlu: string
+  descriere: string
+  luna: string (YYYY-MM)
+  imagine_url: string
+  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
+  materiale: string[]
+  instructor: string
+  durata_minute: number
+  scoli_target: string[] (['all'] sau ID-uri specifice de școli)
+  publicat: boolean
+  data_creare: string
+  data_publicare?: string
+}
 ```
 
-Load workshops in the `loadContent` effect using `getExternalWorkshops()`.
+Funcții API:
+- `getWorkshops(schoolId?, luna?)` -- obține atelierele, opțional filtrate
+- `getWorkshopOfMonth(schoolId?)` -- returnează atelierul activ publicat al lunii curente
+- `createWorkshop(data)` -- creare nou
+- `updateWorkshop(id, data)` -- editare
+- `deleteWorkshop(id)` -- ștergere
+- `publishWorkshop(id, scoli_target)` -- marchează ca publicat + trimite către unități
+- Date mock: 2-3 ateliere pentru luna curentă
 
-### 2. Documents Page — Role-Based Restrictions
+### 2. Panoul de administrare: Tab nou „Ateliere"
 
-**File: `src/pages/Documents.tsx`**
+**Fișier nou: `src/components/admin/WorkshopsTab.tsx`**
 
-- Add `user` from `useAuth()` and check role
-- **Parents**: Hide upload button, hide delete button. Show download only for documents (PDF), not for images.
-- **Guests**: Won't access this page directly (they're on QRCancelarie), but if embedded, same as parents but stricter — images: view only (no download), documents: download allowed.
+Un tab nou în Panoul de Administrare (`/admin`) cu:
 
-Actually, guests don't access the main app at all. The restriction is:
-- **Parents (authenticated)**: Can view images and documents, can download documents (PDF), can view images (no download), cannot upload, cannot delete
-- **Staff/Admin**: Full access (upload, download, delete)
+- **Conștientizare selector școală**: respectă filtrul global „Toate unitatile" / școală specifică din partea de sus a paginii admin
+- **Lista atelierelor**: carduri care arată titlul, luna, insigna categoriei, starea publicării, școlile țintă
+- **Dialog creare/editare**: formular cu titlu, descriere, categorie, URL imagine, lista materiale, instructor, durată, școală țintă (una / toate)
+- **Buton publicare**: marchează atelierul ca publicat; când ținta este „toate", trimite către fiecare școală. Afișează confirmare cu numărul de școli.
+- **Indicatori de stare**: Ciornă (gri), Publicat (verde), arătând care școli l-au primit
 
-Changes:
-- Import `useAuth` and `areRol` 
-- Conditionally hide upload button: only show for staff/admin
-- Conditionally hide delete button: only show for staff/admin
-- For images: conditionally hide download button for parents (they can only view)
-- Documents (PDF): download allowed for everyone
+Modificări în `src/pages/AdminPanel.tsx`:
+- Adaugă `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` la TABS
+- Importă și randează `<WorkshopsTab>` în noul TabsContent
+- Tab-ul respectă `selectedSchoolId` (toate vs. specifică)
 
-### 3. Dashboard ModuleHub — No Changes Needed
+### 3. Dashboard: Previzualizare atelier pe cardul modulului
 
-Guests don't see the Dashboard (they're on QRCancelarie). For authenticated parents, they should see: imagini, documente, ateliere, meniu, mesaje — but NOT povesti and NOT prezenta.
+**Modificat: `src/components/dashboard/ModuleHub.tsx`**
 
-Wait — re-reading the request: "guests do not see povesti, prezenta si contributie". This refers to the modules visible. But guests are on QRCancelarie, not Dashboard. For the main Dashboard, the user wants parents to not see certain modules either? Let me re-read...
+Cardul „ATELIERE" arată în prezent doar un titlu și un contor. Se va schimba la:
+- Obține `getWorkshopOfMonth()` la montare
+- Afișează titlul atelierului + descriere scurtă direct pe card (sub subtitlu), astfel încât profesorii să o vadă fără a apăsa
+- Adaugă o etichetă mică „Luna: Martie 2026" și insigna categoriei pe fața cardului
+- Cardul rămâne apăsabil pentru a deschide detaliul complet al atelierului
 
-"guests do not see povesti, prezenta si contributie and can only see imagini and documente that are displayed on the screen"
+**Modificat: `src/components/dashboard/ModuleCard.tsx`**
 
-This means on the guest QR page, they should see:
-- Images and documents (displayed, not downloadable for images)
-- Workshops (can book and see)
-- NOT: povesti, prezenta, contributie
+Adaugă prop opțional `preview` (ReactNode) care se randează sub subtitlu atunci când este furnizat. Doar cardul „ateliere" va folosi acest prop.
 
-Since QRCancelarie doesn't show povesti/prezenta/contributie to guests anyway (those are in AuthenticatedSection), this is already working. The new addition is: show documents/images + workshops on the guest QR page.
+### 4. Sistemul de notificări: Notificări push pentru ateliere
 
-### 4. QRCancelarie — Add Documents/Images Display for Guests
+**Modificat: `src/contexts/NotificationContext.tsx`**
 
-Load public documents for the org and display them. Images: view-only. Documents: downloadable.
+- Importă `getWorkshopOfMonth` din API-ul de ateliere
+- Adaugă `'workshop'` ca tip nou de notificare în `NotificationItem`
+- În `refreshNotifications`, verifică dacă există un atelier publicat pentru luna curentă care nu a fost văzut (urmărit prin cheia localStorage `tid4k_seen_workshop_[id]`)
+- Generează notificare: „Atelier nou: [titlu]" cu link pentru a deschide modulul de ateliere
 
-### 5. QuickUpload — Disable for Parents
+**Modificat: `src/components/layout/AppLayout.tsx`**
 
-**File: `src/components/QuickUpload.tsx`**
+- Adaugă gestionarea iconiței `Paintbrush` pentru tipul de notificare `workshop` în renderul popover (culoare violet distinctă)
 
-Add role check — only allow for staff/admin, not parents.
+### 5. Documentație
 
-## Files to Modify
+**Fișier nou: `docs/WORKSHOPS.md`**
 
-| File | Changes |
-|------|---------|
-| `src/pages/QRCancelarie.tsx` | Add workshops section + documents/images display for kids guests |
-| `src/pages/Documents.tsx` | Hide upload/delete for parents, hide image download for parents |
-| `src/components/QuickUpload.tsx` | Disable for parents (only staff/admin) |
+Trei secțiuni:
+1. **Pentru administratori**: Cum se creează atelierele, cum se vizează școli specifice sau toate, fluxul de publicare, editarea după publicare
+2. **Pentru dezvoltatori/AI**: Tabel endpoint-uri API, interfețe TypeScript, arhitectura componentelor, integrarea notificărilor
+3. **Referință API**: Specificație completă a endpoint-urilor pentru implementarea backend
 
-## Implementation Order
-1. Documents.tsx — role-based upload/delete/download restrictions
-2. QuickUpload.tsx — parent restriction
-3. QRCancelarie.tsx — add workshops + documents sections for guests
+```text
+POST /ateliere.php?action=create        -- Creare atelier
+POST /ateliere.php?action=update        -- Editare atelier
+POST /ateliere.php?action=publish       -- Publicare + trimitere către școli
+GET  /ateliere.php?action=list          -- Listare ateliere (filtre: school_id, luna)
+GET  /ateliere.php?action=current       -- Atelierul activ al lunii curente
+POST /ateliere.php?action=delete        -- Ștergere atelier
+POST /ateliere.php?action=notify        -- Declanșare notificări push
+```
 
+---
+
+## Detalii tehnice
+
+### Rezumatul modificărilor de fișiere
+
+| Fișier | Acțiune | Ce face |
+|--------|---------|---------|
+| `src/api/workshops.ts` | NOU | Tipuri atelier, date mock, funcții API |
+| `src/components/admin/WorkshopsTab.tsx` | NOU | UI complet admin pentru CRUD ateliere + publicare |
+| `docs/WORKSHOPS.md` | NOU | Documentație pentru administratori și dezvoltatori |
+| `src/pages/AdminPanel.tsx` | EDITARE | Adaugă tab „Ateliere" (iconiță + TabsContent) |
+| `src/components/dashboard/ModuleCard.tsx` | EDITARE | Adaugă prop opțional `preview` |
+| `src/components/dashboard/ModuleHub.tsx` | EDITARE | Obține atelierul lunii, pasează preview către cardul ateliere |
+| `src/contexts/NotificationContext.tsx` | EDITARE | Adaugă tip notificare atelier |
+| `src/components/layout/AppLayout.tsx` | EDITARE | Randează iconiță notificare atelier în popover |
+
+### Tipare respectate
+
+- Același model de comutare `USE_MOCK` ca în toate celelalte fișiere API
+- Același model UI admin cu carduri pliabile ca în SettingsTab/SchoolsTab
+- Același model de element notificare cu `type`, `icon`, `navigateTo`
+- Selectorul de școală `selectedSchoolId` pasat la fel ca în celelalte tab-uri admin
+- Animații `framer-motion` consistente cu cardurile de modul existente
+
+### Randarea previzualizării cardului atelier
+
+Pe dashboard, cardul modulului ATELIERE va afișa:
+
+```text
++------------------------------------------+
+| [Iconiță Paintbrush]  ATELIERE           |
+|                    Activitati creative     |
+|   ┌─────────────────────────────┐         |
+|   │ Pictură pe sticlă           │  [10]   |
+|   │ Artă · Martie 2026          │         |
+|   └─────────────────────────────┘         |
++------------------------------------------+
+```
+
+Această previzualizare apare doar când există un atelier al lunii.
