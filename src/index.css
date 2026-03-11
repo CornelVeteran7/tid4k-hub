@@ -267,13 +267,13 @@
      ═══════════════════════════════════════════ */
 
   .liquid-glass-card {
-    --lg-bg: hsl(0 0% 100% / 0.12);
-    --lg-border: hsl(0 0% 100% / 0.18);
-    --lg-shadow: hsl(0 0% 0% / 0.08);
-    --lg-specular: hsl(0 0% 100% / 0.45);
-    --lg-refraction-start: hsl(0 0% 100% / 0.14);
-    --lg-refraction-end: hsl(0 0% 100% / 0.02);
-    --lg-inner-glow: hsl(0 0% 100% / 0.06);
+    --lg-bg: hsl(200 20% 96% / 0.6);
+    --lg-border: hsl(200 30% 75% / 0.35);
+    --lg-shadow: hsl(200 20% 40% / 0.08);
+    --lg-specular: hsl(200 40% 92% / 0.65);
+    --lg-refraction-start: hsl(200 25% 92% / 0.2);
+    --lg-refraction-end: hsl(200 15% 88% / 0.06);
+    --lg-inner-glow: hsl(200 15% 88% / 0.1);
 
     background: var(--lg-bg);
     backdrop-filter: blur(24px) saturate(200%) brightness(1.05);
@@ -281,9 +281,9 @@
     border: 0.5px solid var(--lg-border);
     border-radius: 1rem;
     box-shadow:
-      0 2px 4px var(--lg-shadow),
-      0 12px 40px -8px hsl(0 0% 0% / 0.12),
-      inset 0 0.5px 0 0 var(--lg-specular);
+      0 2px 6px var(--lg-shadow),
+      0 8px 32px -6px hsl(200 20% 30% / 0.09),
+      inset 0 1px 0 0 var(--lg-specular);
     position: relative;
     overflow: hidden;
     isolation: isolate;
