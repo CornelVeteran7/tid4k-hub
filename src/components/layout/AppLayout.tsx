@@ -524,6 +524,13 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
             </div>
           }
 
+          {/* Mobile: attendance quick card */}
+          {showGroupSelector && currentGroup && !mobileSearchOpen && (
+            <div className="lg:hidden shrink-0">
+              <AttendanceQuickCard />
+            </div>
+          )}
+
           {/* Desktop: page title */}
           <div className="hidden lg:flex flex-1 items-center min-w-0">
             <h2 className="text-lg font-display font-bold text-foreground truncate">
