@@ -153,6 +153,8 @@ const App = () => (
                 <Route path="/site/:orgSlug" element={<PublicWebsite />} />
                 <Route path="/*" element={<ProtectedRoutes />} />
               </Routes>
+              {/* Demo tool visible on all pages when in demo mode */}
+              <DemoTool />
             </AuthProvider>
           </BrowserRouter>
         </ExternalLinkProvider>

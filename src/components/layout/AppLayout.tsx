@@ -660,7 +660,6 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
         <InkyAssistant />
         <TutorialOverlay />
         <QuickUpload />
-        {isDemo && <WhiteLabelSwitcher />}
       </div>
 
 
