@@ -88,18 +88,21 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
   }, []);
 
   const makeDragProps = useCallback((idx: number) => ({
-    // HTML5 drag (desktop)
-    draggable: true,
+    // HTML5 drag (desktop only — breaks touch on mobile)
+    draggable: !isTouchDevice,
     onDragStartCapture: (e: React.DragEvent) => {
+      if (isTouchDevice) return;
       dragIdxRef.current = idx;
       setDragIdx(idx);
       e.dataTransfer.effectAllowed = 'move';
     },
     onDragOverCapture: (e: React.DragEvent) => {
+      if (isTouchDevice) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
     },
     onDropCapture: (e: React.DragEvent) => {
+      if (isTouchDevice) return;
       e.preventDefault();
       const from = dragIdxRef.current;
       if (from === null || from === idx) return;
@@ -111,6 +114,7 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
       setDragIdx(null);
     },
     onDragEndCapture: () => {
+      if (isTouchDevice) return;
       dragIdxRef.current = null;
       setDragIdx(null);
     },
