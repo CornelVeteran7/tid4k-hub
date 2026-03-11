@@ -27,6 +27,8 @@ const CATEGORIES = [
 
 export default function Documents({ embedded }: { embedded?: boolean }) {
   const { currentGroup } = useGroup();
+  const { user } = useAuth();
+  const canManage = isStaff(user?.status || '', user?.nume_prenume || '');
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<string>('all');
