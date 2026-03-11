@@ -63,9 +63,15 @@ export function applyVerticalTheme(verticalType: string) {
   const root = document.documentElement;
   // Remove any existing vertical
   root.removeAttribute('data-vertical');
+  root.classList.remove('dark');
   // Apply new vertical theme
   if (verticalType && verticalType !== 'kids') {
     root.setAttribute('data-vertical', verticalType);
+  }
+  // Force dark mode for verticals that require it (e.g. culture's Opera Noir)
+  const DARK_VERTICALS = ['culture'];
+  if (DARK_VERTICALS.includes(verticalType)) {
+    root.classList.add('dark');
   }
 }
 
