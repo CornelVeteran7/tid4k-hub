@@ -9,13 +9,26 @@ import { ArrowLeft, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function WhiteLabelSwitcher() {
-  const { user, setDemoUser } = useAuth();
+  const { user, setDemoUser, isDemo } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [selectedEnv, setSelectedEnv] = useState<DemoEnvironment | null>(null);
   const [transition, setTransition] = useState<{ color: string; icon: string; name: string } | null>(null);
 
-  const currentVertical = user?.vertical_type || 'kids';
+  // Use demo session storage when user is null (login page)
+  const getCurrentVertical = () => {
+    if (user?.vertical_type) return user.vertical_type;
+    try {
+      const demoSession = sessionStorage.getItem('demo_session');
+      if (demoSession) {
+        const parsed = JSON.parse(demoSession);
+        return parsed.vertical_type || 'kids';
+      }
+    } catch {}
+    return 'kids';
+  };
+
+  const currentVertical = getCurrentVertical();
   const currentEnv = DEMO_ENVIRONMENTS.find(e => e.key === currentVertical);
 
   const switchTo = useCallback((account: DemoAccount) => {
