@@ -91,7 +91,7 @@ function useCurrentMeal() {
 }
 
 /* ── Quick Stats Row (extracted for meal integration) ── */
-function QuickStatsRow({ config }: { config: ModuleConfig }) {
+function QuickStatsRow({ config, onPrezentaClick, attendanceLabel }: { config: ModuleConfig; onPrezentaClick: () => void; attendanceLabel: string }) {
   const { meal, isWeekend } = useCurrentMeal();
 
   return (
@@ -99,14 +99,20 @@ function QuickStatsRow({ config }: { config: ModuleConfig }) {
       {QUICK_STATS_BASE.map(stat => (
         <button
           key={stat.moduleKey}
-          onClick={() => window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }))}
+          onClick={() => {
+            if (stat.moduleKey === 'prezenta') {
+              onPrezentaClick();
+            } else {
+              window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }));
+            }
+          }}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 hover:scale-105 text-white"
           style={{ backgroundColor: config[stat.moduleKey].color }}
         >
           <stat.icon className="h-3.5 w-3.5" />
           <span>{config[stat.moduleKey].title}</span>
           <span className="opacity-80">·</span>
-          <span>{stat.value}</span>
+          <span>{stat.moduleKey === 'prezenta' ? attendanceLabel : stat.value}</span>
         </button>
       ))}
       {/* 4th button: current meal */}
