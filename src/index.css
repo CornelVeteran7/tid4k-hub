@@ -259,70 +259,164 @@
       inset 0 1px 0 0 hsl(0 0% 100% / 0.12);
   }
 
-  /* Apple Liquid Glass module card variant */
+  /* ═══════════════════════════════════════════
+     Apple Liquid Glass — inspired by iOS 26
+     Key layers: blur+saturate+brightness backdrop,
+     specular highlight (top edge), refraction gradient,
+     subtle inner shadow for depth, edge luminance
+     ═══════════════════════════════════════════ */
+
   .liquid-glass-card {
-    background: hsl(var(--foreground) / 0.04);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid hsl(var(--foreground) / 0.08);
-    border-radius: 0.75rem;
+    --lg-bg: hsl(0 0% 100% / 0.12);
+    --lg-border: hsl(0 0% 100% / 0.18);
+    --lg-shadow: hsl(0 0% 0% / 0.08);
+    --lg-specular: hsl(0 0% 100% / 0.45);
+    --lg-refraction-start: hsl(0 0% 100% / 0.14);
+    --lg-refraction-end: hsl(0 0% 100% / 0.02);
+    --lg-inner-glow: hsl(0 0% 100% / 0.06);
+
+    background: var(--lg-bg);
+    backdrop-filter: blur(24px) saturate(200%) brightness(1.05);
+    -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.05);
+    border: 0.5px solid var(--lg-border);
+    border-radius: 1rem;
     box-shadow:
-      0 8px 32px hsl(var(--foreground) / 0.06),
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.15);
+      0 2px 4px var(--lg-shadow),
+      0 12px 40px -8px hsl(0 0% 0% / 0.12),
+      inset 0 0.5px 0 0 var(--lg-specular);
     position: relative;
     overflow: hidden;
+    isolation: isolate;
   }
 
+  /* Specular highlight + refraction gradient overlay */
+  .liquid-glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      168deg,
+      var(--lg-refraction-start) 0%,
+      transparent 38%,
+      transparent 62%,
+      var(--lg-inner-glow) 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Edge luminance band — the soft glow along top edge */
   .liquid-glass-card::after {
     content: '';
     position: absolute;
     top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: inherit;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    border-radius: 1px;
     background: linear-gradient(
-      135deg,
-      hsl(0 0% 100% / 0.08) 0%,
-      hsl(0 0% 100% / 0.02) 40%,
-      hsl(0 0% 100% / 0) 60%,
-      hsl(0 0% 100% / 0.04) 100%
+      90deg,
+      transparent 0%,
+      var(--lg-specular) 20%,
+      hsl(0 0% 100% / 0.6) 50%,
+      var(--lg-specular) 80%,
+      transparent 100%
     );
-    box-shadow:
-      inset -8px -6px 0px -9px hsl(0 0% 100% / 0.5),
-      inset 0px -7px 0px -6px hsl(0 0% 100% / 0.4);
     pointer-events: none;
-    z-index: 1;
-    opacity: 0.7;
-    filter: blur(0.5px);
+    z-index: 2;
   }
 
-  /* Dark mode / culture vertical: adjust glass tint */
-  [data-vertical="culture"] .liquid-glass-card {
+  /* Glass panel variant for expanded ModulePanel */
+  .liquid-glass-panel {
+    --lg-bg: hsl(0 0% 100% / 0.08);
+    --lg-border: hsl(0 0% 100% / 0.12);
+
+    background: var(--lg-bg);
+    backdrop-filter: blur(40px) saturate(200%) brightness(1.08);
+    -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.08);
+    border-left: 0.5px solid var(--lg-border);
+  }
+
+  .liquid-glass-panel-header {
     background: hsl(0 0% 100% / 0.06);
-    border-color: hsl(40 30% 50% / 0.12);
+    border-bottom: 0.5px solid hsl(0 0% 100% / 0.1);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  .liquid-glass-panel-body {
+    background: hsl(var(--background) / 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* ─── Culture: warm gold specular on dark noir ─── */
+  [data-vertical="culture"] .liquid-glass-card {
+    --lg-bg: hsl(40 20% 50% / 0.06);
+    --lg-border: hsl(40 30% 55% / 0.14);
+    --lg-shadow: hsl(0 0% 0% / 0.3);
+    --lg-specular: hsl(40 40% 75% / 0.35);
+    --lg-refraction-start: hsl(40 30% 70% / 0.1);
+    --lg-refraction-end: hsl(0 0% 0% / 0.02);
+    --lg-inner-glow: hsl(40 20% 50% / 0.04);
     box-shadow:
-      0 8px 32px hsl(0 0% 0% / 0.25),
-      inset 0 1px 0 0 hsl(40 30% 70% / 0.1);
+      0 2px 4px hsl(0 0% 0% / 0.3),
+      0 12px 40px -8px hsl(0 0% 0% / 0.4),
+      inset 0 0.5px 0 0 var(--lg-specular);
   }
 
   [data-vertical="culture"] .liquid-glass-card::after {
     background: linear-gradient(
-      135deg,
-      hsl(40 40% 80% / 0.06) 0%,
-      hsl(0 0% 100% / 0.01) 40%,
-      hsl(0 0% 100% / 0) 60%,
-      hsl(40 30% 60% / 0.04) 100%
+      90deg,
+      transparent 0%,
+      hsl(40 40% 65% / 0.25) 20%,
+      hsl(40 50% 75% / 0.4) 50%,
+      hsl(40 40% 65% / 0.25) 80%,
+      transparent 100%
     );
   }
 
-  /* Medicine vertical: crisp clinical glass */
+  [data-vertical="culture"] .liquid-glass-panel {
+    --lg-bg: hsl(0 5% 8% / 0.75);
+    --lg-border: hsl(40 25% 40% / 0.12);
+  }
+
+  [data-vertical="culture"] .liquid-glass-panel-header {
+    background: hsl(40 15% 20% / 0.3);
+    border-bottom-color: hsl(40 20% 40% / 0.15);
+  }
+
+  [data-vertical="culture"] .liquid-glass-panel-body {
+    background: hsl(0 5% 6% / 0.92);
+  }
+
+  /* ─── Medicine: crisp clinical glass, cool-white tint ─── */
   [data-vertical="medicine"] .liquid-glass-card {
-    background: hsl(200 30% 98% / 0.55);
-    border-color: hsl(200 40% 80% / 0.25);
-    box-shadow:
-      0 6px 24px hsl(200 40% 30% / 0.06),
-      inset 0 1px 0 0 hsl(0 0% 100% / 0.35);
+    --lg-bg: hsl(200 20% 97% / 0.55);
+    --lg-border: hsl(200 30% 80% / 0.3);
+    --lg-shadow: hsl(200 30% 30% / 0.06);
+    --lg-specular: hsl(0 0% 100% / 0.55);
+    --lg-refraction-start: hsl(200 20% 95% / 0.2);
+    --lg-inner-glow: hsl(200 15% 90% / 0.08);
+    backdrop-filter: blur(20px) saturate(180%) brightness(1.08);
+    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.08);
+  }
+
+  [data-vertical="medicine"] .liquid-glass-panel {
+    --lg-bg: hsl(200 15% 97% / 0.7);
+    --lg-border: hsl(200 20% 85% / 0.3);
+    backdrop-filter: blur(32px) saturate(180%) brightness(1.05);
+    -webkit-backdrop-filter: blur(32px) saturate(180%) brightness(1.05);
+  }
+
+  [data-vertical="medicine"] .liquid-glass-panel-header {
+    background: hsl(200 20% 95% / 0.5);
+    border-bottom-color: hsl(200 20% 85% / 0.3);
+  }
+
+  [data-vertical="medicine"] .liquid-glass-panel-body {
+    background: hsl(var(--background) / 0.92);
   }
 
   /* Glass header */

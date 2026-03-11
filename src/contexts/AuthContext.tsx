@@ -65,15 +65,23 @@ function buildDemoSession(config: DemoConfig): UserSession {
 function getInitialDemoState(): { user: UserSession; isDemo: true } {
   try {
     const savedConfig = sessionStorage.getItem('demo_config');
-    // Re-apply branding colors on reload
+    // Re-apply branding colors + vertical theme on reload
     try {
       const brandingStr = sessionStorage.getItem('demo_branding');
       if (brandingStr) {
         const { primary, secondary } = JSON.parse(brandingStr);
         if (primary && secondary) {
           setTimeout(() => {
-            import('@/utils/branding').then(({ applyBrandingColors }) => {
+            import('@/utils/branding').then(({ applyBrandingColors, applyVerticalTheme }) => {
               applyBrandingColors(primary, secondary);
+              // Also restore vertical theme from demo_config
+              try {
+                const cfg = sessionStorage.getItem('demo_config');
+                if (cfg) {
+                  const parsed = JSON.parse(cfg);
+                  if (parsed.vertical) applyVerticalTheme(parsed.vertical);
+                }
+              } catch {}
             });
           }, 0);
         }

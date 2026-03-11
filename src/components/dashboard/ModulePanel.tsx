@@ -12,13 +12,22 @@ interface ModulePanelProps {
   textColor?: string;
   layoutId?: string;
   children: ReactNode;
+  variant?: 'solid' | 'glass';
 }
 
 const panelSpring = { type: 'spring', damping: 30, stiffness: 280, mass: 0.9 } as const;
 const scrimTransition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] } as const;
 
-export default memo(function ModulePanel({ isOpen, onClose, title, color, textColor, layoutId, children }: ModulePanelProps) {
+export default memo(function ModulePanel({ isOpen, onClose, title, color, textColor, layoutId, children, variant = 'solid' }: ModulePanelProps) {
   if (!isOpen) return null;
+
+  const isGlass = variant === 'glass';
+
+  // Glass: use semantic foreground tokens; Solid: use passed color/textColor
+  const headerTc = isGlass ? 'hsl(var(--foreground))' : (textColor || '#ffffff');
+  const closeBtnBg = isGlass
+    ? 'hsl(var(--muted) / 0.4)'
+    : (textColor ? `${textColor}20` : 'rgba(255,255,255,0.2)');
 
   return (
     <>
@@ -40,30 +49,39 @@ export default memo(function ModulePanel({ isOpen, onClose, title, color, textCo
         layoutId={layoutId}
         layout="position"
         transition={panelSpring}
-        className="fixed bottom-0 z-30 flex flex-col overflow-hidden shadow-2xl
-          inset-x-0 lg:left-auto lg:right-0 lg:w-[min(640px,50vw)]"
-        style={{ top: 'var(--header-height, 56px)', backgroundColor: color }}
+        className={`fixed bottom-0 z-30 flex flex-col overflow-hidden shadow-2xl
+          inset-x-0 lg:left-auto lg:right-0 lg:w-[min(640px,50vw)]
+          ${isGlass ? 'liquid-glass-panel' : ''}`}
+        style={{
+          top: 'var(--header-height, 56px)',
+          ...(isGlass ? {} : { backgroundColor: color }),
+        }}
       >
-        {/* Colored header bar */}
-        <div className="flex items-center justify-between px-4 py-3 shrink-0">
-          <h2 className="font-display font-bold text-base uppercase tracking-wide" style={{ color: textColor || '#ffffff' }}>{title}</h2>
+        {/* Header bar */}
+        <div className={`flex items-center justify-between px-4 py-3 shrink-0 ${isGlass ? 'liquid-glass-panel-header' : ''}`}>
+          <h2
+            className="font-display font-bold text-base uppercase tracking-wide"
+            style={{ color: headerTc }}
+          >
+            {title}
+          </h2>
           <Button
             variant="ghost"
             size="icon"
             className="h-9 w-9 rounded-full"
-            style={{ color: textColor || '#ffffff', backgroundColor: textColor ? `${textColor}20` : 'rgba(255,255,255,0.2)' }}
+            style={{ color: headerTc, backgroundColor: closeBtnBg }}
             onClick={onClose}
           >
             <X className="h-5 w-5" strokeWidth={2.5} />
           </Button>
         </div>
 
-        {/* Scrollable content with white background */}
+        {/* Scrollable content */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.15 }}
-          className="flex-1 overflow-y-auto bg-background p-4 lg:p-6 pb-24"
+          className={`flex-1 overflow-y-auto p-4 lg:p-6 pb-24 ${isGlass ? 'liquid-glass-panel-body' : 'bg-background'}`}
         >
           {children}
         </motion.div>
