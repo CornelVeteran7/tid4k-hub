@@ -8,8 +8,8 @@ import { Loader2 } from 'lucide-react';
 import ModuleCard from './ModuleCard';
 import ModulePanel from './ModulePanel';
 import ShareDialog from './ShareDialog';
-import { getWorkshopOfMonth, getCategoryLabel } from '@/api/workshops';
-import type { Workshop } from '@/api/workshops';
+import { getCurrentMonthWorkshop, getCurrentMonthName } from '@/api/externalWorkshops';
+import type { ExternalWorkshop } from '@/api/externalWorkshops';
 import { useTouchReorder } from '@/hooks/useTouchReorder';
 
 const Attendance = lazy(() => import('@/pages/Attendance'));
