@@ -19,6 +19,8 @@ export interface VerticalDefinition {
   parentLabelPlural: string; // Plural form
   icon: string;
   groupTypeDefault: string;  // Default group.tip value
+  cardVariant: 'solid' | 'glass'; // Module card visual style
+  forceDark?: boolean;       // Force dark mode for this vertical
   // Vertical-aware module labels
   moduleLabels: {
     prezenta: { title: string; subtitle: string };
