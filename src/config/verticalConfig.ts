@@ -150,7 +150,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       povesti: { title: 'INFORMAȚII', subtitle: 'Regulament și informații utile' },
       ateliere: { title: 'LUCRĂRI', subtitle: 'Lucrări de întreținere și reparații' },
       meniu: { title: 'CHELTUIELI', subtitle: 'Situația cheltuielilor comune' },
-      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu administrația' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare și sondaje' },
     },
     summaryLabels: {
       mealLabel: 'Cheltuieli',
