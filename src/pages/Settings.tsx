@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Palette, LayoutGrid, Users, Monitor, Link2, Wrench } from 'lucide-react';
+import { Building2, Palette, LayoutGrid, Users, Monitor, Link2, Wrench, CreditCard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { isAdmin as checkIsAdmin } from '@/utils/roles';
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
@@ -10,6 +10,7 @@ import SettingsModules from '@/components/settings/SettingsModules';
 import SettingsUsers from '@/components/settings/SettingsUsers';
 import SettingsDisplay from '@/components/settings/SettingsDisplay';
 import SettingsIntegrations from '@/components/settings/SettingsIntegrations';
+import SettingsPayments from '@/components/settings/SettingsPayments';
 import SettingsVerticalConfig from '@/components/settings/SettingsVerticalConfig';
 
 const TABS = [
@@ -20,6 +21,7 @@ const TABS = [
   { value: 'users', label: 'Utilizatori', icon: Users },
   { value: 'display', label: 'Display', icon: Monitor },
   { value: 'integrations', label: 'Integrări', icon: Link2 },
+  { value: 'payments', label: 'Plăți', icon: CreditCard },
 ];
 
 export default function Settings() {
@@ -82,6 +84,9 @@ export default function Settings() {
         </TabsContent>
         <TabsContent value="integrations">
           <SettingsIntegrations orgId={orgId} />
+        </TabsContent>
+        <TabsContent value="payments">
+          <SettingsPayments orgId={orgId} />
         </TabsContent>
       </Tabs>
     </div>
