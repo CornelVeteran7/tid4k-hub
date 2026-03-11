@@ -98,6 +98,7 @@ interface ModuleHubProps {
   moduleOrder?: string[];
   onReorder?: (order: string[]) => void;
   verticalModules?: string[];
+  cardVariant?: 'solid' | 'glass';
 }
 
 export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules }: ModuleHubProps) {
