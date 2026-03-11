@@ -154,6 +154,27 @@ export default function QRCancelarie() {
         const ssmList = ssmData || [];
         setSsmStatus({ completed: ssmList.filter((s: any) => s.status === 'completed').length, total: ssmList.length });
       }
+
+      // Load workshops for kids vertical
+      if (org!.vertical_type === 'kids') {
+        try {
+          const ws = await getExternalWorkshops();
+          setWorkshops(ws);
+        } catch (e) {
+          console.warn('Failed to load workshops:', e);
+        }
+      }
+
+      // Load public documents/images for guests
+      if (!isAuthenticated) {
+        const { data: docsData } = await supabase
+          .from('documents')
+          .select('id, nume_fisier, url, tip_fisier, created_at')
+          .eq('organization_id', orgId)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        setGuestDocuments(docsData || []);
+      }
     }
     loadContent();
   }, [hasAccess, org]);
