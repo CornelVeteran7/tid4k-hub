@@ -116,27 +116,33 @@ export type Database = {
           created_at: string | null
           data: string
           id: string
+          marked_at: string | null
           marked_by: string | null
           observatii: string | null
           prezent: boolean | null
+          scanned_by_parent: boolean | null
         }
         Insert: {
           child_id: string
           created_at?: string | null
           data: string
           id?: string
+          marked_at?: string | null
           marked_by?: string | null
           observatii?: string | null
           prezent?: boolean | null
+          scanned_by_parent?: boolean | null
         }
         Update: {
           child_id?: string
           created_at?: string | null
           data?: string
           id?: string
+          marked_at?: string | null
           marked_by?: string | null
           observatii?: string | null
           prezent?: boolean | null
+          scanned_by_parent?: boolean | null
         }
         Relationships: [
           {
