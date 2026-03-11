@@ -19,6 +19,7 @@ interface ModuleCardProps {
   editMode?: boolean;
   visible?: boolean;
   onToggleVisibility?: () => void;
+  variant?: 'solid' | 'glass';
   dragHandleProps?: {
     draggable: boolean;
     onDragStartCapture: (e: React.DragEvent) => void;
@@ -44,11 +45,26 @@ const wiggleAnimation = {
 
 export default memo(function ModuleCard({
   icon: Icon, title, subtitle, color, textColor, count, onOpen, onShare, showShare,
-  layoutId, preview, editMode, visible = true, onToggleVisibility, dragHandleProps,
+  layoutId, preview, editMode, visible = true, onToggleVisibility, variant = 'solid', dragHandleProps,
 }: ModuleCardProps) {
-  const tc = textColor || '#ffffff';
-  const tcMuted = textColor ? `${textColor}99` : 'rgba(255,255,255,0.6)';
-  // Separate ref from other drag props so we can pass ref to motion.div
+  const isGlass = variant === 'glass';
+
+  // Glass variant: text uses semantic tokens, solid uses white/custom
+  const tc = isGlass ? 'hsl(var(--foreground))' : (textColor || '#ffffff');
+  const tcMuted = isGlass
+    ? 'hsl(var(--muted-foreground))'
+    : (textColor ? `${textColor}99` : 'rgba(255,255,255,0.6)');
+  const iconBg = isGlass
+    ? 'hsl(var(--muted) / 0.5)'
+    : (textColor ? `${textColor}20` : 'rgba(255,255,255,0.2)');
+  const badgeBg = isGlass
+    ? 'hsl(var(--muted) / 0.6)'
+    : (textColor ? `${textColor}30` : 'rgba(255,255,255,0.25)');
+  const shareBg = isGlass
+    ? 'hsl(var(--muted) / 0.4)'
+    : (textColor ? `${textColor}20` : 'rgba(255,255,255,0.2)');
+
+  // Separate ref from other drag props
   const { ref: dragRef, ...dragEventProps } = dragHandleProps || {} as any;
 
   return (
@@ -62,8 +78,11 @@ export default memo(function ModuleCard({
       onClick={editMode ? undefined : onOpen}
       className={`card-tappable rounded-xl p-4 flex flex-col gap-3 shadow-md min-h-[72px] lg:min-h-[80px] relative transition-opacity duration-300 ${
         editMode ? 'cursor-default touch-none' : 'cursor-pointer'
-      }`}
-      style={{ backgroundColor: color, opacity: editMode && !visible ? 0.35 : 1 }}
+      } ${isGlass ? 'liquid-glass-card' : ''}`}
+      style={isGlass
+        ? { opacity: editMode && !visible ? 0.35 : 1 }
+        : { backgroundColor: color, opacity: editMode && !visible ? 0.35 : 1 }
+      }
       {...(editMode ? dragEventProps : {})}
     >
       <div className="flex items-center gap-3">
@@ -75,14 +94,17 @@ export default memo(function ModuleCard({
         )}
 
         {/* Icon circle */}
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: textColor ? `${textColor}20` : 'rgba(255,255,255,0.2)' }}>
-          <Icon className="h-6 w-6" style={{ color: tc }} />
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: iconBg }}
+        >
+          <Icon className="h-6 w-6" style={{ color: isGlass ? color : tc }} />
         </div>
 
         {/* Text */}
         <div className="flex-1 min-w-0">
           <p className="font-display font-bold text-sm tracking-wide uppercase" style={{ color: tc }}>{title}</p>
-          <p className="font-display text-sm font-semibold hidden lg:block" style={{ color: textColor ? `${textColor}e6` : 'rgba(255,255,255,0.9)' }}>{subtitle}</p>
+          <p className="font-display text-sm font-semibold hidden lg:block" style={{ color: tcMuted }}>{subtitle}</p>
         </div>
 
         {/* Edit mode: toggle switch */}
@@ -91,7 +113,10 @@ export default memo(function ModuleCard({
             <Switch
               checked={visible}
               onCheckedChange={() => onToggleVisibility?.()}
-              className="data-[state=checked]:bg-white/40 data-[state=unchecked]:bg-white/15"
+              className={isGlass
+                ? 'data-[state=checked]:bg-primary/40 data-[state=unchecked]:bg-muted'
+                : 'data-[state=checked]:bg-white/40 data-[state=unchecked]:bg-white/15'
+              }
             />
           </div>
         ) : (
@@ -101,14 +126,14 @@ export default memo(function ModuleCard({
               <button
                 onClick={(e) => { e.stopPropagation(); onShare?.(); }}
                 className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-                style={{ backgroundColor: textColor ? `${textColor}20` : 'rgba(255,255,255,0.2)' }}
+                style={{ backgroundColor: shareBg }}
               >
-                <Send className="h-4 w-4" style={{ color: tc }} />
+                <Send className="h-4 w-4" style={{ color: isGlass ? color : tc }} />
               </button>
             )}
 
             {count !== undefined && (
-              <span className="text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: textColor ? `${textColor}30` : 'rgba(255,255,255,0.25)', color: tc }}>
+              <span className="text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: badgeBg, color: tc }}>
                 {count}
               </span>
             )}
