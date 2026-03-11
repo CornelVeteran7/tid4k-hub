@@ -102,6 +102,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Proprietar', description: 'Inventar, programări, facturi', status: 'director', redirect: '/', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Marian Popescu' },
       { label: 'Mecanic', description: 'Inventar piese, fișe vehicul', status: 'profesor', redirect: '/', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Dan Stoica' },
       { label: 'Client', description: 'Status vehicul, programări', status: 'parinte', redirect: '/', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Adrian Neagu' },
+      { label: 'Vizitator', description: 'Acces public, display', status: 'guest', redirect: '/display/demo-workshops', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
