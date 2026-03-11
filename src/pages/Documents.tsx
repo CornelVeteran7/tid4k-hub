@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isStaff } from '@/utils/roles';
 import { getDocuments, deleteDocument, uploadDocument } from '@/api/documents';
 import { supabase } from '@/integrations/supabase/client';
 import type { DocumentItem } from '@/types';
