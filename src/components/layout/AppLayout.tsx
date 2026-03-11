@@ -14,7 +14,8 @@ import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
   BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award, Package, ShieldCheck, Newspaper, Theater, HardHat, Video, Ticket, MapPin, Stethoscope, Wrench, Building2 } from
 'lucide-react';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Search } from 'lucide-react';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
