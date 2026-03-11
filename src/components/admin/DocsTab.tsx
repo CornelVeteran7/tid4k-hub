@@ -150,25 +150,35 @@ const ARCHITECTURE_SECTIONS: DocSection[] = [
   {
     title: 'Inky Assistant — Costume per vertical',
     content: (
-      <div className="space-y-2 text-sm text-muted-foreground">
+      <div className="space-y-3 text-sm text-muted-foreground">
         <p>Mascota Inky se adaptează automat la verticalul organizației:</p>
+        <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 border border-border/50">
+          <div className="h-14 w-14 rounded-full shadow-lg border border-primary/20 flex items-center justify-center overflow-hidden bg-card shrink-0">
+            <img src="/src/assets/inky-button.png" alt="Inky default" className="h-12 w-12 object-contain" />
+          </div>
+          <div className="text-xs text-muted-foreground">
+            <p className="font-semibold text-foreground">Preview buton Inky</p>
+            <p>Cerc 56×56px cu imaginea costumului, poziționare fixed bottom-right</p>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className="border-b border-border">
               <th className="py-1.5 pr-3 text-left font-medium">Vertical</th>
               <th className="py-1.5 pr-3 text-left font-medium">Costum</th>
-              <th className="py-1.5 text-left font-medium">Fișier</th>
+              <th className="py-1.5 text-left font-medium">Fișier PNG</th>
             </tr></thead>
             <tbody>
-              <tr className="border-b border-border/30"><td className="py-1 pr-3">Kids/Schools</td><td>Default (buton albastru)</td><td><code className="text-xs">inky-button.png</code></td></tr>
-              <tr className="border-b border-border/30"><td className="py-1 pr-3">Medicine</td><td>Halat + stetoscop</td><td><code className="text-xs">inky-doctor.png</code></td></tr>
-              <tr className="border-b border-border/30"><td className="py-1 pr-3">Construction</td><td>Cască + vestă reflectorizantă</td><td><code className="text-xs">inky-construction.png</code></td></tr>
-              <tr className="border-b border-border/30"><td className="py-1 pr-3">Workshops</td><td>Salopetă mecanic + cheie</td><td><code className="text-xs">inky-mechanic.png</code></td></tr>
-              <tr><td className="py-1 pr-3">Culture</td><td>Capă roșie + joben</td><td><code className="text-xs">inky-opera.png</code></td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">Kids/Schools/Living/Students</td><td>Default (bufniță buton)</td><td><code className="text-xs">inky-button.png</code></td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">🏥 Medicine</td><td>Halat alb + stetoscop</td><td><code className="text-xs">inky-doctor.png</code></td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">🏗️ Construction</td><td>Cască galbenă + vestă reflectorizantă</td><td><code className="text-xs">inky-construction.png</code></td></tr>
+              <tr className="border-b border-border/30"><td className="py-1 pr-3">🔧 Workshops</td><td>Salopetă mecanic + cheie franceză</td><td><code className="text-xs">inky-mechanic.png</code></td></tr>
+              <tr><td className="py-1 pr-3">🎭 Culture</td><td>Capă roșie + joben negru</td><td><code className="text-xs">inky-opera.png</code></td></tr>
             </tbody>
           </table>
         </div>
-        <p>Override: sponsorii Enterprise pot seta un costum custom via <code className="bg-muted px-1 rounded text-xs">stilInky.costume_url</code>.</p>
+        <p><strong>Mapare:</strong> <code className="bg-muted px-1 rounded text-xs">VERTICAL_COSTUMES</code> în InkyAssistant.tsx citește <code className="bg-muted px-1 rounded text-xs">user.vertical_type</code></p>
+        <p><strong>Override Enterprise:</strong> Sponsorii pot seta costum custom via <code className="bg-muted px-1 rounded text-xs">stilInky.costume_url</code> în campanie</p>
       </div>
     ),
   },
@@ -516,7 +526,7 @@ const UI_SECTIONS: DocSection[] = [
       <div className="space-y-1 text-sm text-muted-foreground">
         <p><strong className="text-foreground">Fișier:</strong> <code className="bg-muted px-1 rounded text-xs">src/components/admin/ThemeEditorTab.tsx</code></p>
         <p>Două secțiuni: preset-uri per vertical (culorile default) și override per organizație specifică.</p>
-        <p>Persistare: <code className="bg-muted px-1 rounded text-xs">org_config</code> table, keys: <code className="bg-muted px-1 rounded text-xs">vertical_theme_{type}</code> și <code className="bg-muted px-1 rounded text-xs">theme_override</code></p>
+        <p>Persistare: <code className="bg-muted px-1 rounded text-xs">org_config</code> table, keys: <code className="bg-muted px-1 rounded text-xs">vertical_theme_preset</code> și <code className="bg-muted px-1 rounded text-xs">theme_override</code></p>
       </div>
     ),
   },
