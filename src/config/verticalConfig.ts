@@ -86,6 +86,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Părinți',
     icon: '🏫',
     groupTypeDefault: 'scoala',
+    cardVariant: 'solid',
     moduleLabels: {
       prezenta: { title: 'PREZENȚA', subtitle: 'Prezența elevilor la clasă' },
       imagini: { title: 'GALERIE', subtitle: 'Fotografii din activități școlare' },
