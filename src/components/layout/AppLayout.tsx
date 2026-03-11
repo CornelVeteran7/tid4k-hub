@@ -27,6 +27,7 @@ import InkyAssistant from '@/components/InkyAssistant';
 import TutorialOverlay from '@/components/TutorialOverlay';
 import QuickUpload from '@/components/QuickUpload';
 import WhiteLabelSwitcher from '@/components/WhiteLabelSwitcher';
+import AttendanceQuickCard from '@/components/dashboard/AttendanceQuickCard';
 
 /* Decorative SVG background for sidebar — contour lines + vertical-specific themed elements */
 function SidebarDecorationComponent({ vertical }: { vertical: string }) {
