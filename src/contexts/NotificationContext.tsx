@@ -129,8 +129,27 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         });
       }
 
+      // Poll notifications
+      const pollNotifs: NotificationItem[] = (pollsRaw || [])
+        .filter((p: any) => !p.is_closed && new Date(p.deadline) > new Date())
+        .map((p: any) => {
+          const pId = `poll-${p.id}`;
+          const votes = p.poll_votes || [];
+          const userVoted = votes.some((v: any) => v.user_id === user.id);
+          return {
+            id: pId,
+            type: 'poll' as const,
+            title: `Sondaj: ${p.title}`,
+            description: userVoted ? 'Ai votat deja' : 'Votează acum',
+            timestamp: p.created_at,
+            read: readIds.has(pId) || userVoted,
+            navigateTo: '/mesaje?tab=sondaje',
+            icon: 'vote' as const,
+          };
+        });
+
       // Combine, filter to past month, sort by date, limit to MAX
-      const all = [...msgNotifs, ...annNotifs, ...workshopNotifs]
+      const all = [...msgNotifs, ...annNotifs, ...workshopNotifs, ...pollNotifs]
         .filter(n => isWithinPastMonth(n.timestamp))
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
         .slice(0, MAX_NOTIFICATIONS);
