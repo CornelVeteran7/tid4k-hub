@@ -525,6 +525,84 @@ export default function QRCancelarie() {
           </>
         )}
 
+        {/* ── Kids: Workshops (Ateliere Educative) ── */}
+        {org?.vertical_type === 'kids' && workshops.length > 0 && (
+          <Section icon={<Paintbrush className="h-5 w-5" />} title="Ateliere Educative" color={primaryColor}>
+            {(() => {
+              const currentWorkshop = getCurrentMonthWorkshop(workshops);
+              return currentWorkshop ? (
+                <Card className="border-primary/30">
+                  <CardContent className="p-4">
+                    <Badge className="mb-2 bg-primary/10 text-primary border-primary/20">{currentWorkshop.luna}</Badge>
+                    <h3 className="font-semibold text-foreground">{currentWorkshop.titlu}</h3>
+                    {currentWorkshop.personaj && (
+                      <p className="text-xs text-primary mt-1">Personaj: {currentWorkshop.personaj}</p>
+                    )}
+                    {currentWorkshop.descriere && (
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{currentWorkshop.descriere}</p>
+                    )}
+                    {currentWorkshop.ce_invatam && (
+                      <p className="text-xs text-muted-foreground mt-2">📚 {currentWorkshop.ce_invatam}</p>
+                    )}
+                    {currentWorkshop.ce_primim && (
+                      <p className="text-xs text-muted-foreground mt-1">🎁 {currentWorkshop.ce_primim}</p>
+                    )}
+                    {currentWorkshop.imagine_url && (
+                      <img src={currentWorkshop.imagine_url} alt={currentWorkshop.titlu}
+                        className="w-full rounded-lg mt-3 object-cover max-h-48" />
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <EmptyState text="Niciun atelier disponibil luna aceasta" />
+              );
+            })()}
+            {workshops.length > 1 && (
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                {workshops.length} ateliere disponibile în total
+              </p>
+            )}
+          </Section>
+        )}
+
+        {/* ── Guest: Documents & Images (view-only for images, downloadable for docs) ── */}
+        {isGuest && guestDocuments.length > 0 && (() => {
+          const images = guestDocuments.filter(d => d.tip_fisier !== 'pdf');
+          const docs = guestDocuments.filter(d => d.tip_fisier === 'pdf');
+          return (
+            <>
+              {images.length > 0 && (
+                <Section icon={<ImageIcon className="h-5 w-5" />} title="Imagini" color={primaryColor}>
+                  <div className="grid grid-cols-2 gap-2">
+                    {images.map(img => (
+                      <div key={img.id} className="rounded-lg overflow-hidden bg-muted aspect-square">
+                        <img src={img.url} alt={img.nume_fisier} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </Section>
+              )}
+              {docs.length > 0 && (
+                <Section icon={<FileText className="h-5 w-5" />} title="Documente" color={primaryColor}>
+                  {docs.map(doc => (
+                    <Card key={doc.id} className="mb-2">
+                      <CardContent className="p-3 flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-destructive flex-shrink-0" />
+                        <span className="text-sm text-foreground truncate flex-1">{doc.nume_fisier}</span>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" asChild>
+                          <a href={doc.url} download target="_blank" rel="noopener noreferrer">
+                            <Download className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Section>
+              )}
+            </>
+          );
+        })()}
+
         {/* ── Authenticated-only section ── */}
         {isAuthenticated ? (
           <AuthenticatedSection userId={user?.id || ''} orgId={org?.id || ''} primaryColor={primaryColor} />
@@ -532,7 +610,7 @@ export default function QRCancelarie() {
           <div className="rounded-2xl border border-border bg-card p-6 text-center space-y-3">
             <Shield className="h-10 w-10 mx-auto text-muted-foreground mb-1" />
             <p className="text-sm text-muted-foreground">
-              Pentru mesaje, documente și informații personale, autentificați-vă.
+              Pentru informații personale, autentificați-vă.
             </p>
             <Button asChild className="gap-2">
               <Link to="/login">
