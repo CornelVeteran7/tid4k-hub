@@ -40,6 +40,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Director', description: 'Vede toate grupele, rapoarte', status: 'director', redirect: '/', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică'), g('albinute', 'Grupa Mijlocie'), g('buburuze', 'Grupa Mare')], userName: 'Ana Dumitrescu' },
       { label: 'Secretară', description: 'Contribuții, export, rapoarte', status: 'secretara', redirect: '/', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică'), g('albinute', 'Grupa Mijlocie'), g('buburuze', 'Grupa Mare')], userName: 'Ioana Marinescu' },
       { label: 'Administrator', description: 'Setări complete, utilizatori', status: 'administrator', redirect: '/admin', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică'), g('albinute', 'Grupa Mijlocie'), g('buburuze', 'Grupa Mare')], userName: 'Admin Floarea Soarelui' },
+      { label: 'Vizitator', description: 'Acces public, fără cont', status: 'guest', redirect: '/qr/demo-kids', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică')], userName: 'Vizitator' },
     ],
   },
   {
@@ -54,6 +55,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Părinte', description: 'Vede copilul, orarul, mesaje', status: 'parinte', redirect: '/', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala')], userName: 'Ion Popescu' },
       { label: 'Profesor', description: 'Orar, prezență, revistă', status: 'profesor', redirect: '/', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala'), g('cls-5a', 'Clasa a V-a A', 'scoala')], userName: 'Prof. Andrei Popa' },
       { label: 'Director', description: 'Toate clasele, rapoarte', status: 'director', redirect: '/admin', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala'), g('cls-1b', 'Clasa I-B', 'scoala'), g('cls-5a', 'Clasa a V-a A', 'scoala'), g('cls-8b', 'Clasa a VIII-a B', 'scoala')], userName: 'Director Vasilescu' },
+      { label: 'Vizitator', description: 'Acces public, fără cont', status: 'guest', redirect: '/qr/demo-schools', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
@@ -69,6 +71,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Recepționist', description: 'Controlează coada, cheamă', status: 'secretara', redirect: '/', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-1', 'Cabinet 1', 'scoala'), g('cab-2', 'Cabinet 2', 'scoala'), g('cab-3', 'Cabinet 3', 'scoala')], userName: 'Laura Radu' },
       { label: 'Medic', description: 'Profil, program, pacienți', status: 'profesor', redirect: '/', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-2', 'Cabinet 2 - Implantologie', 'scoala')], userName: 'Dr. Alexandru Marin' },
       { label: 'Admin Clinică', description: 'Setări, servicii, prețuri', status: 'administrator', redirect: '/admin', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-1', 'Cabinet 1', 'scoala'), g('cab-2', 'Cabinet 2', 'scoala'), g('cab-3', 'Cabinet 3', 'scoala')], userName: 'Admin DentArt' },
+      { label: 'Vizitator', description: 'Acces public, coadă', status: 'guest', redirect: '/queue/demo-medicine', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-1', 'Cabinet 1', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
@@ -84,6 +87,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Șef Echipă', description: 'Taskuri echipă, programare', status: 'profesor', redirect: '/', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala')], userName: 'Vasile Niță' },
       { label: 'Muncitor', description: 'Taskurile mele azi (UI simplu)', status: 'parinte', redirect: '/', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala')], userName: 'Cosmin Lungu' },
       { label: 'Diriginte Șantier', description: 'Documente, SSM, progres', status: 'profesor,director', redirect: '/', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala'), g('sant-2', 'Vila Popescu', 'scoala')], userName: 'Ing. Florin Barbu' },
+      { label: 'Vizitator', description: 'Acces public, display', status: 'guest', redirect: '/display/demo-construction', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
@@ -98,6 +102,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Proprietar', description: 'Inventar, programări, facturi', status: 'director', redirect: '/', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Marian Popescu' },
       { label: 'Mecanic', description: 'Inventar piese, fișe vehicul', status: 'profesor', redirect: '/', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Dan Stoica' },
       { label: 'Client', description: 'Status vehicul, programări', status: 'parinte', redirect: '/', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Adrian Neagu' },
+      { label: 'Vizitator', description: 'Acces public, display', status: 'guest', redirect: '/display/demo-workshops', orgName: 'Auto Service Popescu', vertical: 'workshops', groups: [g('atelier-1', 'Atelier Principal', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
@@ -111,6 +116,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     accounts: [
       { label: 'Locatar', description: 'Cheltuieli proprii, anunțuri', status: 'parinte', redirect: '/', orgName: 'Bloc A3 Militari Residence', vertical: 'living', groups: [g('sc-a', 'Scara A', 'scoala')], userName: 'Cristian Enache' },
       { label: 'Administrator Bloc', description: 'Financiar, anunțuri, setări', status: 'administrator', redirect: '/admin', orgName: 'Bloc A3 Militari Residence', vertical: 'living', groups: [g('sc-a', 'Scara A', 'scoala'), g('sc-b', 'Scara B', 'scoala'), g('sc-c', 'Scara C', 'scoala'), g('sc-d', 'Scara D', 'scoala')], userName: 'Admin Bloc A3' },
+      { label: 'Vizitator', description: 'Acces public, anunțuri', status: 'guest', redirect: '/display/demo-living', orgName: 'Bloc A3 Militari Residence', vertical: 'living', groups: [g('sc-a', 'Scara A', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
@@ -125,6 +131,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Spectator', description: 'Program, bilete, supratitrare', status: 'parinte', redirect: '/', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala')], userName: 'Spectator Demo' },
       { label: 'Operator', description: 'Controlează supratitrarea live', status: 'profesor', redirect: '/', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala')], userName: 'Operator Supratitrare' },
       { label: 'Director Artistic', description: 'Program, spectacole, setări', status: 'director', redirect: '/admin', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala'), g('sala-mica', 'Sala Mică', 'scoala')], userName: 'Dir. Artistic' },
+      { label: 'Vizitator', description: 'Program, supratitrare live', status: 'guest', redirect: '/surtitle/demo-culture', orgName: 'Opera Națională București', vertical: 'culture', groups: [g('sala-mare', 'Sala Mare', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
@@ -139,6 +146,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Student', description: 'Coadă secretariat, orar, anunțuri', status: 'parinte', redirect: '/', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala')], userName: 'Student Demo' },
       { label: 'Secretar', description: 'Controlează coada, documente', status: 'secretara', redirect: '/', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala'), g('fac-ie', 'Informatică Economică', 'scoala')], userName: 'Secretar ASE' },
       { label: 'Decan', description: 'Admin facultate', status: 'director', redirect: '/admin', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala'), g('fac-ie', 'Informatică Economică', 'scoala')], userName: 'Decan Facultate' },
+      { label: 'Vizitator', description: 'Acces public, coadă secretariat', status: 'guest', redirect: '/queue/demo-students', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala')], userName: 'Vizitator' },
     ],
   },
 ];

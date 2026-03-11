@@ -11,7 +11,6 @@ import { ModuleConfigProvider } from "@/config/moduleConfig";
 import { AppLayout } from "@/components/layout/AppLayout";
 import WhiteLabelSwitcher from "@/components/WhiteLabelSwitcher";
 
-import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
 import Documents from "./pages/Documents";
@@ -54,75 +53,59 @@ import PublicDisplay from "./pages/PublicDisplay";
 import QRCancelarie from "./pages/QRCancelarie";
 import SurtitleAudiencePage from "./pages/SurtitleAudience";
 import SuperAdmin from "./pages/SuperAdmin";
-import DemoEntry from "./pages/DemoEntry";
+import Contributions from "./pages/Contributions";
+
 const queryClient = new QueryClient();
 
-// Demo development tool — visible on all pages when in demo mode
-function DemoTool() {
-  const { isDemo } = useAuth();
-  if (!isDemo) return null;
-  return <WhiteLabelSwitcher />;
-}
-
-function ProtectedRoutes() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+function AppRoutes() {
+  const { user } = useAuth();
   const verticalType = (user?.vertical_type || 'kids') as import('@/config/verticalConfig').VerticalType;
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
     <GroupProvider>
       <NotificationProvider>
         <ModuleConfigProvider vertical={verticalType}>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/prezenta" element={<Attendance />} />
-            <Route path="/documente" element={<Documents />} />
-            <Route path="/mesaje" element={<Messages />} />
-            <Route path="/anunturi" element={<Announcements />} />
-            <Route path="/orar" element={<Schedule />} />
-            <Route path="/orar-cancelarie" element={<ScheduleCancelarie />} />
-            <Route path="/meniu" element={<WeeklyMenu />} />
-            <Route path="/povesti" element={<Stories />} />
-            <Route path="/rapoarte" element={<Reports />} />
-            <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/utilizatori" element={<Navigate to="/admin" replace />} />
-            <Route path="/configurari" element={<SettingsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/sponsori" element={<SponsorAdmin />} />
-            <Route path="/sponsor-dashboard" element={<Navigate to="/sponsori" replace />} />
-            <Route path="/infodisplay" element={<Infodisplay />} />
-            <Route path="/social-facebook" element={<SocialMediaFacebook />} />
-            <Route path="/social-whatsapp" element={<SocialMediaWhatsapp />} />
-            <Route path="/profil" element={<MyProfile />} />
-            <Route path="/santiere" element={<ConstructionDashboard />} />
-            <Route path="/santiere/worker" element={<ConstructionWorker />} />
-            <Route path="/inventar" element={<InventoryPage />} />
-            <Route path="/ssm" element={<SSMPage />} />
-            <Route path="/revista" element={<MagazinePage />} />
-            <Route path="/atelier" element={<WorkshopDashboard />} />
-            <Route path="/bloc" element={<LivingDashboard />} />
-            <Route path="/orar-avansat" element={<AdvancedTimetable />} />
-            <Route path="/supratitrare" element={<SurtitlesPage />} />
-            <Route path="/spectacole" element={<CultureShowEditor />} />
-            <Route path="/video" element={<VideoGenerationPage />} />
-            <Route path="/coada" element={<QueueAdmin />} />
-            <Route path="/cabinet" element={<MedicineAdmin />} />
-            <Route path="/contributii" element={<Navigate to="/prezenta" replace />} />
-            <Route path="/harta-locatii" element={<SponsorMap />} />
-            <Route path="/superadmin" element={<SuperAdmin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/prezenta" element={<Attendance />} />
+              <Route path="/documente" element={<Documents />} />
+              <Route path="/mesaje" element={<Messages />} />
+              <Route path="/anunturi" element={<Announcements />} />
+              <Route path="/orar" element={<Schedule />} />
+              <Route path="/orar-cancelarie" element={<ScheduleCancelarie />} />
+              <Route path="/meniu" element={<WeeklyMenu />} />
+              <Route path="/povesti" element={<Stories />} />
+              <Route path="/rapoarte" element={<Reports />} />
+              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/utilizatori" element={<Navigate to="/admin" replace />} />
+              <Route path="/configurari" element={<SettingsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/sponsori" element={<SponsorAdmin />} />
+              <Route path="/sponsor-dashboard" element={<Navigate to="/sponsori" replace />} />
+              <Route path="/infodisplay" element={<Infodisplay />} />
+              <Route path="/social-facebook" element={<SocialMediaFacebook />} />
+              <Route path="/social-whatsapp" element={<SocialMediaWhatsapp />} />
+              <Route path="/profil" element={<MyProfile />} />
+              <Route path="/santiere" element={<ConstructionDashboard />} />
+              <Route path="/santiere/worker" element={<ConstructionWorker />} />
+              <Route path="/inventar" element={<InventoryPage />} />
+              <Route path="/ssm" element={<SSMPage />} />
+              <Route path="/revista" element={<MagazinePage />} />
+              <Route path="/atelier" element={<WorkshopDashboard />} />
+              <Route path="/bloc" element={<LivingDashboard />} />
+              <Route path="/orar-avansat" element={<AdvancedTimetable />} />
+              <Route path="/supratitrare" element={<SurtitlesPage />} />
+              <Route path="/spectacole" element={<CultureShowEditor />} />
+              <Route path="/video" element={<VideoGenerationPage />} />
+              <Route path="/coada" element={<QueueAdmin />} />
+              <Route path="/cabinet" element={<MedicineAdmin />} />
+              <Route path="/contributii" element={<Contributions />} />
+              <Route path="/harta-locatii" element={<SponsorMap />} />
+              <Route path="/superadmin" element={<SuperAdmin />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
         </ModuleConfigProvider>
       </NotificationProvider>
     </GroupProvider>
@@ -132,40 +115,35 @@ function ProtectedRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-        <ExternalLinkProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
-              <Routes>
-                <Route path="/login" element={<LoginRoute />} />
-                <Route path="/login/:orgSlug" element={<LoginRoute />} />
-                <Route path="/demo" element={<DemoEntry />} />
-                {/* Public routes — no auth required */}
-                <Route path="/display/:orgSlug" element={<PublicDisplay />} />
-                <Route path="/qr/:orgSlug" element={<QRCancelarie />} />
-                <Route path="/surtitle/:orgSlug" element={<SurtitleAudiencePage />} />
-                <Route path="/surtitle/audience/:showId" element={<SurtitleAudienceView />} />
-                <Route path="/surtitle/view/:showId" element={<SurtitleAudienceView />} />
-                <Route path="/surtitle/operate/:showId" element={<SurtitleOperator />} />
-                <Route path="/program/:showId" element={<DigitalProgram />} />
-                <Route path="/queue/:orgSlug" element={<QueueTicket />} />
-                <Route path="/site/:orgSlug" element={<PublicWebsite />} />
-                <Route path="/*" element={<ProtectedRoutes />} />
-              </Routes>
-              {/* Demo tool visible on all pages when in demo mode */}
-              <DemoTool />
-            </AuthProvider>
-          </BrowserRouter>
-        </ExternalLinkProvider>
+      <ExternalLinkProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              {/* Legacy redirects */}
+              <Route path="/login" element={<Navigate to="/" replace />} />
+              <Route path="/login/:orgSlug" element={<Navigate to="/" replace />} />
+              <Route path="/demo" element={<Navigate to="/" replace />} />
+              {/* Public routes — no auth required */}
+              <Route path="/display/:orgSlug" element={<PublicDisplay />} />
+              <Route path="/qr/:orgSlug" element={<QRCancelarie />} />
+              <Route path="/surtitle/:orgSlug" element={<SurtitleAudiencePage />} />
+              <Route path="/surtitle/audience/:showId" element={<SurtitleAudienceView />} />
+              <Route path="/surtitle/view/:showId" element={<SurtitleAudienceView />} />
+              <Route path="/surtitle/operate/:showId" element={<SurtitleOperator />} />
+              <Route path="/program/:showId" element={<DigitalProgram />} />
+              <Route path="/queue/:orgSlug" element={<QueueTicket />} />
+              <Route path="/site/:orgSlug" element={<PublicWebsite />} />
+              <Route path="/*" element={<AppRoutes />} />
+            </Routes>
+            {/* WhiteLabelSwitcher always visible */}
+            <WhiteLabelSwitcher />
+          </AuthProvider>
+        </BrowserRouter>
+      </ExternalLinkProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
-
-function LoginRoute() {
-  const { isAuthenticated } = useAuth();
-  if (isAuthenticated) return <Navigate to="/" replace />;
-  return <Login />;
-}
 
 export default App;
