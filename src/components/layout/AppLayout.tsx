@@ -3,6 +3,7 @@ import { SidebarDecorations } from '@/components/decorations/VerticalDecorations
 import { VERTICAL_DEFINITIONS, type VerticalType } from '@/config/verticalConfig';
 import { useActiveModules } from '@/hooks/useActiveModules';
 import { useGroup } from '@/contexts/GroupContext';
+import { applyVerticalTheme } from '@/utils/branding';
 import { useNotifications } from '@/contexts/NotificationContext';
 import type { NotificationItem } from '@/contexts/NotificationContext';
 import { areRol, isInky, getRoleLabel, getRoles } from '@/utils/roles';
@@ -136,6 +137,12 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  // Ensure data-vertical attribute is always in sync with current user vertical
+  const currentVertical = (user?.vertical_type || 'kids') as VerticalType;
+  useEffect(() => {
+    applyVerticalTheme(currentVertical);
+  }, [currentVertical]);
 
   if (!user) return null;
 

@@ -267,23 +267,24 @@
      ═══════════════════════════════════════════ */
 
   .liquid-glass-card {
-    --lg-bg: hsl(0 0% 100% / 0.12);
-    --lg-border: hsl(0 0% 100% / 0.18);
-    --lg-shadow: hsl(0 0% 0% / 0.08);
-    --lg-specular: hsl(0 0% 100% / 0.45);
-    --lg-refraction-start: hsl(0 0% 100% / 0.14);
-    --lg-refraction-end: hsl(0 0% 100% / 0.02);
-    --lg-inner-glow: hsl(0 0% 100% / 0.06);
+    --lg-bg: hsl(200 25% 95% / 0.65);
+    --lg-border: hsl(200 35% 70% / 0.45);
+    --lg-shadow: hsl(200 25% 35% / 0.12);
+    --lg-specular: hsl(200 50% 90% / 0.75);
+    --lg-refraction-start: hsl(200 30% 90% / 0.28);
+    --lg-refraction-end: hsl(200 15% 85% / 0.08);
+    --lg-inner-glow: hsl(200 20% 85% / 0.14);
 
     background: var(--lg-bg);
     backdrop-filter: blur(24px) saturate(200%) brightness(1.05);
     -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.05);
-    border: 0.5px solid var(--lg-border);
+    border: 1px solid var(--lg-border);
     border-radius: 1rem;
     box-shadow:
-      0 2px 4px var(--lg-shadow),
-      0 12px 40px -8px hsl(0 0% 0% / 0.12),
-      inset 0 0.5px 0 0 var(--lg-specular);
+      0 1px 3px var(--lg-shadow),
+      0 8px 24px -4px hsl(200 25% 30% / 0.12),
+      inset 0 1px 0 0 var(--lg-specular),
+      inset 0 -1px 0 0 hsl(200 20% 60% / 0.08);
     position: relative;
     overflow: hidden;
     isolation: isolate;
@@ -393,14 +394,18 @@
 
   /* ─── Medicine: crisp clinical glass, cool-white tint ─── */
   [data-vertical="medicine"] .liquid-glass-card {
-    --lg-bg: hsl(200 20% 97% / 0.55);
-    --lg-border: hsl(200 30% 80% / 0.3);
-    --lg-shadow: hsl(200 30% 30% / 0.06);
-    --lg-specular: hsl(0 0% 100% / 0.55);
-    --lg-refraction-start: hsl(200 20% 95% / 0.2);
-    --lg-inner-glow: hsl(200 15% 90% / 0.08);
+    --lg-bg: hsl(200 30% 96% / 0.6);
+    --lg-border: hsl(200 40% 75% / 0.4);
+    --lg-shadow: hsl(200 30% 30% / 0.1);
+    --lg-specular: hsl(200 50% 92% / 0.7);
+    --lg-refraction-start: hsl(200 30% 92% / 0.25);
+    --lg-inner-glow: hsl(200 20% 88% / 0.12);
     backdrop-filter: blur(20px) saturate(180%) brightness(1.08);
     -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.08);
+    box-shadow:
+      0 2px 6px hsl(200 30% 50% / 0.08),
+      0 8px 32px -6px hsl(200 30% 40% / 0.1),
+      inset 0 1px 0 0 var(--lg-specular);
   }
 
   [data-vertical="medicine"] .liquid-glass-panel {
@@ -419,25 +424,32 @@
     background: hsl(var(--background) / 0.92);
   }
 
-  /* ─── Living: same clinical glass as medicine, neutral warm ─── */
+  /* ─── Living: warm neutral glass ─── */
   [data-vertical="living"] .liquid-glass-card {
-    --lg-bg: hsl(200 20% 97% / 0.55);
-    --lg-border: hsl(200 30% 80% / 0.3);
-    --lg-specular: hsl(200 40% 90% / 0.5);
-    --lg-shadow: hsl(200 20% 50% / 0.08);
-    --lg-refraction-start: hsl(200 30% 95% / 0.15);
-    --lg-refraction-end: hsl(200 15% 90% / 0.05);
+    --lg-bg: hsl(160 20% 96% / 0.6);
+    --lg-border: hsl(160 30% 70% / 0.35);
+    --lg-specular: hsl(160 40% 88% / 0.65);
+    --lg-shadow: hsl(160 20% 40% / 0.08);
+    --lg-refraction-start: hsl(160 25% 92% / 0.2);
+    --lg-refraction-end: hsl(160 15% 88% / 0.08);
+    --lg-inner-glow: hsl(160 15% 85% / 0.1);
+    backdrop-filter: blur(20px) saturate(180%) brightness(1.06);
+    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.06);
+    box-shadow:
+      0 2px 6px hsl(160 20% 40% / 0.07),
+      0 8px 32px -6px hsl(160 20% 30% / 0.09),
+      inset 0 1px 0 0 var(--lg-specular);
   }
 
   [data-vertical="living"] .liquid-glass-panel {
-    --lg-bg: hsl(200 15% 97% / 0.7);
-    --lg-border: hsl(200 20% 85% / 0.3);
+    --lg-bg: hsl(160 15% 97% / 0.7);
+    --lg-border: hsl(160 20% 80% / 0.3);
     backdrop-filter: blur(20px) saturate(180%);
   }
 
   [data-vertical="living"] .liquid-glass-panel-header {
-    background: hsl(200 20% 95% / 0.5);
-    border-bottom-color: hsl(200 20% 85% / 0.3);
+    background: hsl(160 20% 94% / 0.5);
+    border-bottom-color: hsl(160 20% 80% / 0.3);
   }
 
   [data-vertical="living"] .liquid-glass-panel-body {
