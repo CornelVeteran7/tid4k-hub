@@ -214,6 +214,13 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
           </div>
         }
 
+        {/* Attendance quick card */}
+        {showGroupSelector && currentGroup && (
+          <div className="px-3 py-2 border-b border-sidebar-border">
+            <AttendanceQuickCard />
+          </div>
+        )}
+
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           {/* Primary: Home */}
