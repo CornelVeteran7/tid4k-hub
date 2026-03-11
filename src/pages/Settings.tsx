@@ -10,6 +10,7 @@ import SettingsModules from '@/components/settings/SettingsModules';
 import SettingsUsers from '@/components/settings/SettingsUsers';
 import SettingsDisplay from '@/components/settings/SettingsDisplay';
 import SettingsIntegrations from '@/components/settings/SettingsIntegrations';
+import SettingsPayments from '@/components/settings/SettingsPayments';
 import SettingsVerticalConfig from '@/components/settings/SettingsVerticalConfig';
 
 const TABS = [
