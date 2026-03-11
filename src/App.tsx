@@ -55,7 +55,7 @@ import SurtitleAudiencePage from "./pages/SurtitleAudience";
 import SuperAdmin from "./pages/SuperAdmin";
 import Contributions from "./pages/Contributions";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } });
 
 function AppRoutes() {
   const { user } = useAuth();
