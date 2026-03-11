@@ -120,7 +120,11 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   );
 
   useEffect(() => {
-    getWorkshopOfMonth().then(setWorkshopOfMonth).catch(() => {});
+    import('@/api/externalWorkshops').then(({ getExternalWorkshops, getCurrentMonthWorkshop }) => {
+      getExternalWorkshops().then(workshops => {
+        setWorkshopOfMonth(getCurrentMonthWorkshop(workshops));
+      }).catch(() => {});
+    });
   }, []);
   useEffect(() => {
     const handler = (e: Event) => {
