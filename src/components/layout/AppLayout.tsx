@@ -14,7 +14,8 @@ import {
   Home, Users, FileText, MessageSquare, Megaphone, Calendar, UtensilsCrossed,
   BookOpen, BarChart3, Settings, LogOut, Menu, X, Monitor, Facebook, MessageCircle, ClipboardList, Bell, ArrowLeft, Image, Paintbrush, SlidersHorizontal, User, GraduationCap, Award, Package, ShieldCheck, Newspaper, Theater, HardHat, Video, Ticket, MapPin, Stethoscope, Wrench, Building2 } from
 'lucide-react';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Search } from 'lucide-react';
 import { useExternalLink } from '@/contexts/ExternalLinkContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -193,9 +194,20 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
                 <SelectValue placeholder={`Selectează ${verticalDef.entityLabel.toLowerCase()}`} />
               </SelectTrigger>
               <SelectContent>
-                {availableGroups.map((g) =>
-              <SelectItem key={g.id} value={g.id}>{g.nume}</SelectItem>
-              )}
+                {availableGroups.map((g) => {
+                  // Demo attendance data based on group id hash
+                  const hash = g.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                  const total = 15 + (hash % 20);
+                  const present = Math.max(5, total - (hash % 8));
+                  return (
+                    <SelectItem key={g.id} value={g.id} title={`${present}/${total} prezenți azi`}>
+                      <div className="flex flex-col items-start">
+                        <span>{g.nume}</span>
+                        <span className="text-[10px] text-muted-foreground">{present}/{total} prezenți azi</span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -486,9 +498,19 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
                   <SelectValue placeholder={`Selectează ${verticalDef.entityLabel.toLowerCase()}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableGroups.map((g) =>
-                <SelectItem key={g.id} value={g.id}>{g.nume}</SelectItem>
-                )}
+                  {availableGroups.map((g) => {
+                    const hash = g.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                    const total = 15 + (hash % 20);
+                    const present = Math.max(5, total - (hash % 8));
+                    return (
+                      <SelectItem key={g.id} value={g.id}>
+                        <div className="flex flex-col items-start">
+                          <span>{g.nume}</span>
+                          <span className="text-[10px] text-muted-foreground">{present}/{total} prezenți azi</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
