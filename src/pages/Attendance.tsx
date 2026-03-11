@@ -6,6 +6,9 @@ import {
   getContributions, getParentContributions, getContributionConfig, saveContributionConfig,
   saveMonthlyContributions, getMonthlyContributions, updateContributionPayment,
 } from '@/api/attendance';
+import {
+  getParentChildren, getChildMonthlyCalendar, type ParentChild, type CalendarDay,
+} from '@/api/contributions';
 import type { WeeklyAttendanceData, AttendanceStats } from '@/types';
 import { areRol, isInky } from '@/utils/roles';
 import { Button } from '@/components/ui/button';
@@ -19,11 +22,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
-import { Save, Printer, ChevronLeft, ChevronRight, Loader2, CheckCheck, MessageSquare, BarChart3, Coins, Download, CheckCircle2, Clock, CreditCard } from 'lucide-react';
+import { Save, Printer, ChevronLeft, ChevronRight, Loader2, CheckCheck, MessageSquare, BarChart3, Coins, Download, CheckCircle2, Clock, CreditCard, Banknote, Users, CalendarDays } from 'lucide-react';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import ParentChildSwitcher from '@/components/attendance/ParentChildSwitcher';
+import AttendanceCalendar from '@/components/attendance/AttendanceCalendar';
+import CashDeclarationDialog from '@/components/attendance/CashDeclarationDialog';
+import AllGroupsContributionsTab from '@/components/attendance/AllGroupsContributionsTab';
 
 const DAY_LABELS = ['L', 'Ma', 'Mi', 'J', 'V'];
 const MONTHS = ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
@@ -51,7 +58,242 @@ function getInitials(name: string): string {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-// ─── Contributions Sub-Tab ───────────────────────────────────────────────────
+// ─── Parent Attendance View ─────────────────────────────────────────────────
+
+function ParentAttendanceView() {
+  const { user } = useAuth();
+  const [parentChildren, setParentChildren] = useState<ParentChild[]>([]);
+  const [selectedChildId, setSelectedChildId] = useState('');
+  const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [calMonth, setCalMonth] = useState(new Date().getMonth() + 1);
+  const [calYear, setCalYear] = useState(new Date().getFullYear());
+  
+  // Contribution state
+  const [dailyRate, setDailyRate] = useState(17);
+  const [contributions, setContributions] = useState<{ id: string; nume: string; zile_prezent: number; total: number; status: string; amount_paid: number }[]>([]);
+  const [contribLoading, setContribLoading] = useState(false);
+  const [payingChildId, setPayingChildId] = useState<string | null>(null);
+  const [cashDialogOpen, setCashDialogOpen] = useState(false);
+  const [cashDialogChild, setCashDialogChild] = useState<{ id: string; name: string; amount: number }>({ id: '', name: '', amount: 0 });
+
+  // Load children
+  useEffect(() => {
+    if (!user) return;
+    getParentChildren(user.id).then(children => {
+      setParentChildren(children);
+      if (children.length > 0) setSelectedChildId(children[0].id);
+    });
+    getContributionConfig().then(cfg => {
+      if (cfg) setDailyRate(cfg.daily_rate);
+    });
+  }, [user]);
+
+  // Load calendar for selected child
+  useEffect(() => {
+    if (!selectedChildId) return;
+    setCalendarLoading(true);
+    getChildMonthlyCalendar(selectedChildId, calMonth, calYear).then(days => {
+      setCalendarDays(days);
+      setCalendarLoading(false);
+    });
+  }, [selectedChildId, calMonth, calYear]);
+
+  // Load contributions
+  useEffect(() => {
+    if (!user) return;
+    setContribLoading(true);
+    const fetchContribs = async () => {
+      const result = await getParentContributions(user.id, calMonth, calYear, dailyRate);
+      const payments = await getMonthlyContributions(calMonth, calYear);
+      const paymentMap = new Map(payments.map(p => [p.child_id, p]));
+      const rows = result.children.map(c => {
+        const payment = paymentMap.get(c.id);
+        return { ...c, amount_paid: payment?.amount_paid || 0, status: payment?.status || 'pending' };
+      });
+      setContributions(rows);
+      setContribLoading(false);
+    };
+    fetchContribs();
+  }, [user, calMonth, calYear, dailyRate]);
+
+  const selectedChild = parentChildren.find(c => c.id === selectedChildId);
+
+  const handleStripePayment = async (childId: string, childName: string, amount: number) => {
+    setPayingChildId(childId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-contribution-checkout', {
+        body: { child_id: childId, month: calMonth, year: calYear, amount, child_name: childName },
+      });
+      if (error) throw error;
+      if (data?.mock) {
+        toast.info(data.message || 'Plata online va fi disponibilă în curând.');
+      } else if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      toast.error('Eroare la inițierea plății.');
+    }
+    setPayingChildId(null);
+  };
+
+  const openCashDialog = (childId: string, childName: string, amount: number) => {
+    setCashDialogChild({ id: childId, name: childName, amount });
+    setCashDialogOpen(true);
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Child Switcher */}
+      <ParentChildSwitcher
+        children={parentChildren}
+        selectedChildId={selectedChildId}
+        onSelect={setSelectedChildId}
+      />
+
+      {selectedChild && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Badge variant="secondary">{selectedChild.group_name}</Badge>
+          <span>{selectedChild.nume_prenume}</span>
+        </div>
+      )}
+
+      {/* Month/Year filters */}
+      <div className="flex flex-wrap gap-3">
+        <div className="min-w-[120px]">
+          <Label className="text-xs">Luna</Label>
+          <Select value={String(calMonth)} onValueChange={v => setCalMonth(Number(v))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="min-w-[100px]">
+          <Label className="text-xs">Anul</Label>
+          <Select value={String(calYear)} onValueChange={v => setCalYear(Number(v))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {[2025, 2026, 2027].map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Attendance Calendar */}
+      <div>
+        <h3 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+          <CalendarDays className="h-4 w-4 text-primary" />
+          Calendar prezență — {MONTHS[calMonth - 1]} {calYear}
+        </h3>
+        <AttendanceCalendar days={calendarDays} month={calMonth} year={calYear} loading={calendarLoading} />
+      </div>
+
+      {/* Contributions */}
+      <div>
+        <h3 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+          <Coins className="h-4 w-4 text-primary" />
+          Contribuție alimentară — {MONTHS[calMonth - 1]} {calYear}
+        </h3>
+        {contribLoading ? (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {contributions.map(c => (
+              <Card key={c.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm">{c.nume}</span>
+                    <span className="font-bold text-lg">{c.total} lei</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                    <span>{c.zile_prezent} zile × {dailyRate} lei/zi</span>
+                    {c.status === 'paid' ? (
+                      <Badge variant="default" className="gap-1 bg-emerald-600">
+                        <CheckCircle2 className="h-3 w-3" /> Plătit
+                      </Badge>
+                    ) : c.status === 'cash_declared' ? (
+                      <Badge variant="secondary" className="gap-1">
+                        <Clock className="h-3 w-3" /> Așteptare confirmare
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="gap-1">
+                        <Clock className="h-3 w-3" /> Neachitat
+                      </Badge>
+                    )}
+                  </div>
+                  {c.status !== 'paid' && c.total > 0 && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 gap-1.5 text-xs"
+                        onClick={() => handleStripePayment(c.id, c.nume, c.total)}
+                        disabled={payingChildId === c.id}
+                      >
+                        {payingChildId === c.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <CreditCard className="h-3 w-3" />
+                        )}
+                        Plătește online
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 gap-1.5 text-xs"
+                        onClick={() => openCashDialog(c.id, c.nume, c.total)}
+                      >
+                        <Banknote className="h-3 w-3" />
+                        Declară cash
+                      </Button>
+                    </div>
+                  )}
+                  {c.status !== 'paid' && c.total > 0 && (
+                    <p className="text-[10px] text-muted-foreground mt-2">
+                      Plata online include un comision de procesare de ~{Math.ceil(c.total * 0.06)} lei (Stripe + platformă).
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Cash Declaration Dialog */}
+      <CashDeclarationDialog
+        open={cashDialogOpen}
+        onOpenChange={setCashDialogOpen}
+        childId={cashDialogChild.id}
+        childName={cashDialogChild.name}
+        month={calMonth}
+        year={calYear}
+        suggestedAmount={cashDialogChild.amount}
+        onSuccess={() => {
+          // Refresh contributions
+          if (user) {
+            getParentContributions(user.id, calMonth, calYear, dailyRate).then(async result => {
+              const payments = await getMonthlyContributions(calMonth, calYear);
+              const paymentMap = new Map(payments.map(p => [p.child_id, p]));
+              setContributions(result.children.map(c => {
+                const payment = paymentMap.get(c.id);
+                return { ...c, amount_paid: payment?.amount_paid || 0, status: payment?.status || 'pending' };
+              }));
+            });
+          }
+        }}
+      />
+
+      <p className="text-[10px] text-muted-foreground text-center">
+        Contribuția alimentară este calculată conform Legea 198/2023.
+      </p>
+    </div>
+  );
+}
+
+// ─── Contributions Sub-Tab (Teacher/Admin per-group) ────────────────────────
 
 interface ContributionRow {
   id: string;
@@ -73,11 +315,9 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
   const [savingReport, setSavingReport] = useState(false);
-  const [payingChildId, setPayingChildId] = useState<string | null>(null);
 
   const userStatus = user?.status || '';
   const isSecretary = areRol(userStatus, 'secretara') || areRol(userStatus, 'administrator') || areRol(userStatus, 'director') || isInky(userStatus, user?.nume_prenume || '');
-  const isParent = areRol(userStatus, 'parinte') && !isSecretary && !areRol(userStatus, 'profesor');
 
   useEffect(() => {
     getContributionConfig().then(cfg => {
@@ -86,17 +326,10 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
   }, []);
 
   useEffect(() => {
+    if (!currentGroup) return;
     setLoading(true);
     const fetchData = async () => {
-      let result: { children: { id: string; nume: string; zile_prezent: number; total: number }[]; grandTotal: number };
-      if (isParent && user) {
-        result = await getParentContributions(user.id, month, year, dailyRate);
-      } else if (currentGroup) {
-        result = await getContributions(currentGroup.id, month, year, dailyRate);
-      } else {
-        setLoading(false);
-        return;
-      }
+      const result = await getContributions(currentGroup.id, month, year, dailyRate);
       const payments = await getMonthlyContributions(month, year);
       const paymentMap = new Map(payments.map(p => [p.child_id, p]));
       const rows: ContributionRow[] = result.children.map(c => {
@@ -108,7 +341,7 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
       setLoading(false);
     };
     fetchData();
-  }, [currentGroup, month, year, dailyRate, isParent, user]);
+  }, [currentGroup, month, year, dailyRate]);
 
   const handleSaveConfig = async () => {
     setSavingConfig(true);
@@ -137,27 +370,6 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
       c.id === childId ? { ...c, status: newStatus, amount_paid: newPaid } : c
     ));
     toast.success(newStatus === 'paid' ? 'Marcat ca plătit' : 'Marcat ca neachitat');
-  };
-
-  const handleStripePayment = async (childId: string, childName: string, amount: number) => {
-    setPayingChildId(childId);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-contribution-checkout', {
-        body: { child_id: childId, month, year, amount, child_name: childName },
-      });
-      if (error) throw error;
-      if (data?.mock) {
-        toast.info(data.message || 'Plata online va fi disponibilă în curând. Stripe nu este configurat.');
-      } else if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        toast.error('Nu s-a putut genera link-ul de plată.');
-      }
-    } catch (err: any) {
-      console.error('Stripe checkout error:', err);
-      toast.error('Eroare la inițierea plății. Verificați configurarea Stripe.');
-    }
-    setPayingChildId(null);
   };
 
   const totalPaid = children.filter(c => c.status === 'paid').length;
@@ -308,7 +520,6 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
                     <th className="p-3 text-center text-xs font-medium text-muted-foreground">Tarif/zi</th>
                     <th className="p-3 text-right text-xs font-medium text-muted-foreground">Total (lei)</th>
                     <th className="p-3 text-center text-xs font-medium text-muted-foreground">Status</th>
-                    {isParent && <th className="p-3 text-center text-xs font-medium text-muted-foreground">Plată</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -342,26 +553,6 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
                           </Badge>
                         )}
                       </td>
-                      {isParent && (
-                        <td className="p-3 text-center">
-                          {c.status !== 'paid' && c.total > 0 && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1.5 text-xs border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                              onClick={() => handleStripePayment(c.id, c.nume, c.total)}
-                              disabled={payingChildId === c.id}
-                            >
-                              {payingChildId === c.id ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <CreditCard className="h-3 w-3" />
-                              )}
-                              Plătește online
-                            </Button>
-                          )}
-                        </td>
-                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -370,7 +561,6 @@ function ContributionsTab({ embedded }: { embedded?: boolean }) {
                     <td colSpan={4} className="p-3 text-right">TOTAL</td>
                     <td className="p-3 text-right">{grandTotal} lei</td>
                     <td className="p-3 text-center text-xs">{totalPaid}/{children.length}</td>
-                    {isParent && <td />}
                   </tr>
                 </tfoot>
               </table>
@@ -419,17 +609,18 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
 
   const userStatus = user?.status || '';
   const isParent = areRol(userStatus, 'parinte') && !areRol(userStatus, 'profesor') && !areRol(userStatus, 'director') && !areRol(userStatus, 'administrator') && !isInky(userStatus, user?.nume_prenume || '');
+  const isSecretary = areRol(userStatus, 'secretara') || areRol(userStatus, 'administrator') || areRol(userStatus, 'director') || isInky(userStatus, user?.nume_prenume || '');
   const canEdit = !isParent;
 
   useEffect(() => {
-    if (!currentGroup) return;
+    if (!currentGroup && !isParent) return;
     setLoading(true);
     if (isParent && user) {
       getParentChildAttendance(user.id, format(monday, 'yyyy-MM-dd')).then((d) => {
         setData(d);
         setLoading(false);
       });
-    } else {
+    } else if (currentGroup) {
       getWeeklyAttendance(currentGroup.id, format(monday, 'yyyy-MM-dd')).then((d) => {
         setData(d);
         setLoading(false);
@@ -513,6 +704,27 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
 
   const weekLabel = `${format(monday, 'd', { locale: ro })}-${format(addDays(monday, 4), 'd MMMM yyyy', { locale: ro })}`;
 
+  // If parent in kids vertical, show dedicated parent view
+  if (isParent && isKidsVertical) {
+    return (
+      <div className="space-y-4 pb-8">
+        {!embedded && (
+          <div className="rounded-2xl p-5 text-black" style={{ backgroundColor: '#FFC107' }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-display font-bold uppercase tracking-wide">Prezența și Contribuție</h1>
+                <p className="text-xs opacity-70 mt-0.5">{format(new Date(), 'd MMMM yyyy', { locale: ro })}</p>
+                <Badge className="mt-1 bg-white/80 text-black text-xs">Vizualizare părinte</Badge>
+              </div>
+              <Users className="h-8 w-8 opacity-40" />
+            </div>
+          </div>
+        )}
+        <ParentAttendanceView />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 pb-8">
       {/* Header */}
@@ -523,9 +735,6 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
               <h1 className="text-xl font-display font-bold uppercase tracking-wide">{isKidsVertical ? 'Prezența și Contribuție' : 'Prezența'}</h1>
               <p className="text-sm font-medium opacity-80">{currentGroup?.nume || 'Selectează o grupă'}</p>
               <p className="text-xs opacity-70 mt-0.5">{format(new Date(), 'd MMMM yyyy', { locale: ro })}</p>
-              {isParent && (
-                <Badge className="mt-1 bg-white/80 text-black text-xs">Vizualizare părinte (doar citire)</Badge>
-              )}
             </div>
             <Badge className="bg-white/90 text-black font-bold text-sm px-3 py-1.5 hover:bg-white/90">
               Prezenți: {todayPresent}/{totalChildren}
@@ -542,19 +751,26 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
         </div>
       )}
 
-      {/* Tabs: Weekly + Stats + Contributions */}
+      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="weekly">Săptămânal</TabsTrigger>
-          <TabsTrigger value="stats" className="gap-1.5">
-            <BarChart3 className="h-3.5 w-3.5" /> Statistici
-          </TabsTrigger>
-          {isKidsVertical && (
-            <TabsTrigger value="contributions" className="gap-1.5">
-              <Coins className="h-3.5 w-3.5" /> Contribuții
+        <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
+          <TabsList className="inline-flex w-auto">
+            <TabsTrigger value="weekly">Săptămânal</TabsTrigger>
+            <TabsTrigger value="stats" className="gap-1.5">
+              <BarChart3 className="h-3.5 w-3.5" /> Statistici
             </TabsTrigger>
-          )}
-        </TabsList>
+            {isKidsVertical && (
+              <TabsTrigger value="contributions" className="gap-1.5">
+                <Coins className="h-3.5 w-3.5" /> Contribuții
+              </TabsTrigger>
+            )}
+            {isKidsVertical && isSecretary && (
+              <TabsTrigger value="all-groups" className="gap-1.5">
+                <Users className="h-3.5 w-3.5" /> Toate grupele
+              </TabsTrigger>
+            )}
+          </TabsList>
+        </div>
 
         {/* ── Weekly Tab ── */}
         <TabsContent value="weekly" className="space-y-4 mt-4">
@@ -731,7 +947,6 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
             </div>
           ) : stats && (
             <>
-              {/* Summary cards */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <Card>
                   <CardContent className="p-4 text-center">
@@ -757,7 +972,6 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
                 </Card>
               </div>
 
-              {/* Per-child table */}
               <Card>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
@@ -800,10 +1014,19 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
           )}
         </TabsContent>
 
-        {/* ── Contributions Tab ── */}
-        <TabsContent value="contributions" className="mt-4">
-          <ContributionsTab embedded={embedded} />
-        </TabsContent>
+        {/* ── Contributions Tab (per-group) ── */}
+        {isKidsVertical && (
+          <TabsContent value="contributions" className="mt-4">
+            <ContributionsTab embedded={embedded} />
+          </TabsContent>
+        )}
+
+        {/* ── All Groups Tab (admin only) ── */}
+        {isKidsVertical && isSecretary && (
+          <TabsContent value="all-groups" className="mt-4">
+            <AllGroupsContributionsTab />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
