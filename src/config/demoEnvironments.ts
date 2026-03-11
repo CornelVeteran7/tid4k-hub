@@ -116,6 +116,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     accounts: [
       { label: 'Locatar', description: 'Cheltuieli proprii, anunțuri', status: 'parinte', redirect: '/', orgName: 'Bloc A3 Militari Residence', vertical: 'living', groups: [g('sc-a', 'Scara A', 'scoala')], userName: 'Cristian Enache' },
       { label: 'Administrator Bloc', description: 'Financiar, anunțuri, setări', status: 'administrator', redirect: '/admin', orgName: 'Bloc A3 Militari Residence', vertical: 'living', groups: [g('sc-a', 'Scara A', 'scoala'), g('sc-b', 'Scara B', 'scoala'), g('sc-c', 'Scara C', 'scoala'), g('sc-d', 'Scara D', 'scoala')], userName: 'Admin Bloc A3' },
+      { label: 'Vizitator', description: 'Acces public, anunțuri', status: 'guest', redirect: '/display/demo-living', orgName: 'Bloc A3 Militari Residence', vertical: 'living', groups: [g('sc-a', 'Scara A', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
