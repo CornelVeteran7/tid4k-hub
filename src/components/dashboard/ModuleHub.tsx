@@ -101,7 +101,7 @@ interface ModuleHubProps {
   cardVariant?: 'solid' | 'glass';
 }
 
-export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules }: ModuleHubProps) {
+export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules, cardVariant = 'solid' }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<ExternalWorkshop | null>(null);
