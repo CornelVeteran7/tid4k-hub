@@ -21,6 +21,7 @@ const TABS = [
   { value: 'users', label: 'Utilizatori', icon: Users },
   { value: 'display', label: 'Display', icon: Monitor },
   { value: 'integrations', label: 'Integrări', icon: Link2 },
+  { value: 'payments', label: 'Plăți', icon: CreditCard },
 ];
 
 export default function Settings() {
