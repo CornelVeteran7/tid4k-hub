@@ -273,6 +273,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Clienți',
     icon: '🔧',
     groupTypeDefault: 'scoala',
+    cardVariant: 'solid',
     moduleLabels: {
       prezenta: { title: 'PROGRAMĂRI', subtitle: 'Programările zilei în service' },
       imagini: { title: 'GALERIE', subtitle: 'Fotografii lucrări și piese' },
