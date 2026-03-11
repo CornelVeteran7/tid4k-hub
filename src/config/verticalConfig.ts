@@ -19,6 +19,8 @@ export interface VerticalDefinition {
   parentLabelPlural: string; // Plural form
   icon: string;
   groupTypeDefault: string;  // Default group.tip value
+  cardVariant: 'solid' | 'glass'; // Module card visual style
+  forceDark?: boolean;       // Force dark mode for this vertical
   // Vertical-aware module labels
   moduleLabels: {
     prezenta: { title: string; subtitle: string };
@@ -53,6 +55,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Părinți',
     icon: '🧒',
     groupTypeDefault: 'gradinita',
+    cardVariant: 'solid',
     moduleLabels: {
       prezenta: { title: 'PREZENȚA ȘI CONTRIBUȚIE', subtitle: 'Prezență, contribuții și plată online' },
       imagini: { title: 'IMAGINI', subtitle: 'Fotografii din activități' },
@@ -83,6 +86,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Părinți',
     icon: '🏫',
     groupTypeDefault: 'scoala',
+    cardVariant: 'solid',
     moduleLabels: {
       prezenta: { title: 'PREZENȚA', subtitle: 'Prezența elevilor la clasă' },
       imagini: { title: 'GALERIE', subtitle: 'Fotografii din activități școlare' },
@@ -113,6 +117,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Aparținători',
     icon: '🏥',
     groupTypeDefault: 'scoala',
+    cardVariant: 'glass',
     moduleLabels: {
       prezenta: { title: 'PROGRAMĂRI', subtitle: 'Programările zilei' },
       imagini: { title: 'GALERIE', subtitle: 'Imagini cabinet și echipă' },
@@ -143,6 +148,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Proprietari',
     icon: '🏢',
     groupTypeDefault: 'scoala',
+    cardVariant: 'solid',
     moduleLabels: {
       prezenta: { title: 'ÎNTREȚINERE', subtitle: 'Situația plăților lunare' },
       imagini: { title: 'GALERIE', subtitle: 'Fotografii bloc și spații comune' },
@@ -173,6 +179,8 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Spectatori',
     icon: '🎭',
     groupTypeDefault: 'scoala',
+    cardVariant: 'glass',
+    forceDark: true,
     moduleLabels: {
       prezenta: { title: 'BILETE', subtitle: 'Vânzări și rezervări bilete' },
       imagini: { title: 'GALERIE', subtitle: 'Fotografii spectacole și repetiții' },
@@ -203,6 +211,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Studenți',
     icon: '🎓',
     groupTypeDefault: 'scoala',
+    cardVariant: 'solid',
     moduleLabels: {
       prezenta: { title: 'PREZENȚA', subtitle: 'Prezența studenților la cursuri' },
       imagini: { title: 'GALERIE', subtitle: 'Fotografii campus și evenimente' },
@@ -233,6 +242,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Șefi echipă',
     icon: '🏗️',
     groupTypeDefault: 'scoala',
+    cardVariant: 'solid',
     moduleLabels: {
       prezenta: { title: 'PONTAJ', subtitle: 'Pontajul echipei pe șantier' },
       imagini: { title: 'FOTO PROGRES', subtitle: 'Fotografii progres lucrări' },
@@ -263,6 +273,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Clienți',
     icon: '🔧',
     groupTypeDefault: 'scoala',
+    cardVariant: 'solid',
     moduleLabels: {
       prezenta: { title: 'PROGRAMĂRI', subtitle: 'Programările zilei în service' },
       imagini: { title: 'GALERIE', subtitle: 'Fotografii lucrări și piese' },
