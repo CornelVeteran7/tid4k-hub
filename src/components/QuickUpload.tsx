@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useGroup } from '@/contexts/GroupContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { isStaff } from '@/utils/roles';
 import { uploadDocument } from '@/api/documents';
 import { Camera, FileText, X, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
