@@ -3,11 +3,12 @@ import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuestSession } from '@/hooks/useGuestSession';
+import { getExternalWorkshops, getCurrentMonthWorkshop, type ExternalWorkshop } from '@/api/externalWorkshops';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Newspaper, Stethoscope, Ticket as TicketIcon, HardHat, ShieldCheck, Theater } from 'lucide-react';
-import { Megaphone, FileText, MessageSquare, Clock, Shield, Calendar, Users, LogIn, ChevronRight, MapPin, QrCode, Eye } from 'lucide-react';
+import { Newspaper, Stethoscope, Ticket as TicketIcon, HardHat, ShieldCheck, Theater, Paintbrush, Image as ImageIcon } from 'lucide-react';
+import { Megaphone, FileText, MessageSquare, Clock, Shield, Calendar, Users, LogIn, ChevronRight, MapPin, QrCode, Eye, Download } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
