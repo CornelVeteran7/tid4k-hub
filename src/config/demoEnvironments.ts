@@ -71,6 +71,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Recepționist', description: 'Controlează coada, cheamă', status: 'secretara', redirect: '/', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-1', 'Cabinet 1', 'scoala'), g('cab-2', 'Cabinet 2', 'scoala'), g('cab-3', 'Cabinet 3', 'scoala')], userName: 'Laura Radu' },
       { label: 'Medic', description: 'Profil, program, pacienți', status: 'profesor', redirect: '/', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-2', 'Cabinet 2 - Implantologie', 'scoala')], userName: 'Dr. Alexandru Marin' },
       { label: 'Admin Clinică', description: 'Setări, servicii, prețuri', status: 'administrator', redirect: '/admin', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-1', 'Cabinet 1', 'scoala'), g('cab-2', 'Cabinet 2', 'scoala'), g('cab-3', 'Cabinet 3', 'scoala')], userName: 'Admin DentArt' },
+      { label: 'Vizitator', description: 'Acces public, coadă', status: 'guest', redirect: '/queue/demo-medicine', orgName: 'Clinica DentArt', vertical: 'medicine', groups: [g('cab-1', 'Cabinet 1', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
