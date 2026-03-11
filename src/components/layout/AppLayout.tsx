@@ -27,6 +27,7 @@ import InkyAssistant from '@/components/InkyAssistant';
 import TutorialOverlay from '@/components/TutorialOverlay';
 import QuickUpload from '@/components/QuickUpload';
 import WhiteLabelSwitcher from '@/components/WhiteLabelSwitcher';
+import AttendanceQuickCard from '@/components/dashboard/AttendanceQuickCard';
 
 /* Decorative SVG background for sidebar — contour lines + vertical-specific themed elements */
 function SidebarDecorationComponent({ vertical }: { vertical: string }) {
@@ -212,6 +213,13 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
             </Select>
           </div>
         }
+
+        {/* Attendance quick card */}
+        {showGroupSelector && currentGroup && (
+          <div className="px-3 py-2 border-b border-sidebar-border">
+            <AttendanceQuickCard />
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
@@ -515,6 +523,13 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
               </Select>
             </div>
           }
+
+          {/* Mobile: attendance quick card */}
+          {showGroupSelector && currentGroup && !mobileSearchOpen && (
+            <div className="lg:hidden shrink-0">
+              <AttendanceQuickCard />
+            </div>
+          )}
 
           {/* Desktop: page title */}
           <div className="hidden lg:flex flex-1 items-center min-w-0">
