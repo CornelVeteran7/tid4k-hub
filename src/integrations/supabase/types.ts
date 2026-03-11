@@ -1130,6 +1130,48 @@ export type Database = {
           },
         ]
       }
+      external_workshops: {
+        Row: {
+          ce_invatam: string | null
+          ce_primim: string | null
+          descriere: string | null
+          id: string
+          imagine_url: string | null
+          luna: string
+          ordine: number | null
+          personaj: string | null
+          scraped_at: string | null
+          source_url: string | null
+          titlu: string
+        }
+        Insert: {
+          ce_invatam?: string | null
+          ce_primim?: string | null
+          descriere?: string | null
+          id?: string
+          imagine_url?: string | null
+          luna: string
+          ordine?: number | null
+          personaj?: string | null
+          scraped_at?: string | null
+          source_url?: string | null
+          titlu: string
+        }
+        Update: {
+          ce_invatam?: string | null
+          ce_primim?: string | null
+          descriere?: string | null
+          id?: string
+          imagine_url?: string | null
+          luna?: string
+          ordine?: number | null
+          personaj?: string | null
+          scraped_at?: string | null
+          source_url?: string | null
+          titlu?: string
+        }
+        Relationships: []
+      }
       facebook_posts: {
         Row: {
           content: string

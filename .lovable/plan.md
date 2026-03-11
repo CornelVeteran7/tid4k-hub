@@ -1,120 +1,149 @@
 
 
-# Plan: Ateliere din infodisplay.ro — Scrape, Cache & Display
+# Plan: Sistem de Management Ateliere + Notificări Admin & Documentație
 
-## Obiectiv
-Pagina Ateliere (Kids) afișează atelierele extrase automat de pe infodisplay.ro/ateliere, cu atelierul lunii curente evidențiat. Eliminăm Citește/Ascultă/Video din Ateliere (rămân doar în Povești). Card complet per atelier + buton "Programează" care deschide infodisplay.ro/ateliere în iframe-ul ExternalLinkContext.
+## Prezentare generală
 
-## Ce există pe infodisplay.ro/ateliere
-12 ateliere, câte unul pe lună (+ 2 Săptămâna Verde/Altfel), fiecare cu:
-- Luna + personaj (Inky/Nuko/Vixie/Poki/Eli)
-- Titlu, descriere, "Ce învățăm?", "Ce primim?"
-- Imagine (URL: `infodisplay.ro/admin/uploads/...`)
-
-Luna curentă (Martie) = "Mărțișor" cu Nuko.
+Acest plan adaugă un **sistem complet de management al Atelierelor** în Panoul de Administrare, permițând administratorilor să creeze, editeze și să publice ateliere către una sau toate unitățile școlare. Cardul modulului „ATELIERE" de pe dashboard va afișa previzualizarea atelierului lunii direct (fără deschidere), iar notificările push vor alerta profesorii despre atelierele noi.
 
 ---
 
-## Modificări planificate
+## Ce se construiește
 
-### 1. DB — Tabel cache ateliere externe
+### 1. Modelul de date și API-ul pentru Ateliere
 
-Tabel nou `external_workshops` pentru cache-ul datelor scrape-uite:
+**Fișier nou: `src/api/workshops.ts`**
 
-```sql
-CREATE TABLE public.external_workshops (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  luna TEXT NOT NULL,           -- 'Martie', 'Aprilie', etc.
-  personaj TEXT,               -- 'Nuko', 'Inky', 'Vixie', 'Poki', 'Eli'
-  titlu TEXT NOT NULL,
-  descriere TEXT,
-  ce_invatam TEXT,
-  ce_primim TEXT,
-  imagine_url TEXT,
-  ordine INT DEFAULT 0,
-  source_url TEXT DEFAULT 'https://infodisplay.ro/ateliere',
-  scraped_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(titlu)
-);
-```
-
-RLS: permite SELECT pentru toți utilizatorii autentificați. INSERT/UPDATE doar pentru service role (edge function).
-
-### 2. Edge Function — `scrape-workshops`
-
-**`supabase/functions/scrape-workshops/index.ts`**
-
-- Fetch `https://infodisplay.ro/ateliere` ca HTML
-- Parse cu regex/string manipulation (Deno nu are DOM nativ, dar putem folosi regex pe structura repetitivă)
-- Extragem per atelier: luna, personaj, titlu, descriere, ce_invatam, ce_primim, imagine_url
-- Upsert în `external_workshops` (ON CONFLICT pe titlu)
-- Returnează lista de ateliere inserate
-
-### 3. API Layer — `src/api/externalWorkshops.ts`
-
-```typescript
-// getExternalWorkshops() — citește din DB cache
-// refreshWorkshops() — invocă edge function dacă cache > 24h
-// getCurrentMonthWorkshop() — returnează atelierul lunii curente
-```
-
-Logica: la primul load, verifică `scraped_at` — dacă > 24h, invocă edge function-ul pentru refresh, apoi citește din DB. Returnează imediat datele existente din cache.
-
-### 4. Pagina Ateliere refactorizată
-
-**`src/pages/Stories.tsx`** — rămâne cu Citește/Ascultă/Video (neschimbat).
-
-**Componentă nouă sau refactorizare a modulului `ateliere`** din `ModuleHub.tsx`:
-- Când user-ul deschide modulul Ateliere, se deschide pagina cu atelierele externe
-- **Atelierul lunii** = card mai mare, primul, cu badge "Atelierul Lunii" (mapare lună curentă: Martie → "Martie")
-- **Restul atelierelor** = grid cards cu imagine, titlu, personaj, luna
-- Click pe card → dialog/pagină detalii cu: imagine mare, descriere, ce învățăm, ce primim
-- Buton **"PROGRAMEAZĂ ACEST ATELIER"** → `openExternalLink('https://infodisplay.ro/ateliere')` via ExternalLinkContext (iframe modal)
-
-### 5. Eliminare din Ateliere
-
-- Eliminarea secțiunilor Citește/Ascultă/Video din zona de Ateliere (dacă există acolo — din cod văd că sunt doar în Stories.tsx, deci nu e nevoie de schimbări)
-- Asigurare că WorkshopsTab din Admin rămâne funcțional pentru atelierele custom create de admin (cele din DB `workshops`), separat de cele externe
-
-### 6. Detectare lună curentă
-
-Mapare simplă: `new Date().getMonth()` → numele lunii în română → match cu `external_workshops.luna`.
-
----
-
-## Structura vizuală
+Tipuri și date mock pentru ateliere:
 
 ```text
-┌─────────────────────────────────┐
-│ 🎨 Ateliere Educative           │
-│                                 │
-│ ┌─────────────────────────────┐ │
-│ │ ⭐ ATELIERUL LUNII          │ │
-│ │ [imagine mare Mărțișor]     │ │
-│ │ Mărțișor — cu Nuko          │ │
-│ │ Descriere scurtă...         │ │
-│ │ [PROGRAMEAZĂ]               │ │
-│ └─────────────────────────────┘ │
-│                                 │
-│ ┌──────────┐ ┌──────────┐      │
-│ │ Aprilie  │ │ Mai      │      │
-│ │ Catapul. │ │ Misiune  │      │
-│ │ cu Vixie │ │ cu Vixie │      │
-│ └──────────┘ └──────────┘      │
-│ ...                             │
-└─────────────────────────────────┘
+Workshop {
+  id_atelier: number
+  titlu: string
+  descriere: string
+  luna: string (YYYY-MM)
+  imagine_url: string
+  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
+  materiale: string[]
+  instructor: string
+  durata_minute: number
+  scoli_target: string[] (['all'] sau ID-uri specifice de școli)
+  publicat: boolean
+  data_creare: string
+  data_publicare?: string
+}
 ```
 
-## Ordine implementare
-1. Migrare DB (tabel `external_workshops`)
-2. Edge Function `scrape-workshops` (parse + upsert)
-3. API layer `src/api/externalWorkshops.ts`
-4. Pagină/componentă Ateliere refactorizată cu card detalii + buton programează
-5. Integrare în ModuleHub
+Funcții API:
+- `getWorkshops(schoolId?, luna?)` -- obține atelierele, opțional filtrate
+- `getWorkshopOfMonth(schoolId?)` -- returnează atelierul activ publicat al lunii curente
+- `createWorkshop(data)` -- creare nou
+- `updateWorkshop(id, data)` -- editare
+- `deleteWorkshop(id)` -- ștergere
+- `publishWorkshop(id, scoli_target)` -- marchează ca publicat + trimite către unități
+- Date mock: 2-3 ateliere pentru luna curentă
+
+### 2. Panoul de administrare: Tab nou „Ateliere"
+
+**Fișier nou: `src/components/admin/WorkshopsTab.tsx`**
+
+Un tab nou în Panoul de Administrare (`/admin`) cu:
+
+- **Conștientizare selector școală**: respectă filtrul global „Toate unitatile" / școală specifică din partea de sus a paginii admin
+- **Lista atelierelor**: carduri care arată titlul, luna, insigna categoriei, starea publicării, școlile țintă
+- **Dialog creare/editare**: formular cu titlu, descriere, categorie, URL imagine, lista materiale, instructor, durată, școală țintă (una / toate)
+- **Buton publicare**: marchează atelierul ca publicat; când ținta este „toate", trimite către fiecare școală. Afișează confirmare cu numărul de școli.
+- **Indicatori de stare**: Ciornă (gri), Publicat (verde), arătând care școli l-au primit
+
+Modificări în `src/pages/AdminPanel.tsx`:
+- Adaugă `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` la TABS
+- Importă și randează `<WorkshopsTab>` în noul TabsContent
+- Tab-ul respectă `selectedSchoolId` (toate vs. specifică)
+
+### 3. Dashboard: Previzualizare atelier pe cardul modulului
+
+**Modificat: `src/components/dashboard/ModuleHub.tsx`**
+
+Cardul „ATELIERE" arată în prezent doar un titlu și un contor. Se va schimba la:
+- Obține `getWorkshopOfMonth()` la montare
+- Afișează titlul atelierului + descriere scurtă direct pe card (sub subtitlu), astfel încât profesorii să o vadă fără a apăsa
+- Adaugă o etichetă mică „Luna: Martie 2026" și insigna categoriei pe fața cardului
+- Cardul rămâne apăsabil pentru a deschide detaliul complet al atelierului
+
+**Modificat: `src/components/dashboard/ModuleCard.tsx`**
+
+Adaugă prop opțional `preview` (ReactNode) care se randează sub subtitlu atunci când este furnizat. Doar cardul „ateliere" va folosi acest prop.
+
+### 4. Sistemul de notificări: Notificări push pentru ateliere
+
+**Modificat: `src/contexts/NotificationContext.tsx`**
+
+- Importă `getWorkshopOfMonth` din API-ul de ateliere
+- Adaugă `'workshop'` ca tip nou de notificare în `NotificationItem`
+- În `refreshNotifications`, verifică dacă există un atelier publicat pentru luna curentă care nu a fost văzut (urmărit prin cheia localStorage `tid4k_seen_workshop_[id]`)
+- Generează notificare: „Atelier nou: [titlu]" cu link pentru a deschide modulul de ateliere
+
+**Modificat: `src/components/layout/AppLayout.tsx`**
+
+- Adaugă gestionarea iconiței `Paintbrush` pentru tipul de notificare `workshop` în renderul popover (culoare violet distinctă)
+
+### 5. Documentație
+
+**Fișier nou: `docs/WORKSHOPS.md`**
+
+Trei secțiuni:
+1. **Pentru administratori**: Cum se creează atelierele, cum se vizează școli specifice sau toate, fluxul de publicare, editarea după publicare
+2. **Pentru dezvoltatori/AI**: Tabel endpoint-uri API, interfețe TypeScript, arhitectura componentelor, integrarea notificărilor
+3. **Referință API**: Specificație completă a endpoint-urilor pentru implementarea backend
+
+```text
+POST /ateliere.php?action=create        -- Creare atelier
+POST /ateliere.php?action=update        -- Editare atelier
+POST /ateliere.php?action=publish       -- Publicare + trimitere către școli
+GET  /ateliere.php?action=list          -- Listare ateliere (filtre: school_id, luna)
+GET  /ateliere.php?action=current       -- Atelierul activ al lunii curente
+POST /ateliere.php?action=delete        -- Ștergere atelier
+POST /ateliere.php?action=notify        -- Declanșare notificări push
+```
+
+---
 
 ## Detalii tehnice
 
-- **Scraping**: Edge function folosește `fetch()` pe `infodisplay.ro/ateliere`, primește HTML, extrage blocurile repetitive cu regex pe pattern-ul `### Titlu` + `**Ce învățăm?**` + `**Ce primim?**` + imagine URL
-- **Cache 24h**: `scraped_at` verificat client-side; dacă expirat, se invocă edge function-ul async (user-ul vede datele vechi instant, refresh-ul e background)
-- **ExternalLinkContext**: Folosit deja în app pentru link-uri externe — butonul "Programează" va folosi exact același pattern
+### Rezumatul modificărilor de fișiere
 
+| Fișier | Acțiune | Ce face |
+|--------|---------|---------|
+| `src/api/workshops.ts` | NOU | Tipuri atelier, date mock, funcții API |
+| `src/components/admin/WorkshopsTab.tsx` | NOU | UI complet admin pentru CRUD ateliere + publicare |
+| `docs/WORKSHOPS.md` | NOU | Documentație pentru administratori și dezvoltatori |
+| `src/pages/AdminPanel.tsx` | EDITARE | Adaugă tab „Ateliere" (iconiță + TabsContent) |
+| `src/components/dashboard/ModuleCard.tsx` | EDITARE | Adaugă prop opțional `preview` |
+| `src/components/dashboard/ModuleHub.tsx` | EDITARE | Obține atelierul lunii, pasează preview către cardul ateliere |
+| `src/contexts/NotificationContext.tsx` | EDITARE | Adaugă tip notificare atelier |
+| `src/components/layout/AppLayout.tsx` | EDITARE | Randează iconiță notificare atelier în popover |
+
+### Tipare respectate
+
+- Același model de comutare `USE_MOCK` ca în toate celelalte fișiere API
+- Același model UI admin cu carduri pliabile ca în SettingsTab/SchoolsTab
+- Același model de element notificare cu `type`, `icon`, `navigateTo`
+- Selectorul de școală `selectedSchoolId` pasat la fel ca în celelalte tab-uri admin
+- Animații `framer-motion` consistente cu cardurile de modul existente
+
+### Randarea previzualizării cardului atelier
+
+Pe dashboard, cardul modulului ATELIERE va afișa:
+
+```text
++------------------------------------------+
+| [Iconiță Paintbrush]  ATELIERE           |
+|                    Activitati creative     |
+|   ┌─────────────────────────────┐         |
+|   │ Pictură pe sticlă           │  [10]   |
+|   │ Artă · Martie 2026          │         |
+|   └─────────────────────────────┘         |
++------------------------------------------+
+```
+
+Această previzualizare apare doar când există un atelier al lunii.

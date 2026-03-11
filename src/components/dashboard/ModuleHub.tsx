@@ -8,8 +8,8 @@ import { Loader2 } from 'lucide-react';
 import ModuleCard from './ModuleCard';
 import ModulePanel from './ModulePanel';
 import ShareDialog from './ShareDialog';
-import { getWorkshopOfMonth, getCategoryLabel } from '@/api/workshops';
-import type { Workshop } from '@/api/workshops';
+import { getCurrentMonthWorkshop, getCurrentMonthName } from '@/api/externalWorkshops';
+import type { ExternalWorkshop } from '@/api/externalWorkshops';
 import { useTouchReorder } from '@/hooks/useTouchReorder';
 
 const Attendance = lazy(() => import('@/pages/Attendance'));
@@ -17,6 +17,7 @@ const Documents = lazy(() => import('@/pages/Documents'));
 const Messages = lazy(() => import('@/pages/Messages'));
 const Stories = lazy(() => import('@/pages/Stories'));
 const WeeklyMenu = lazy(() => import('@/pages/WeeklyMenu'));
+const AteliereEducative = lazy(() => import('@/pages/AteliereEducative'));
 
 export interface ModuleVisibility {
   prezenta: boolean;
@@ -64,7 +65,7 @@ const MODULE_COMPONENTS: Record<string, React.LazyExoticComponent<React.Componen
   imagini: Documents,
   documente: Documents,
   povesti: Stories,
-  ateliere: Stories,
+  ateliere: AteliereEducative,
   meniu: WeeklyMenu,
   mesaje: Messages,
 };
@@ -102,7 +103,7 @@ interface ModuleHubProps {
 export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
-  const [workshopOfMonth, setWorkshopOfMonth] = useState<Workshop | null>(null);
+  const [workshopOfMonth, setWorkshopOfMonth] = useState<ExternalWorkshop | null>(null);
   // dragIdx state kept only for non-edit mode (not used but harmless)
   const { config } = useModuleConfig();
 
@@ -119,7 +120,11 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   );
 
   useEffect(() => {
-    getWorkshopOfMonth().then(setWorkshopOfMonth).catch(() => {});
+    import('@/api/externalWorkshops').then(({ getExternalWorkshops, getCurrentMonthWorkshop }) => {
+      getExternalWorkshops().then(workshops => {
+        setWorkshopOfMonth(getCurrentMonthWorkshop(workshops));
+      }).catch(() => {});
+    });
   }, []);
   useEffect(() => {
     const handler = (e: Event) => {
@@ -201,7 +206,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                     preview={mod.key === 'ateliere' && workshopOfMonth ? (
                       <div className="rounded-lg px-3 py-2 mt-1" style={{ backgroundColor: mod.textColor ? `${mod.textColor}15` : 'rgba(255,255,255,0.15)' }}>
                         <p className="text-sm font-semibold" style={{ color: mod.textColor || '#ffffff' }}>{workshopOfMonth.titlu}</p>
-                        <p className="text-xs" style={{ color: mod.textColor ? `${mod.textColor}cc` : 'rgba(255,255,255,0.8)' }}>{getCategoryLabel(workshopOfMonth.categorie)} · {new Date(workshopOfMonth.luna + '-01').toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}</p>
+                        <p className="text-xs" style={{ color: mod.textColor ? `${mod.textColor}cc` : 'rgba(255,255,255,0.8)' }}>{workshopOfMonth.luna} · cu {workshopOfMonth.personaj}</p>
                       </div>
                     ) : undefined}
                   />
