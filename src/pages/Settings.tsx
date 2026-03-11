@@ -83,6 +83,9 @@ export default function Settings() {
         <TabsContent value="integrations">
           <SettingsIntegrations orgId={orgId} />
         </TabsContent>
+        <TabsContent value="payments">
+          <SettingsPayments orgId={orgId} />
+        </TabsContent>
       </Tabs>
     </div>
   );
