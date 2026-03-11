@@ -80,10 +80,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
 
     try {
-      const [conversations, announcements, workshopOfMonth] = await Promise.all([
+      const [conversations, announcements, workshopOfMonth, pollsRaw] = await Promise.all([
         getConversations(user.id),
         getAnnouncements(),
         getWorkshopOfMonth(),
+        user.organization_id ? getPolls(user.organization_id).catch(() => []) : Promise.resolve([]),
       ]);
 
       const readIds = readIdsRef.current;
