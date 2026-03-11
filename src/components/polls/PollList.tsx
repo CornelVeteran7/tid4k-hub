@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Clock, Users, CheckCircle2, AlertCircle, BarChart3 } from 'lucide-react';
+import { Plus, Clock, Users, CheckCircle2, BarChart3, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow, isPast } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -38,6 +38,11 @@ function getTypeLabel(type: string) {
 export default function PollList({ polls, userId, isAdmin, isDemo, orgId, onPollCreated, onVoted }: PollListProps) {
   const [selectedPoll, setSelectedPoll] = useState<Poll | null>(null);
   const [showCreator, setShowCreator] = useState(false);
+  const [filter, setFilter] = useState<'active' | 'istoric'>('active');
+
+  const activePolls = polls.filter(p => !p.is_closed && !isPast(new Date(p.deadline)));
+  const historicPolls = polls.filter(p => p.is_closed || isPast(new Date(p.deadline)));
+  const displayedPolls = filter === 'active' ? activePolls : historicPolls;
 
   if (selectedPoll) {
     return (
@@ -47,34 +52,68 @@ export default function PollList({ polls, userId, isAdmin, isDemo, orgId, onPoll
         isDemo={isDemo}
         isAdmin={isAdmin}
         onBack={() => setSelectedPoll(null)}
-        onVoted={onVoted}
+        onVoted={() => {
+          onVoted();
+          // Refresh selected poll data
+          setSelectedPoll(prev => prev ? { ...prev, user_voted: true } : null);
+        }}
       />
     );
   }
 
   return (
     <div className="flex flex-col h-full">
-      {isAdmin && (
-        <div className="p-3 border-b border-border/50 flex justify-end">
-          <Button size="sm" onClick={() => setShowCreator(true)} className="gap-1.5">
-            <Plus className="h-4 w-4" />
-            Sondaj nou
-          </Button>
+      <div className="p-3 border-b border-border/50 flex items-center justify-between gap-2">
+        <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
+          <button
+            onClick={() => setFilter('active')}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+              filter === 'active'
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Active ({activePolls.length})
+          </button>
+          <button
+            onClick={() => setFilter('istoric')}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1",
+              filter === 'istoric'
+                ? "bg-background shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <History className="h-3 w-3" />
+            Istoric ({historicPolls.length})
+          </button>
         </div>
-      )}
+        {isAdmin && (
+          <Button size="sm" onClick={() => setShowCreator(true)} className="gap-1.5 shrink-0">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Sondaj nou</span>
+          </Button>
+        )}
+      </div>
 
       <ScrollArea className="flex-1">
-        {polls.length === 0 ? (
+        {displayedPolls.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             <BarChart3 className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-            <p className="font-medium">Niciun sondaj</p>
+            <p className="font-medium">
+              {filter === 'active' ? 'Niciun sondaj activ' : 'Niciun sondaj în istoric'}
+            </p>
             <p className="text-sm mt-1">
-              {isAdmin ? 'Creează primul sondaj pentru organizația ta.' : 'Nu există sondaje active momentan.'}
+              {filter === 'active'
+                ? (isAdmin ? 'Creează primul sondaj pentru organizația ta.' : 'Nu există sondaje active momentan.')
+                : 'Sondajele încheiate vor apărea aici.'
+              }
             </p>
           </div>
         ) : (
           <div className="p-3 space-y-2">
-            {polls.map(poll => {
+            {displayedPolls.map(poll => {
               const status = getPollStatus(poll);
               const isActive = !poll.is_closed && !isPast(new Date(poll.deadline));
 
@@ -98,7 +137,11 @@ export default function PollList({ polls, userId, isAdmin, isDemo, orgId, onPoll
                     <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{poll.description}</p>
                   )}
 
-                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                  {poll.creator_name && (
+                    <p className="text-[11px] text-muted-foreground mb-1.5">de {poll.creator_name}</p>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Users className="h-3 w-3" />
                       {poll.total_votes} voturi

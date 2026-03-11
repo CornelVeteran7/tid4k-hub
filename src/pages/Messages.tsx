@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { getConversations, getMessages, sendMessage } from '@/api/messages';
+import { getConversations, getMessages, sendMessage, getOrCreateGroupConversation } from '@/api/messages';
 import { getDemoConversations, getDemoMessages } from '@/data/demoMessages';
 import { getDemoPolls } from '@/data/demoPolls';
 import { getPolls } from '@/api/polls';
@@ -13,12 +13,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Send, ArrowLeft, MessageSquare, Search, Check, CheckCheck, BarChart3 } from 'lucide-react';
+import { Send, ArrowLeft, MessageSquare, Search, Check, CheckCheck, BarChart3, Plus, Megaphone, Inbox } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import PollList from '@/components/polls/PollList';
+import ContactPicker from '@/components/messages/ContactPicker';
+import GuestMessageForm from '@/components/messages/GuestMessageForm';
+import GuestInbox from '@/components/messages/GuestInbox';
+import { areRol } from '@/utils/roles';
 
 function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -48,7 +52,15 @@ function formatConvoTime(dateStr: string) {
   return format(d, 'd MMM', { locale: ro });
 }
 
-export default function Messages({ embedded, initialTab }: { embedded?: boolean; initialTab?: string }) {
+interface MessagesProps {
+  embedded?: boolean;
+  initialTab?: string;
+  isGuest?: boolean;
+  guestOrgId?: string;
+  guestOrgName?: string;
+}
+
+export default function Messages({ embedded, initialTab, isGuest, guestOrgId, guestOrgName }: MessagesProps) {
   const { user, isDemo } = useAuth();
   const { isEnabled } = useFeatureToggles();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -60,6 +72,7 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
   const [mobileShowChat, setMobileShowChat] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [polls, setPolls] = useState<Poll[]>([]);
+  const [showContactPicker, setShowContactPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const channelRef = useRef<any>(null);
@@ -68,14 +81,24 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
 
   const mesajeEnabled = isEnabled('mesaje');
   const sondajeEnabled = isEnabled('sondaje');
+
+  const userRoles = user?.status || '';
+  const isDirector = areRol(userRoles, 'director') || areRol(userRoles, 'administrator') || areRol(userRoles, 'inky');
+  const isTeacher = areRol(userRoles, 'profesor');
+  const isParent = areRol(userRoles, 'parinte') && !isTeacher && !isDirector;
+
   const showTabs = mesajeEnabled && sondajeEnabled;
-  const defaultTab = initialTab === 'sondaje' ? 'sondaje' : (mesajeEnabled ? 'mesaje' : 'sondaje');
+  const defaultTab = initialTab === 'sondaje' ? 'sondaje' : (initialTab === 'vizitatori' ? 'vizitatori' : (mesajeEnabled ? 'mesaje' : 'sondaje'));
 
   const isAdmin = useMemo(() => {
     if (!user?.status) return false;
     const roles = user.status.split(',').map(r => r.trim().toLowerCase());
     return roles.some(r => ['administrator', 'director', 'inky'].includes(r));
   }, [user?.status]);
+
+  // Determine if selected convo is a read-only group (parent can't send)
+  const isGroupConvo = selectedConvo && (selectedConvo as any).is_group;
+  const canSendInConvo = !isGroupConvo || isTeacher || isDirector;
 
   // Load polls
   const loadPolls = async () => {
@@ -105,6 +128,7 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
             results_visibility: p.results_visibility,
             deadline: p.deadline,
             created_by: p.created_by,
+            creator_name: p.creator_profile?.nume_prenume,
             is_closed: p.is_closed,
             created_at: p.created_at,
             organization_id: p.organization_id,
@@ -200,6 +224,20 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Guest users only see the contact form — placed after all hooks
+  if (isGuest && guestOrgId) {
+    return (
+      <div className="space-y-4 min-w-0">
+        {!embedded && (
+          <h1 className="text-xl sm:text-2xl font-display font-bold">Contact</h1>
+        )}
+        <div className="h-[calc(100dvh-10rem)] rounded-xl overflow-hidden border border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
+          <GuestMessageForm orgId={guestOrgId} orgName={guestOrgName} />
+        </div>
+      </div>
+    );
+  }
+
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedConvo || !user || isSending) return;
     setIsSending(true);
@@ -223,7 +261,7 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
         ));
         inputRef.current?.focus();
       } else {
-        const msg = await sendMessage(selectedConvo.grupa, selectedConvo.contact_id, newMessage);
+        const msg = await sendMessage(selectedConvo.grupa, selectedConvo.contact_id, newMessage, selectedConvo.id);
         setMessages(prev => [...prev, msg]);
         setNewMessage('');
         setConversations(prev => prev.map(c =>
@@ -248,6 +286,42 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
     }
   };
 
+  const handleSelectContact = async (contact: { id: string; nume_prenume: string }) => {
+    // Check if conversation already exists
+    const existing = conversations.find(c => c.contact_id === contact.id);
+    if (existing) {
+      openConvo(existing);
+      return;
+    }
+    // Create a placeholder and open it
+    const newConvo: Conversation = {
+      id: `new-${contact.id}`,
+      contact_nume: contact.nume_prenume,
+      contact_id: contact.id,
+      ultimul_mesaj: '',
+      data_ultimul_mesaj: new Date().toISOString(),
+      necitite: 0,
+      grupa: user?.grupa_clasa_copil || '',
+    };
+    setConversations(prev => [newConvo, ...prev]);
+    openConvo(newConvo);
+  };
+
+  const handleCreateGroupBroadcast = async (groupId: string, groupName: string) => {
+    if (!user || isDemo) return;
+    try {
+      const convoId = await getOrCreateGroupConversation(user.id, groupId, groupName);
+      // Reload conversations to pick up the new group convo
+      const convos = await getConversations(user.id);
+      setConversations(convos);
+      setFilteredConvos(convos);
+      const groupConvo = convos.find(c => c.id === convoId);
+      if (groupConvo) openConvo(groupConvo);
+    } catch (err) {
+      console.error('Failed to create group broadcast:', err);
+    }
+  };
+
   // Group messages by date for separators
   const groupedMessages: { date: string; messages: Message[] }[] = [];
   messages.forEach(msg => {
@@ -264,14 +338,14 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
   const unvotedPolls = polls.filter(p => !p.user_voted && !p.is_closed && new Date(p.deadline) > new Date()).length;
 
   const chatUI = (
-    <div className="flex gap-0 h-[calc(100vh-200px)] min-w-0 rounded-xl overflow-hidden border border-border/50 shadow-sm">
+    <div className="flex gap-0 h-[calc(100dvh-10rem)] min-w-0 rounded-xl overflow-hidden border border-border/50 shadow-sm">
       {/* Conversations List */}
       <div className={cn(
         "w-full md:w-80 lg:w-96 shrink-0 flex flex-col min-w-0 bg-card/80 backdrop-blur-sm border-r border-border/50",
         mobileShowChat && "hidden md:flex"
       )}>
-        <div className="p-3 border-b border-border/50">
-          <div className="relative">
+        <div className="p-3 border-b border-border/50 flex items-center gap-2">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Caută conversații..."
@@ -280,6 +354,17 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
               className="pl-9 bg-muted/50 border-0 focus-visible:ring-1"
             />
           </div>
+          {!isDemo && user && (
+            <Button
+              size="icon"
+              variant="outline"
+              className="shrink-0 h-10 w-10"
+              onClick={() => setShowContactPicker(true)}
+              title="Conversație nouă"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         <ScrollArea className="flex-1">
@@ -300,9 +385,12 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
               >
                 <div className={cn(
                   "h-11 w-11 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm",
-                  getAvatarColor(convo.contact_nume)
+                  (convo as any).is_group ? 'bg-primary/80' : getAvatarColor(convo.contact_nume)
                 )}>
-                  {getInitials(convo.contact_nume)}
+                  {(convo as any).is_group
+                    ? <Megaphone className="h-5 w-5" />
+                    : getInitials(convo.contact_nume)
+                  }
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -327,11 +415,16 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
                     )}>
                       {convo.ultimul_mesaj}
                     </p>
-                    {convo.necitite > 0 && (
-                      <span className="h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1.5 shrink-0">
-                        {convo.necitite}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      {(convo as any).is_group && (
+                        <Badge variant="outline" className="text-[9px] px-1 py-0">Grup</Badge>
+                      )}
+                      {convo.necitite > 0 && (
+                        <span className="h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
+                          {convo.necitite}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </button>
@@ -358,14 +451,20 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
               </Button>
               <div className={cn(
                 "h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm",
-                getAvatarColor(selectedConvo.contact_nume)
+                isGroupConvo ? 'bg-primary/80' : getAvatarColor(selectedConvo.contact_nume)
               )}>
-                {getInitials(selectedConvo.contact_nume)}
+                {isGroupConvo
+                  ? <Megaphone className="h-4 w-4" />
+                  : getInitials(selectedConvo.contact_nume)
+                }
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{selectedConvo.contact_nume}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  {selectedConvo.grupa.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                  {isGroupConvo
+                    ? 'Canal de grup · doar citire pentru părinți'
+                    : selectedConvo.grupa.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
+                  }
                 </p>
               </div>
             </div>
@@ -446,38 +545,45 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
               </div>
             </ScrollArea>
 
-            <div className="p-3 border-t border-border/50 bg-card/60 backdrop-blur-sm">
-              <div className="flex items-end gap-2">
-                <div className="flex-1 relative">
-                  <Input
-                    ref={inputRef}
-                    placeholder="Scrie un mesaj..."
-                    value={newMessage}
-                    onChange={e => setNewMessage(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    className="pr-10 bg-muted/40 border-border/50 focus-visible:ring-1 rounded-xl"
-                  />
+            {/* Input bar — hidden for parents in group convos */}
+            {canSendInConvo ? (
+              <div className="p-3 border-t border-border/50 bg-card/60 backdrop-blur-sm">
+                <div className="flex items-end gap-2">
+                  <div className="flex-1 relative">
+                    <Input
+                      ref={inputRef}
+                      placeholder={isGroupConvo ? "Anunț pentru grupă..." : "Scrie un mesaj..."}
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      className="pr-10 bg-muted/40 border-border/50 focus-visible:ring-1 rounded-xl"
+                    />
+                  </div>
+                  <Button
+                    size="icon"
+                    onClick={handleSend}
+                    disabled={!newMessage.trim() || isSending}
+                    className={cn(
+                      "shrink-0 rounded-xl h-10 w-10 transition-all",
+                      newMessage.trim()
+                        ? "bg-primary shadow-md hover:shadow-lg scale-100"
+                        : "bg-muted text-muted-foreground scale-95"
+                    )}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  size="icon"
-                  onClick={handleSend}
-                  disabled={!newMessage.trim() || isSending}
-                  className={cn(
-                    "shrink-0 rounded-xl h-10 w-10 transition-all",
-                    newMessage.trim()
-                      ? "bg-primary shadow-md hover:shadow-lg scale-100"
-                      : "bg-muted text-muted-foreground scale-95"
-                  )}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
               </div>
-            </div>
+            ) : (
+              <div className="p-3 border-t border-border/50 bg-muted/30 text-center">
+                <p className="text-xs text-muted-foreground">Canal de anunțuri — doar citire</p>
+              </div>
+            )}
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
@@ -499,7 +605,7 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
   );
 
   const pollsUI = (
-    <div className="h-[calc(100vh-200px)] rounded-xl overflow-hidden border border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
+    <div className="h-[calc(100dvh-10rem)] rounded-xl overflow-hidden border border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
       <PollList
         polls={polls}
         userId={user?.id || ''}
@@ -512,8 +618,18 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
     </div>
   );
 
-  // If only one feature enabled, show it directly without tabs
-  if (!showTabs) {
+  const guestInboxUI = isDirector && user?.organization_id ? (
+    <div className="h-[calc(100dvh-10rem)] rounded-xl overflow-hidden border border-border/50 shadow-sm bg-card/80 backdrop-blur-sm">
+      <GuestInbox orgId={user.organization_id} />
+    </div>
+  ) : null;
+
+  // Determine which tabs to show
+  const hasVizitatori = isDirector;
+  const tabCount = (mesajeEnabled ? 1 : 0) + (sondajeEnabled ? 1 : 0) + (hasVizitatori ? 1 : 0);
+
+  // If only one feature enabled and not director, show directly without tabs
+  if (tabCount <= 1 && !hasVizitatori) {
     return (
       <div className="space-y-4 min-w-0">
         {!embedded && (
@@ -530,6 +646,15 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
           </div>
         )}
         {mesajeEnabled ? chatUI : pollsUI}
+        {showContactPicker && user && (
+          <ContactPicker
+            open={showContactPicker}
+            onClose={() => setShowContactPicker(false)}
+            user={user}
+            onSelectContact={handleSelectContact}
+            onCreateGroupBroadcast={isTeacher ? handleCreateGroupBroadcast : undefined}
+          />
+        )}
       </div>
     );
   }
@@ -549,35 +674,65 @@ export default function Messages({ embedded, initialTab }: { embedded?: boolean;
       )}
 
       <Tabs defaultValue={defaultTab} className="w-full">
-        <TabsList className="w-full max-w-xs">
-          <TabsTrigger value="mesaje" className="flex-1 gap-1.5">
-            <MessageSquare className="h-4 w-4" />
-            Mesaje
-            {totalUnread > 0 && (
-              <span className="h-5 min-w-[20px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
-                {totalUnread}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="sondaje" className="flex-1 gap-1.5">
-            <BarChart3 className="h-4 w-4" />
-            Sondaje
-            {unvotedPolls > 0 && (
-              <span className="h-5 min-w-[20px] rounded-full bg-secondary-foreground/20 text-secondary-foreground text-[10px] font-bold flex items-center justify-center px-1">
-                {unvotedPolls}
-              </span>
-            )}
-          </TabsTrigger>
+        <TabsList className={cn("w-full", tabCount > 2 ? "max-w-md" : "max-w-xs")}>
+          {mesajeEnabled && (
+            <TabsTrigger value="mesaje" className="flex-1 gap-1.5 text-xs sm:text-sm">
+              <MessageSquare className="h-4 w-4 hidden sm:block" />
+              Mesaje
+              {totalUnread > 0 && (
+                <span className="h-5 min-w-[20px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
+                  {totalUnread}
+                </span>
+              )}
+            </TabsTrigger>
+          )}
+          {sondajeEnabled && (
+            <TabsTrigger value="sondaje" className="flex-1 gap-1.5 text-xs sm:text-sm">
+              <BarChart3 className="h-4 w-4 hidden sm:block" />
+              Sondaje
+              {unvotedPolls > 0 && (
+                <span className="h-5 min-w-[20px] rounded-full bg-secondary-foreground/20 text-secondary-foreground text-[10px] font-bold flex items-center justify-center px-1">
+                  {unvotedPolls}
+                </span>
+              )}
+            </TabsTrigger>
+          )}
+          {hasVizitatori && (
+            <TabsTrigger value="vizitatori" className="flex-1 gap-1.5 text-xs sm:text-sm">
+              <Inbox className="h-4 w-4 hidden sm:block" />
+              Vizitatori
+            </TabsTrigger>
+          )}
         </TabsList>
 
-        <TabsContent value="mesaje" className="mt-3">
-          {chatUI}
-        </TabsContent>
+        {mesajeEnabled && (
+          <TabsContent value="mesaje" className="mt-3">
+            {chatUI}
+          </TabsContent>
+        )}
 
-        <TabsContent value="sondaje" className="mt-3">
-          {pollsUI}
-        </TabsContent>
+        {sondajeEnabled && (
+          <TabsContent value="sondaje" className="mt-3">
+            {pollsUI}
+          </TabsContent>
+        )}
+
+        {hasVizitatori && (
+          <TabsContent value="vizitatori" className="mt-3">
+            {guestInboxUI}
+          </TabsContent>
+        )}
       </Tabs>
+
+      {showContactPicker && user && (
+        <ContactPicker
+          open={showContactPicker}
+          onClose={() => setShowContactPicker(false)}
+          user={user}
+          onSelectContact={handleSelectContact}
+          onCreateGroupBroadcast={isTeacher ? handleCreateGroupBroadcast : undefined}
+        />
+      )}
     </div>
   );
 }
