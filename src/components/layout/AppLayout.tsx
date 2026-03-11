@@ -137,6 +137,14 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
     return () => ro.disconnect();
   }, []);
 
+  // Ensure data-vertical attribute is always in sync with current user vertical
+  const currentVertical = (user?.vertical_type || 'kids') as VerticalType;
+  useEffect(() => {
+    import('@/utils/branding').then(({ applyVerticalTheme }) => {
+      applyVerticalTheme(currentVertical);
+    });
+  }, [currentVertical]);
+
   if (!user) return null;
 
   const userStatus = user.status;
