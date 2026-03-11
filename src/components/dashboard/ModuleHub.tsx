@@ -203,11 +203,12 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                     editMode={editMode}
                     visible={visibility[mod.key as keyof ModuleVisibility]}
                     onToggleVisibility={() => onToggle?.(mod.key as keyof ModuleVisibility)}
+                    variant={cardVariant}
                     dragHandleProps={editMode ? makeDragProps(i) : undefined}
                     preview={mod.key === 'ateliere' && workshopOfMonth ? (
-                      <div className="rounded-lg px-3 py-2 mt-1" style={{ backgroundColor: mod.textColor ? `${mod.textColor}15` : 'rgba(255,255,255,0.15)' }}>
-                        <p className="text-sm font-semibold" style={{ color: mod.textColor || '#ffffff' }}>{workshopOfMonth.titlu}</p>
-                        <p className="text-xs" style={{ color: mod.textColor ? `${mod.textColor}cc` : 'rgba(255,255,255,0.8)' }}>{workshopOfMonth.luna} · cu {workshopOfMonth.personaj}</p>
+                      <div className="rounded-lg px-3 py-2 mt-1" style={{ backgroundColor: mod.textColor ? `${mod.textColor}15` : (cardVariant === 'glass' ? 'hsl(var(--muted) / 0.3)' : 'rgba(255,255,255,0.15)') }}>
+                        <p className="text-sm font-semibold" style={{ color: cardVariant === 'glass' ? 'hsl(var(--foreground))' : (mod.textColor || '#ffffff') }}>{workshopOfMonth.titlu}</p>
+                        <p className="text-xs" style={{ color: cardVariant === 'glass' ? 'hsl(var(--muted-foreground))' : (mod.textColor ? `${mod.textColor}cc` : 'rgba(255,255,255,0.8)') }}>{workshopOfMonth.luna} · cu {workshopOfMonth.personaj}</p>
                       </div>
                     ) : undefined}
                   />
