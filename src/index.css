@@ -419,7 +419,32 @@
     background: hsl(var(--background) / 0.92);
   }
 
-  /* Glass header */
+  /* ─── Living: same clinical glass as medicine, neutral warm ─── */
+  [data-vertical="living"] .liquid-glass-card {
+    --lg-bg: hsl(200 20% 97% / 0.55);
+    --lg-border: hsl(200 30% 80% / 0.3);
+    --lg-specular: hsl(200 40% 90% / 0.5);
+    --lg-shadow: hsl(200 20% 50% / 0.08);
+    --lg-refraction-start: hsl(200 30% 95% / 0.15);
+    --lg-refraction-end: hsl(200 15% 90% / 0.05);
+  }
+
+  [data-vertical="living"] .liquid-glass-panel {
+    --lg-bg: hsl(200 15% 97% / 0.7);
+    --lg-border: hsl(200 20% 85% / 0.3);
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  [data-vertical="living"] .liquid-glass-panel-header {
+    background: hsl(200 20% 95% / 0.5);
+    border-bottom-color: hsl(200 20% 85% / 0.3);
+  }
+
+  [data-vertical="living"] .liquid-glass-panel-body {
+    background: hsl(var(--background) / 0.92);
+  }
+
+
   .glass-header {
     background: hsla(var(--glass-bg));
     backdrop-filter: blur(20px) saturate(1.4);
