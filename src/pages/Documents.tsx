@@ -69,23 +69,25 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
           <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}>
             {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid className="h-4 w-4" />}
           </Button>
-          <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2" size="sm"><Upload className="h-4 w-4" /> Încarcă</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Încarcă document</DialogTitle>
-              </DialogHeader>
-              <UploadForm
-                groupId={currentGroup?.id || ''}
-                onUploaded={(doc) => {
-                  setDocuments(prev => [doc, ...prev]);
-                  setUploadOpen(false);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+          {canManage && (
+            <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2" size="sm"><Upload className="h-4 w-4" /> Încarcă</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Încarcă document</DialogTitle>
+                </DialogHeader>
+                <UploadForm
+                  groupId={currentGroup?.id || ''}
+                  onUploaded={(doc) => {
+                    setDocuments(prev => [doc, ...prev]);
+                    setUploadOpen(false);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
