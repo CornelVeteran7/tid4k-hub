@@ -200,19 +200,12 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
                   const total = 15 + (hash % 20);
                   const present = Math.max(5, total - (hash % 8));
                   return (
-                    <Tooltip key={g.id}>
-                      <TooltipTrigger asChild>
-                        <SelectItem value={g.id}>
-                          {g.nume}
-                        </SelectItem>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="flex flex-col items-center gap-0.5 px-3 py-2">
-                        <span className="text-lg font-black leading-none">{total}</span>
-                        <div className="w-5 h-px bg-border" />
-                        <span className="text-sm font-bold text-primary leading-none">{present}</span>
-                        <span className="text-[10px] text-muted-foreground mt-1">prezenți azi</span>
-                      </TooltipContent>
-                    </Tooltip>
+                    <SelectItem key={g.id} value={g.id}>
+                      <div className="flex flex-col items-start">
+                        <span>{g.nume}</span>
+                        <span className="text-[10px] text-muted-foreground">{present}/{total} prezenți azi</span>
+                      </div>
+                    </SelectItem>
                   );
                 })}
               </SelectContent>
