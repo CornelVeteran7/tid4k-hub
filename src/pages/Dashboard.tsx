@@ -10,11 +10,13 @@ import { Users, Camera, FileText, Clock, CalendarDays, Utensils, BookOpen, BarCh
 import { motion } from 'framer-motion';
 import { useModuleConfig, type ModuleConfig } from '@/config/moduleConfig';
 import { getMenu } from '@/api/menu';
+import { getAttendance } from '@/api/attendance';
 import { format } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility, loadModuleOrder, saveModuleOrder } from '@/components/dashboard/ModuleHub';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
+import AttendanceGrid from '@/components/dashboard/AttendanceGrid';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 import type { MenuItem } from '@/types';
@@ -89,7 +91,7 @@ function useCurrentMeal() {
 }
 
 /* ── Quick Stats Row (extracted for meal integration) ── */
-function QuickStatsRow({ config }: { config: ModuleConfig }) {
+function QuickStatsRow({ config, onPrezentaClick, attendanceLabel }: { config: ModuleConfig; onPrezentaClick: () => void; attendanceLabel: string }) {
   const { meal, isWeekend } = useCurrentMeal();
 
   return (
@@ -97,14 +99,20 @@ function QuickStatsRow({ config }: { config: ModuleConfig }) {
       {QUICK_STATS_BASE.map(stat => (
         <button
           key={stat.moduleKey}
-          onClick={() => window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }))}
+          onClick={() => {
+            if (stat.moduleKey === 'prezenta') {
+              onPrezentaClick();
+            } else {
+              window.dispatchEvent(new CustomEvent('open-module', { detail: stat.moduleKey }));
+            }
+          }}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer transition-transform active:scale-95 hover:scale-105 text-white"
           style={{ backgroundColor: config[stat.moduleKey].color }}
         >
           <stat.icon className="h-3.5 w-3.5" />
           <span>{config[stat.moduleKey].title}</span>
           <span className="opacity-80">·</span>
-          <span>{stat.value}</span>
+          <span>{stat.moduleKey === 'prezenta' ? attendanceLabel : stat.value}</span>
         </button>
       ))}
       {/* 4th button: current meal */}
@@ -367,6 +375,8 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [moduleOrder, setModuleOrder] = useState<string[]>(loadModuleOrder);
+  const [showAttendanceGrid, setShowAttendanceGrid] = useState(false);
+  const [attendanceCount, setAttendanceCount] = useState({ present: 0, total: 0 });
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -389,11 +399,22 @@ export default function Dashboard() {
     });
   }, []);
 
+  // Load today's attendance count
+  useEffect(() => {
+    if (!currentGroup) return;
+    const today = format(new Date(), 'yyyy-MM-dd');
+    getAttendance(currentGroup.id, today).then(day => {
+      const p = day.records.filter(r => r.prezent).length;
+      setAttendanceCount({ present: p, total: day.records.length });
+    }).catch(() => {});
+  }, [currentGroup]);
+
   if (!user) return null;
 
   const roles = getRoles(user.status);
   const verticalType = (user.vertical_type || 'kids') as VerticalType;
   const verticalDef = VERTICAL_DEFINITIONS[verticalType];
+  const attendanceLabel = `${attendanceCount.present}/${attendanceCount.total}`;
 
   return (
     <div className="relative isolate min-w-0 pb-32">
@@ -429,15 +450,18 @@ export default function Dashboard() {
             </div>
 
             <div className="p-5 lg:pt-0">
-              {/* Mobile only: show name (desktop shows in header) */}
+              {/* Mobile only: show name + rezumatul zilei */}
               <h1 className="text-xl font-display font-bold text-foreground truncate lg:hidden">
                 Bun venit, {user.nume_prenume.split(' ')[0]}! 👋
               </h1>
+              <p className="text-xs text-muted-foreground mt-0.5 lg:hidden">
+                Rezumatul zilei{currentGroup ? ` · ${currentGroup.nume}` : ''}
+              </p>
               {/* Desktop: show group info more prominently */}
               <h1 className="hidden lg:block text-lg font-display font-bold text-foreground truncate">
                 {currentGroup?.nume || 'Dashboard'}
               </h1>
-              <p className="text-muted-foreground text-sm mt-0.5">
+              <p className="hidden lg:block text-muted-foreground text-sm mt-0.5">
                 {currentGroup ? `${verticalDef.entityLabel}` : `Selectează ${verticalDef.entityLabel.toLowerCase()}`}
               </p>
               <div className="flex flex-wrap gap-1.5 mt-2">
@@ -449,7 +473,7 @@ export default function Dashboard() {
               </div>
 
               {/* Quick stats row */}
-              <QuickStatsRow config={config} />
+              <QuickStatsRow config={config} onPrezentaClick={() => setShowAttendanceGrid(true)} attendanceLabel={attendanceLabel} />
 
               {/* Desktop: Rezumatul zilei details */}
               <DesktopSummary config={config} verticalType={verticalType} />
@@ -499,6 +523,24 @@ export default function Dashboard() {
 
       {/* Sticky announcements ticker */}
       <AnnouncementsTicker />
+
+      {/* Full-screen attendance grid overlay */}
+      {currentGroup && (
+        <AttendanceGrid
+          open={showAttendanceGrid}
+          onClose={() => {
+            setShowAttendanceGrid(false);
+            // Refresh count after closing
+            const today = format(new Date(), 'yyyy-MM-dd');
+            getAttendance(currentGroup.id, today).then(day => {
+              const p = day.records.filter(r => r.prezent).length;
+              setAttendanceCount({ present: p, total: day.records.length });
+            }).catch(() => {});
+          }}
+          groupId={currentGroup.id}
+          groupName={currentGroup.nume}
+        />
+      )}
     </div>
   );
 }
