@@ -32,6 +32,8 @@ import AttendanceQuickCard from '@/components/dashboard/AttendanceQuickCard';
 /* Decorative SVG background for sidebar — contour lines + vertical-specific themed elements */
 function SidebarDecorationComponent({ vertical }: { vertical: string }) {
   const verticalType = (vertical || 'kids') as import('@/config/verticalConfig').VerticalType;
+  // Culture/dark verticals get slightly more visible decorations
+  const contourOpacity = verticalType === 'culture' ? '0.12' : '0.08';
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <svg
@@ -41,7 +43,7 @@ function SidebarDecorationComponent({ vertical }: { vertical: string }) {
         fill="none"
         xmlns="http://www.w3.org/2000/svg">
 
-        <g stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.08">
+        <g stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity={contourOpacity}>
           {/* Fewer, more spaced curvy lines */}
           <path d="M-10,80 C40,50 100,110 160,75 C220,40 250,100 290,70" />
           <path d="M-10,250 C60,220 120,280 180,245 C240,210 270,260 290,240" />
