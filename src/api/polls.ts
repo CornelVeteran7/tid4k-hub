@@ -14,7 +14,7 @@ export interface PollCreateData {
 export async function getPolls(orgId: string) {
   const { data, error } = await supabase
     .from('polls')
-    .select('*, poll_options(*), poll_votes(id, option_id, user_id, free_text)')
+    .select('*, poll_options(*), poll_votes(id, option_id, user_id, free_text), creator_profile:profiles!polls_created_by_fkey(nume_prenume)')
     .eq('organization_id', orgId)
     .order('created_at', { ascending: false });
 
@@ -25,7 +25,7 @@ export async function getPolls(orgId: string) {
 export async function getPollById(pollId: string) {
   const { data, error } = await supabase
     .from('polls')
-    .select('*, poll_options(*), poll_votes(id, option_id, user_id, free_text)')
+    .select('*, poll_options(*), poll_votes(id, option_id, user_id, free_text), creator_profile:profiles!polls_created_by_fkey(nume_prenume)')
     .eq('id', pollId)
     .single();
 
@@ -70,6 +70,18 @@ export async function createPoll(data: PollCreateData) {
 }
 
 export async function votePoll(pollId: string, userId: string, optionIds: string[], freeText?: string) {
+  // Check if user already voted
+  const { data: existingVotes } = await supabase
+    .from('poll_votes')
+    .select('id')
+    .eq('poll_id', pollId)
+    .eq('user_id', userId)
+    .limit(1);
+
+  if (existingVotes && existingVotes.length > 0) {
+    throw new Error('Ai votat deja la acest sondaj');
+  }
+
   const votes = optionIds.map(optId => ({
     poll_id: pollId,
     option_id: optId,
@@ -91,7 +103,12 @@ export async function votePoll(pollId: string, userId: string, optionIds: string
     .from('poll_votes')
     .insert(votes);
 
-  if (error) throw error;
+  if (error) {
+    if (error.message?.includes('unique') || error.message?.includes('duplicate')) {
+      throw new Error('Ai votat deja la acest sondaj');
+    }
+    throw error;
+  }
 }
 
 export async function closePoll(pollId: string) {
