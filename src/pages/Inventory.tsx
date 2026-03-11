@@ -85,7 +85,13 @@ export default function InventoryPage() {
     } catch (e: any) { toast.error(e.message); }
   };
 
-  if (!orgId) return null;
+  if (!orgId) return (
+    <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
+      <Package className="h-12 w-12 text-muted-foreground/40" />
+      <h2 className="text-lg font-semibold text-foreground">Inventar QR</h2>
+      <p className="text-sm text-muted-foreground max-w-xs">Nu ești asociat unei organizații. Contactează administratorul pentru a fi adăugat.</p>
+    </div>
+  );
   if (loading) return <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   const filtered = filterCat === 'all' ? items : items.filter(i => i.categorie === filterCat);

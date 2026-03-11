@@ -68,12 +68,14 @@ export default function SponsorMap() {
           boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
         }}
       >
-        <div className="h-[400px] lg:h-[500px] rounded-2xl overflow-hidden">
+        <div className="h-[400px] lg:h-[500px] rounded-2xl overflow-hidden" style={{ position: 'relative', zIndex: 0 }}>
+          {locations.length > 0 ? (
           <MapContainer
+            key={`${centerLat}-${centerLng}`}
             center={[centerLat, centerLng]}
             zoom={12}
             scrollWheelZoom={true}
-            className="h-full w-full"
+            style={{ height: '100%', width: '100%' }}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -93,6 +95,11 @@ export default function SponsorMap() {
               </Marker>
             ))}
           </MapContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-muted-foreground">
+              <p className="text-sm">Nu sunt locații disponibile</p>
+            </div>
+          )}
         </div>
       </motion.div>
 
