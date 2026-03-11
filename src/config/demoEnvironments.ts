@@ -87,6 +87,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Șef Echipă', description: 'Taskuri echipă, programare', status: 'profesor', redirect: '/', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala')], userName: 'Vasile Niță' },
       { label: 'Muncitor', description: 'Taskurile mele azi (UI simplu)', status: 'parinte', redirect: '/', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala')], userName: 'Cosmin Lungu' },
       { label: 'Diriginte Șantier', description: 'Documente, SSM, progres', status: 'profesor,director', redirect: '/', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala'), g('sant-2', 'Vila Popescu', 'scoala')], userName: 'Ing. Florin Barbu' },
+      { label: 'Vizitator', description: 'Acces public, display', status: 'guest', redirect: '/display/demo-construction', orgName: 'SC Constructorul SRL', vertical: 'construction', groups: [g('sant-1', 'Bloc Rezidențial Nou', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
