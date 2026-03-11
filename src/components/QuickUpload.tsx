@@ -91,7 +91,7 @@ export default function QuickUpload() {
     y: Math.min(pickerPos.y, window.innerHeight - 260),
   };
 
-  if (isAdminPage) return null;
+  if (isAdminPage || !canUpload) return null;
 
   return (
     <>

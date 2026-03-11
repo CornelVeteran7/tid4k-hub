@@ -140,10 +140,19 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
                   </p>
                 </div>
                 <div className="flex gap-1 mt-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8"><Download className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {/* Parents can only download documents (PDF), not images */}
+                  {(canManage || doc.tip_fisier === 'pdf') && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                      <a href={doc.url} download target="_blank" rel="noopener noreferrer">
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  )}
+                  {canManage && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
