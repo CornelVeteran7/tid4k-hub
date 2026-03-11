@@ -92,23 +92,23 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex flex-col"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
-          {/* Backdrop — tap to close */}
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={handleClose} />
+          {/* Transparent backdrop — tap to close */}
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
 
-          {/* Content */}
+          {/* Floating card */}
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="relative z-10 flex flex-col h-full bg-background rounded-t-3xl mt-8 shadow-2xl overflow-hidden"
+            initial={{ scale: 0.92, opacity: 0, y: 30 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.92, opacity: 0, y: 30 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+            className="relative z-10 w-full max-w-md max-h-[85vh] bg-card rounded-2xl shadow-2xl border border-border/50 flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
               <div>
-                <h2 className="text-base font-display font-bold text-foreground flex items-center gap-2">
+                <h2 className="text-base font-bold text-card-foreground flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
                   Prezența — {groupName}
                 </h2>
@@ -116,14 +116,15 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <span className="text-lg font-black text-foreground">{present}</span>
+                  <span className="text-lg font-black text-card-foreground">{present}</span>
                   <span className="text-sm text-muted-foreground">/{total}</span>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted-foreground/20 transition-colors"
+                  className="w-9 h-9 rounded-full bg-muted flex items-center justify-center hover:bg-destructive/20 transition-colors"
+                  aria-label="Închide"
                 >
-                  <X className="h-4 w-4 text-foreground" />
+                  <X className="h-5 w-5 text-foreground" />
                 </button>
               </div>
             </div>
@@ -150,15 +151,14 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
                         <div
                           className={`w-12 h-12 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                             r.prezent
-                              ? 'ring-[3px] ring-green-500 ring-offset-2 ring-offset-background'
+                              ? 'ring-[3px] ring-green-500 ring-offset-2 ring-offset-card'
                               : 'opacity-60'
                           }`}
                           style={{ backgroundColor: PASTEL_COLORS[i % PASTEL_COLORS.length], color: 'hsl(var(--foreground) / 0.8)' }}
                         >
                           {getInitials(r.nume_prenume_copil)}
                         </div>
-                        {/* Status dot */}
-                        <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background transition-colors ${
+                        <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card transition-colors ${
                           r.prezent ? 'bg-green-500' : 'bg-muted-foreground/30'
                         }`} />
                       </div>
@@ -173,8 +173,8 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
               )}
             </div>
 
-            {/* Bottom summary bar */}
-            <div className="border-t border-border/40 px-5 py-3 bg-muted/30">
+            {/* Bottom bar */}
+            <div className="border-t border-border/30 px-5 py-3 bg-muted/20">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">
                   Apasă pe copil pentru a marca prezența
@@ -182,11 +182,11 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-green-500" />
-                    <span className="text-foreground font-semibold">{present}</span>
+                    <span className="text-card-foreground font-semibold">{present}</span>
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-muted-foreground/30" />
-                    <span className="text-foreground font-semibold">{total - present}</span>
+                    <span className="text-card-foreground font-semibold">{total - present}</span>
                   </span>
                 </div>
               </div>
