@@ -132,7 +132,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   living: {
     label: 'Rezidențial',
     description: 'Comunicare pentru asociații de proprietari',
-    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte', 'inventar'],
+    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte', 'inventar', 'sondaje'],
     entityLabel: 'Bloc',
     entityLabelPlural: 'Blocuri',
     memberLabel: 'Locatar',
