@@ -65,7 +65,7 @@ const MODULE_COMPONENTS: Record<string, React.LazyExoticComponent<React.Componen
   imagini: Documents,
   documente: Documents,
   povesti: Stories,
-  ateliere: Stories,
+  ateliere: AteliereEducative,
   meniu: WeeklyMenu,
   mesaje: Messages,
 };

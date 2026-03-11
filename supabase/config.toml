@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.validate-guest-token]
 verify_jwt = false
+
+[functions.scrape-workshops]
+verify_jwt = false
