@@ -47,6 +47,8 @@ export interface AttendanceRecord {
   nume_prenume_copil: string;
   prezent: boolean;
   observatii: string;
+  marked_at?: string;
+  scanned_by_parent?: boolean;
 }
 
 export interface AttendanceDay {

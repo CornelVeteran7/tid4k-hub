@@ -56,6 +56,7 @@ export async function saveAttendance(grupa: string, data: string, records: Atten
     prezent: r.prezent,
     observatii: r.observatii,
     marked_by: user?.id || null,
+    marked_at: new Date().toISOString(),
   }));
 
   for (const row of rows) {
