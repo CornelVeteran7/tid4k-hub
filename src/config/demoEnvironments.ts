@@ -146,6 +146,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Student', description: 'Coadă secretariat, orar, anunțuri', status: 'parinte', redirect: '/', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala')], userName: 'Student Demo' },
       { label: 'Secretar', description: 'Controlează coada, documente', status: 'secretara', redirect: '/', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala'), g('fac-ie', 'Informatică Economică', 'scoala')], userName: 'Secretar ASE' },
       { label: 'Decan', description: 'Admin facultate', status: 'director', redirect: '/admin', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala'), g('fac-ie', 'Informatică Economică', 'scoala')], userName: 'Decan Facultate' },
+      { label: 'Vizitator', description: 'Acces public, coadă secretariat', status: 'guest', redirect: '/queue/demo-students', orgName: 'ASE București', vertical: 'students', groups: [g('fac-eg', 'Economie Generală', 'scoala')], userName: 'Vizitator' },
     ],
   },
 ];

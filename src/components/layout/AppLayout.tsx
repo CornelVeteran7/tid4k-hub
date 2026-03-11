@@ -176,18 +176,6 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
-      {/* Demo mode banner */}
-      {isDemo && (
-        <div className="bg-amber-500 text-amber-950 text-center text-xs font-semibold px-4 py-1.5 flex items-center justify-center gap-3 shrink-0 z-50">
-          <span>⚠️ MOD DEMO — Datele nu sunt salvate</span>
-          <button
-            onClick={() => { logout(); navigate('/login'); }}
-            className="underline hover:no-underline font-bold"
-          >
-            Ieși din demo
-          </button>
-        </div>
-      )}
       <div className="flex flex-1 overflow-hidden">
       {/* ===== DESKTOP SIDEBAR — persistent, minimal ===== */}
       <aside className="hidden lg:flex lg:relative w-64 bg-sidebar text-sidebar-foreground flex-col shrink-0 relative overflow-hidden">
