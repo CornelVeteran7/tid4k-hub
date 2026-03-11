@@ -642,6 +642,80 @@ export type Database = {
           },
         ]
       }
+      contribution_cash_declarations: {
+        Row: {
+          amount: number
+          child_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          declared_by: string | null
+          id: string
+          month: number
+          notes: string | null
+          organization_id: string
+          status: string
+          year: number
+        }
+        Insert: {
+          amount: number
+          child_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          declared_by?: string | null
+          id?: string
+          month: number
+          notes?: string | null
+          organization_id: string
+          status?: string
+          year: number
+        }
+        Update: {
+          amount?: number
+          child_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          declared_by?: string | null
+          id?: string
+          month?: number
+          notes?: string | null
+          organization_id?: string
+          status?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contribution_cash_declarations_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_cash_declarations_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_cash_declarations_declared_by_fkey"
+            columns: ["declared_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_cash_declarations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contributions_config: {
         Row: {
           created_at: string
@@ -689,6 +763,7 @@ export type Database = {
           month: number
           notes: string | null
           organization_id: string
+          payment_method: string | null
           status: string
           updated_at: string
           year: number
@@ -704,6 +779,7 @@ export type Database = {
           month: number
           notes?: string | null
           organization_id: string
+          payment_method?: string | null
           status?: string
           updated_at?: string
           year: number
@@ -719,6 +795,7 @@ export type Database = {
           month?: number
           notes?: string | null
           organization_id?: string
+          payment_method?: string | null
           status?: string
           updated_at?: string
           year?: number
@@ -3122,6 +3199,44 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_connect_accounts: {
+        Row: {
+          bank_name: string | null
+          created_at: string
+          id: string
+          organization_id: string
+          status: string
+          stripe_account_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          organization_id: string
+          status?: string
+          stripe_account_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string
+          status?: string
+          stripe_account_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_connect_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
