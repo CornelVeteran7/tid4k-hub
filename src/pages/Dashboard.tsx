@@ -375,6 +375,8 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [moduleOrder, setModuleOrder] = useState<string[]>(loadModuleOrder);
+  const [showAttendanceGrid, setShowAttendanceGrid] = useState(false);
+  const [attendanceCount, setAttendanceCount] = useState({ present: 0, total: 0 });
 
   useEffect(() => {
     const handler = (e: Event) => {
