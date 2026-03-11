@@ -206,7 +206,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                     preview={mod.key === 'ateliere' && workshopOfMonth ? (
                       <div className="rounded-lg px-3 py-2 mt-1" style={{ backgroundColor: mod.textColor ? `${mod.textColor}15` : 'rgba(255,255,255,0.15)' }}>
                         <p className="text-sm font-semibold" style={{ color: mod.textColor || '#ffffff' }}>{workshopOfMonth.titlu}</p>
-                        <p className="text-xs" style={{ color: mod.textColor ? `${mod.textColor}cc` : 'rgba(255,255,255,0.8)' }}>{getCategoryLabel(workshopOfMonth.categorie)} · {new Date(workshopOfMonth.luna + '-01').toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}</p>
+                        <p className="text-xs" style={{ color: mod.textColor ? `${mod.textColor}cc` : 'rgba(255,255,255,0.8)' }}>{workshopOfMonth.luna} · cu {workshopOfMonth.personaj}</p>
                       </div>
                     ) : undefined}
                   />
