@@ -55,6 +55,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
       { label: 'Părinte', description: 'Vede copilul, orarul, mesaje', status: 'parinte', redirect: '/', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala')], userName: 'Ion Popescu' },
       { label: 'Profesor', description: 'Orar, prezență, revistă', status: 'profesor', redirect: '/', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala'), g('cls-5a', 'Clasa a V-a A', 'scoala')], userName: 'Prof. Andrei Popa' },
       { label: 'Director', description: 'Toate clasele, rapoarte', status: 'director', redirect: '/admin', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala'), g('cls-1b', 'Clasa I-B', 'scoala'), g('cls-5a', 'Clasa a V-a A', 'scoala'), g('cls-8b', 'Clasa a VIII-a B', 'scoala')], userName: 'Director Vasilescu' },
+      { label: 'Vizitator', description: 'Acces public, fără cont', status: 'guest', redirect: '/qr/demo-schools', orgName: 'Școala Gimnazială Nr. 183', vertical: 'schools', groups: [g('cls-1a', 'Clasa I-A', 'scoala')], userName: 'Vizitator' },
     ],
   },
   {
