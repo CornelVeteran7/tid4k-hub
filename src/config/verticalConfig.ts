@@ -179,6 +179,8 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
     parentLabelPlural: 'Spectatori',
     icon: '🎭',
     groupTypeDefault: 'scoala',
+    cardVariant: 'glass',
+    forceDark: true,
     moduleLabels: {
       prezenta: { title: 'BILETE', subtitle: 'Vânzări și rezervări bilete' },
       imagini: { title: 'GALERIE', subtitle: 'Fotografii spectacole și repetiții' },
