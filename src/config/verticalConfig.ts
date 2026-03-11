@@ -42,7 +42,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   kids: {
     label: 'Grădinițe',
     description: 'Digital signage & comunicare pentru grădinițe',
-    defaultModules: ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje', 'orar', 'anunturi', 'video', 'social', 'inventar'],
+    defaultModules: ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje', 'orar', 'anunturi', 'video', 'social', 'inventar', 'sondaje'],
     entityLabel: 'Grupă',
     entityLabelPlural: 'Grupe',
     memberLabel: 'Copil',
@@ -60,7 +60,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       povesti: { title: 'POVEȘTI', subtitle: 'Citește, ascultă sau privește povești cu Inky' },
       ateliere: { title: 'ATELIERE', subtitle: 'Activități creative pentru copii' },
       meniu: { title: 'MENIUL SĂPTĂMÂNII', subtitle: 'Meniul zilnic pentru copii' },
-      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu părinții' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare și sondaje' },
     },
     summaryLabels: {
       mealLabel: 'Mic dejun',
@@ -72,7 +72,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   schools: {
     label: 'Școli',
     description: 'Platformă de comunicare pentru școli',
-    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'orar_avansat', 'anunturi', 'rapoarte', 'imagini', 'video', 'social', 'inventar', 'revista', 'cluburi'],
+    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'orar_avansat', 'anunturi', 'rapoarte', 'imagini', 'video', 'social', 'inventar', 'revista', 'cluburi', 'sondaje'],
     entityLabel: 'Clasă',
     entityLabelPlural: 'Clase',
     memberLabel: 'Elev',
@@ -90,7 +90,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       povesti: { title: 'LECTURĂ', subtitle: 'Resurse de lectură suplimentară' },
       ateliere: { title: 'PROIECTE', subtitle: 'Proiecte și activități extrașcolare' },
       meniu: { title: 'CANTINA', subtitle: 'Meniul cantinei școlare' },
-      mesaje: { title: 'MESAJE', subtitle: 'Comunicare profesori-părinți' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare și sondaje' },
     },
     summaryLabels: {
       mealLabel: 'Cantina',
@@ -102,7 +102,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   medicine: {
     label: 'Medicină',
     description: 'Infodisplay pentru cabinete și clinici',
-    defaultModules: ['documente', 'mesaje', 'orar', 'anunturi', 'imagini', 'coada', 'video'],
+    defaultModules: ['documente', 'mesaje', 'orar', 'anunturi', 'imagini', 'coada', 'video', 'sondaje'],
     entityLabel: 'Cabinet',
     entityLabelPlural: 'Cabinete',
     memberLabel: 'Pacient',
@@ -120,7 +120,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       povesti: { title: 'INFORMAȚII', subtitle: 'Sfaturi și informații medicale' },
       ateliere: { title: 'SERVICII', subtitle: 'Lista de servicii disponibile' },
       meniu: { title: 'PROGRAM', subtitle: 'Programul cabinetelor' },
-      mesaje: { title: 'MESAJE', subtitle: 'Comunicare medic-pacient' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare și sondaje' },
     },
     summaryLabels: {
       mealLabel: 'Program',
@@ -132,7 +132,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   living: {
     label: 'Rezidențial',
     description: 'Comunicare pentru asociații de proprietari',
-    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte', 'inventar'],
+    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte', 'inventar', 'sondaje'],
     entityLabel: 'Bloc',
     entityLabelPlural: 'Blocuri',
     memberLabel: 'Locatar',
@@ -150,7 +150,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       povesti: { title: 'INFORMAȚII', subtitle: 'Regulament și informații utile' },
       ateliere: { title: 'LUCRĂRI', subtitle: 'Lucrări de întreținere și reparații' },
       meniu: { title: 'CHELTUIELI', subtitle: 'Situația cheltuielilor comune' },
-      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu administrația' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare și sondaje' },
     },
     summaryLabels: {
       mealLabel: 'Cheltuieli',
@@ -162,7 +162,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   culture: {
     label: 'Cultură',
     description: 'Digital signage pentru teatre și muzee',
-    defaultModules: ['anunturi', 'documente', 'imagini', 'orar', 'video', 'supratitrare'],
+    defaultModules: ['anunturi', 'documente', 'imagini', 'orar', 'video', 'supratitrare', 'sondaje'],
     entityLabel: 'Sală',
     entityLabelPlural: 'Săli',
     memberLabel: 'Vizitator',
@@ -180,7 +180,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       povesti: { title: 'REPERTORIU', subtitle: 'Spectacole din repertoriu' },
       ateliere: { title: 'EVENIMENTE', subtitle: 'Evenimente și gale speciale' },
       meniu: { title: 'PROGRAM', subtitle: 'Programul spectacolelor' },
-      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu echipa artistică' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare și sondaje' },
     },
     summaryLabels: {
       mealLabel: 'Spectacol',
@@ -192,7 +192,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   students: {
     label: 'Universități',
     description: 'Platformă pentru universități',
-    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte', 'coada'],
+    defaultModules: ['prezenta', 'documente', 'mesaje', 'orar', 'anunturi', 'rapoarte', 'coada', 'sondaje'],
     entityLabel: 'Facultate',
     entityLabelPlural: 'Facultăți',
     memberLabel: 'Student',
@@ -210,7 +210,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       povesti: { title: 'BIBLIOTECĂ', subtitle: 'Resurse bibliografice' },
       ateliere: { title: 'CERCETARE', subtitle: 'Proiecte de cercetare' },
       meniu: { title: 'CANTINA', subtitle: 'Meniul cantinei studențești' },
-      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu secretariatul' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare și sondaje' },
     },
     summaryLabels: {
       mealLabel: 'Cantina',
@@ -222,7 +222,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   construction: {
     label: 'Construcții',
     description: 'Comunicare pentru șantiere',
-    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte', 'inventar', 'ssm'],
+    defaultModules: ['documente', 'mesaje', 'anunturi', 'rapoarte', 'inventar', 'ssm', 'sondaje'],
     entityLabel: 'Șantier',
     entityLabelPlural: 'Șantiere',
     memberLabel: 'Muncitor',
@@ -240,7 +240,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       povesti: { title: 'PROCEDURI', subtitle: 'Proceduri și instrucțiuni SSM' },
       ateliere: { title: 'TASKURI', subtitle: 'Taskuri active pe șantier' },
       meniu: { title: 'PROGRAM', subtitle: 'Programul echipelor' },
-      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu echipele' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare și sondaje' },
     },
     summaryLabels: {
       mealLabel: 'Program azi',
@@ -252,7 +252,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   workshops: {
     label: 'Service Auto',
     description: 'Management service auto',
-    defaultModules: ['documente', 'mesaje', 'anunturi', 'orar', 'rapoarte', 'inventar'],
+    defaultModules: ['documente', 'mesaje', 'anunturi', 'orar', 'rapoarte', 'inventar', 'sondaje'],
     entityLabel: 'Service',
     entityLabelPlural: 'Service-uri',
     memberLabel: 'Client',
@@ -270,7 +270,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
       povesti: { title: 'CATALOG', subtitle: 'Catalog piese și accesorii' },
       ateliere: { title: 'LUCRĂRI', subtitle: 'Lucrări active în service' },
       meniu: { title: 'TARIFE', subtitle: 'Lista de tarife și servicii' },
-      mesaje: { title: 'MESAJE', subtitle: 'Comunicare cu clienții' },
+      mesaje: { title: 'MESAJE', subtitle: 'Comunicare și sondaje' },
     },
     summaryLabels: {
       mealLabel: 'Programare',

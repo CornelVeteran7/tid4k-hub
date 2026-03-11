@@ -3,17 +3,18 @@ import { useAuth } from './AuthContext';
 import { getConversations } from '@/api/messages';
 import { getAnnouncements } from '@/api/announcements';
 import { getWorkshopOfMonth } from '@/api/workshops';
+import { getPolls } from '@/api/polls';
 import type { Conversation, Announcement } from '@/types';
 
 export interface NotificationItem {
   id: string;
-  type: 'message' | 'announcement' | 'workshop';
+  type: 'message' | 'announcement' | 'workshop' | 'poll';
   title: string;
   description: string;
   timestamp: string;
   read: boolean;
   navigateTo: string;
-  icon: 'message' | 'megaphone' | 'alert' | 'paintbrush';
+  icon: 'message' | 'megaphone' | 'alert' | 'paintbrush' | 'vote';
 }
 
 interface NotificationContextType {
@@ -79,10 +80,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
 
     try {
-      const [conversations, announcements, workshopOfMonth] = await Promise.all([
+      const [conversations, announcements, workshopOfMonth, pollsRaw] = await Promise.all([
         getConversations(user.id),
         getAnnouncements(),
         getWorkshopOfMonth(),
+        user.organization_id ? getPolls(user.organization_id).catch(() => []) : Promise.resolve([]),
       ]);
 
       const readIds = readIdsRef.current;
@@ -127,8 +129,27 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         });
       }
 
+      // Poll notifications
+      const pollNotifs: NotificationItem[] = (pollsRaw || [])
+        .filter((p: any) => !p.is_closed && new Date(p.deadline) > new Date())
+        .map((p: any) => {
+          const pId = `poll-${p.id}`;
+          const votes = p.poll_votes || [];
+          const userVoted = votes.some((v: any) => v.user_id === user.id);
+          return {
+            id: pId,
+            type: 'poll' as const,
+            title: `Sondaj: ${p.title}`,
+            description: userVoted ? 'Ai votat deja' : 'Votează acum',
+            timestamp: p.created_at,
+            read: readIds.has(pId) || userVoted,
+            navigateTo: '/mesaje?tab=sondaje',
+            icon: 'vote' as const,
+          };
+        });
+
       // Combine, filter to past month, sort by date, limit to MAX
-      const all = [...msgNotifs, ...annNotifs, ...workshopNotifs]
+      const all = [...msgNotifs, ...annNotifs, ...workshopNotifs, ...pollNotifs]
         .filter(n => isWithinPastMonth(n.timestamp))
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
         .slice(0, MAX_NOTIFICATIONS);
