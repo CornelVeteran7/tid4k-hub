@@ -817,11 +817,50 @@ export type Database = {
           },
         ]
       }
+      conversation_members: {
+        Row: {
+          conversation_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_members_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
+          group_id: string | null
+          group_name: string | null
           grupa: string | null
           id: string
+          is_group: boolean | null
           organization_id: string | null
           participant_1: string
           participant_2: string
@@ -829,8 +868,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          group_id?: string | null
+          group_name?: string | null
           grupa?: string | null
           id?: string
+          is_group?: boolean | null
           organization_id?: string | null
           participant_1: string
           participant_2: string
@@ -838,14 +880,24 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          group_id?: string | null
+          group_name?: string | null
           grupa?: string | null
           id?: string
+          is_group?: boolean | null
           organization_id?: string | null
           participant_1?: string
           participant_2?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "conversations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conversations_organization_id_fkey"
             columns: ["organization_id"]
@@ -1283,6 +1335,47 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          mesaj: string
+          organization_id: string
+          read: boolean | null
+          replied: boolean | null
+          sender_email: string
+          sender_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mesaj: string
+          organization_id: string
+          read?: boolean | null
+          replied?: boolean | null
+          sender_email: string
+          sender_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mesaj?: string
+          organization_id?: string
+          read?: boolean | null
+          replied?: boolean | null
+          sender_email?: string
+          sender_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
