@@ -328,6 +328,18 @@ export default function SuperAdminDocs() {
           <DocSection id="inky" title="InkyAssistant — Costume per Vertical (NOU)" icon={Star}>
             <div className="space-y-3">
               <p className="text-xs text-muted-foreground">Mascota Inky se adaptează la verticalul organizației prin costume diferite. Enterprise sponsors pot seta costume custom.</p>
+
+              {/* Visual preview of Inky button */}
+              <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/30 border border-border/50">
+                <div className="h-14 w-14 rounded-full shadow-lg border border-primary/20 flex items-center justify-center overflow-hidden bg-card shrink-0">
+                  <img src="/src/assets/inky-button.png" alt="Inky" className="h-12 w-12 object-contain" />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  <p className="font-semibold text-foreground">Buton Inky (56×56px)</p>
+                  <p>Fixed bottom-right, border gradient, shadow-lg</p>
+                </div>
+              </div>
+
               <p className="text-[10px] font-mono text-muted-foreground">📁 src/components/InkyAssistant.tsx</p>
 
               <div className="overflow-x-auto">
@@ -338,7 +350,7 @@ export default function SuperAdminDocs() {
                     <th className="text-left py-1.5 text-muted-foreground font-medium">Asset</th>
                   </tr></thead>
                   <tbody>
-                    <tr className="border-b border-border/30"><td className="py-1.5">Kids / Schools / Living / Students</td><td>Default (buton albastru)</td><td className="font-mono text-[10px]">inky-button.png</td></tr>
+                    <tr className="border-b border-border/30"><td className="py-1.5">Kids / Schools / Living / Students</td><td>Default (bufniță buton)</td><td className="font-mono text-[10px]">inky-button.png</td></tr>
                     <tr className="border-b border-border/30"><td className="py-1.5">🏥 Medicine</td><td>Halat alb + stetoscop</td><td className="font-mono text-[10px]">inky-doctor.png</td></tr>
                     <tr className="border-b border-border/30"><td className="py-1.5">🏗️ Construction</td><td>Cască galbenă + vestă reflectorizantă</td><td className="font-mono text-[10px]">inky-construction.png</td></tr>
                     <tr className="border-b border-border/30"><td className="py-1.5">🔧 Workshops</td><td>Salopetă albastră + cheie franceză</td><td className="font-mono text-[10px]">inky-mechanic.png</td></tr>
@@ -348,9 +360,9 @@ export default function SuperAdminDocs() {
               </div>
 
               <div className="text-xs text-muted-foreground space-y-1">
-                <p><strong>Override:</strong> Sponsorii Enterprise pot seta <code className="bg-muted px-1 rounded">stilInky.costume_url</code> pe campanie</p>
-                <p><strong>Map:</strong> <code className="bg-muted px-1 rounded">VERTICAL_COSTUMES</code> în InkyAssistant.tsx</p>
+                <p><strong>Mapare:</strong> <code className="bg-muted px-1 rounded">VERTICAL_COSTUMES</code> în InkyAssistant.tsx</p>
                 <p><strong>Detectie:</strong> Citit din <code className="bg-muted px-1 rounded">user.vertical_type</code> via AuthContext</p>
+                <p><strong>Override:</strong> Sponsorii Enterprise pot seta <code className="bg-muted px-1 rounded">stilInky.costume_url</code> pe campanie</p>
               </div>
             </div>
           </DocSection>
