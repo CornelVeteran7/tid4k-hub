@@ -7,13 +7,13 @@ import type { Conversation, Announcement } from '@/types';
 
 export interface NotificationItem {
   id: string;
-  type: 'message' | 'announcement' | 'workshop';
+  type: 'message' | 'announcement' | 'workshop' | 'poll';
   title: string;
   description: string;
   timestamp: string;
   read: boolean;
   navigateTo: string;
-  icon: 'message' | 'megaphone' | 'alert' | 'paintbrush';
+  icon: 'message' | 'megaphone' | 'alert' | 'paintbrush' | 'vote';
 }
 
 interface NotificationContextType {
