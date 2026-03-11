@@ -523,6 +523,24 @@ export default function Dashboard() {
 
       {/* Sticky announcements ticker */}
       <AnnouncementsTicker />
+
+      {/* Full-screen attendance grid overlay */}
+      {currentGroup && (
+        <AttendanceGrid
+          open={showAttendanceGrid}
+          onClose={() => {
+            setShowAttendanceGrid(false);
+            // Refresh count after closing
+            const today = format(new Date(), 'yyyy-MM-dd');
+            getAttendance(currentGroup.id, today).then(day => {
+              const p = day.records.filter(r => r.prezent).length;
+              setAttendanceCount({ present: p, total: day.records.length });
+            }).catch(() => {});
+          }}
+          groupId={currentGroup.id}
+          groupName={currentGroup.nume}
+        />
+      )}
     </div>
   );
 }
