@@ -57,6 +57,13 @@ import SuperAdmin from "./pages/SuperAdmin";
 import DemoEntry from "./pages/DemoEntry";
 const queryClient = new QueryClient();
 
+// Demo development tool — visible on all pages when in demo mode
+function DemoTool() {
+  const { isDemo } = useAuth();
+  if (!isDemo) return null;
+  return <WhiteLabelSwitcher />;
+}
+
 function ProtectedRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const verticalType = (user?.vertical_type || 'kids') as import('@/config/verticalConfig').VerticalType;
