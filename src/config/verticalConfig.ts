@@ -42,7 +42,7 @@ export const VERTICAL_DEFINITIONS: Record<VerticalType, VerticalDefinition> = {
   kids: {
     label: 'Grădinițe',
     description: 'Digital signage & comunicare pentru grădinițe',
-    defaultModules: ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje', 'orar', 'anunturi', 'video', 'social', 'inventar'],
+    defaultModules: ['prezenta', 'imagini', 'documente', 'povesti', 'ateliere', 'meniu', 'mesaje', 'orar', 'anunturi', 'video', 'social', 'inventar', 'sondaje'],
     entityLabel: 'Grupă',
     entityLabelPlural: 'Grupe',
     memberLabel: 'Copil',
