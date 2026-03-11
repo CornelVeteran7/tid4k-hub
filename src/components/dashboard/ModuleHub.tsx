@@ -231,7 +231,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
       </div>
 
       <AnimatePresence>
-        {openMod && ModuleComponent && (
+      {openMod && ModuleComponent && (
           <ModulePanel
             isOpen={!!openModule}
             onClose={() => setOpenModule(null)}
@@ -239,6 +239,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
             color={openMod.color}
             textColor={openMod.textColor}
             layoutId={`module-${openMod.key}`}
+            variant={cardVariant}
           >
             <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
               <ModuleComponent embedded />
