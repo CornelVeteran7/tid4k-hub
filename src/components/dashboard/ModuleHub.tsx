@@ -176,7 +176,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
 
   return (
     <LayoutGroup>
-      <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+      <div className={`space-y-3 ${desktopSingleColumn ? '' : 'lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0'}`}>
         <AnimatePresence mode="popLayout">
           {displayModules.map((mod, i) => (
             <React.Fragment key={mod.key}>
