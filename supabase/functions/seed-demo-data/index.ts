@@ -35,6 +35,82 @@ function weekDates(): string[] {
   });
 }
 
+// Helper: create a demo auth user + profile, returns user id
+async function ensureDemoUser(
+  sb: any,
+  email: string,
+  fullName: string,
+  orgId: string,
+  roles: string[],
+  phone?: string
+): Promise<string | null> {
+  // Check if profile with this email already exists
+  const { data: existing } = await sb.from("profiles").select("id").eq("email", email).limit(1);
+  if (existing && existing.length > 0) {
+    // Ensure roles exist
+    for (const role of roles) {
+      await sb.from("user_roles").upsert(
+        { user_id: existing[0].id, role },
+        { onConflict: "user_id,role" }
+      );
+    }
+    return existing[0].id;
+  }
+
+  // Create auth user via admin API
+  const { data: authUser, error: authErr } = await sb.auth.admin.createUser({
+    email,
+    password: "demo1234",
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+  });
+
+  if (authErr) {
+    // User might exist in auth but not profiles
+    if (authErr.message?.includes("already been registered")) {
+      const { data: users } = await sb.auth.admin.listUsers();
+      const found = users?.users?.find((u: any) => u.email === email);
+      if (found) {
+        // Ensure profile exists
+        await sb.from("profiles").upsert({
+          id: found.id, email, nume_prenume: fullName,
+          telefon: phone || "", organization_id: orgId,
+        }, { onConflict: "id" });
+        for (const role of roles) {
+          await sb.from("user_roles").upsert({ user_id: found.id, role }, { onConflict: "user_id,role" });
+        }
+        return found.id;
+      }
+    }
+    console.error(`Failed to create user ${email}:`, authErr.message);
+    return null;
+  }
+
+  const userId = authUser.user.id;
+  // Update profile with org
+  await sb.from("profiles").update({
+    organization_id: orgId,
+    telefon: phone || `07${Math.floor(10000000 + Math.random() * 90000000)}`,
+  }).eq("id", userId);
+
+  // Assign roles (parinte is auto-assigned by trigger, add others)
+  for (const role of roles) {
+    if (role !== "parinte") {
+      await sb.from("user_roles").upsert({ user_id: userId, role }, { onConflict: "user_id,role" });
+    }
+  }
+
+  return userId;
+}
+
+// Helper: assign user to group
+async function assignUserGroup(sb: any, userId: string, groupId: string) {
+  await sb.from("user_groups").upsert(
+    { user_id: userId, group_id: groupId },
+    { onConflict: "user_id,group_id" }
+  );
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -43,7 +119,6 @@ serve(async (req) => {
   const sb = createClient(supabaseUrl, serviceRoleKey);
   const results: string[] = [];
 
-  // Get all orgs with their groups
   const { data: orgs } = await sb.from("organizations").select("id, name, slug, vertical_type");
   const { data: allGroups } = await sb.from("groups").select("id, slug, nume, organization_id, tip");
 
@@ -53,13 +128,191 @@ serve(async (req) => {
 
   const today = todayStr();
   const week = weekDates();
-  const RO_DAYS = ["Duminică", "Luni", "Marți", "Miercuri", "Joi", "Vineri", "Sâmbătă"];
 
   for (const org of orgs) {
     const groups = allGroups.filter((g: any) => g.organization_id === org.id);
     if (groups.length === 0) { results.push(`⏭️ ${org.name}: no groups`); continue; }
 
     try {
+      // ═══════════════════════════════════════
+      // COMMON: Create demo users for every org
+      // ═══════════════════════════════════════
+      const slug = org.slug || org.id.substring(0, 8);
+      const userResults: string[] = [];
+
+      // Director
+      const directorId = await ensureDemoUser(sb, `director@${slug}.test`, `Director ${org.name.split(" ").pop()}`, org.id, ["director"], "0721000001");
+      if (directorId) {
+        for (const g of groups) await assignUserGroup(sb, directorId, g.id);
+        userResults.push("director");
+      }
+
+      // Teachers / staff (2 per group, max 6)
+      const teacherIds: string[] = [];
+      const teacherNames = [
+        { f: "Elena", l: "Popescu" }, { f: "Mihaela", l: "Ionescu" },
+        { f: "Andreea", l: "Stan" }, { f: "Gabriela", l: "Radu" },
+        { f: "Cristina", l: "Marin" }, { f: "Laura", l: "Gheorghe" },
+      ];
+      for (let i = 0; i < Math.min(groups.length * 2, 6); i++) {
+        const tn = teacherNames[i];
+        const tId = await ensureDemoUser(
+          sb, `profesor${i + 1}@${slug}.test`,
+          `${tn.f} ${tn.l}`, org.id, ["profesor"],
+          `072${i + 1}00000${i + 2}`
+        );
+        if (tId) {
+          teacherIds.push(tId);
+          // Assign to corresponding group
+          const gIdx = Math.floor(i / 2);
+          if (groups[gIdx]) await assignUserGroup(sb, tId, groups[gIdx].id);
+          userResults.push(`profesor${i + 1}`);
+        }
+      }
+
+      // Secretary
+      const secId = await ensureDemoUser(sb, `secretara@${slug}.test`, "Ana Secretaru", org.id, ["secretara"], "0721000099");
+      if (secId) {
+        for (const g of groups) await assignUserGroup(sb, secId, g.id);
+        userResults.push("secretara");
+      }
+
+      // Parents (3 per group, max 9)
+      const parentIds: string[] = [];
+      let parentIdx = 0;
+      for (const group of groups) {
+        for (let p = 0; p < 3 && parentIdx < 9; p++, parentIdx++) {
+          const pName = `${pickRandom(FIRST_NAMES_F)} ${pickRandom(LAST_NAMES)}`;
+          const pId = await ensureDemoUser(
+            sb, `parinte${parentIdx + 1}@${slug}.test`,
+            pName, org.id, ["parinte"],
+            `073${parentIdx + 1}00000${parentIdx + 1}`
+          );
+          if (pId) {
+            parentIds.push(pId);
+            await assignUserGroup(sb, pId, group.id);
+          }
+        }
+      }
+      if (parentIds.length > 0) userResults.push(`${parentIds.length} parinti`);
+
+      results.push(`👥 ${org.name}: created ${userResults.join(", ")}`);
+
+      // Link some children to parents
+      if (parentIds.length > 0) {
+        const { data: unlinkedChildren } = await sb.from("children")
+          .select("id").eq("organization_id", org.id).is("parinte_id", null).limit(parentIds.length);
+        if (unlinkedChildren) {
+          for (let i = 0; i < unlinkedChildren.length && i < parentIds.length; i++) {
+            await sb.from("children").update({ parinte_id: parentIds[i] }).eq("id", unlinkedChildren[i].id);
+          }
+        }
+      }
+
+      // ═══════════════════════════════════════
+      // COMMON: Polls (at least 2 per org)
+      // ═══════════════════════════════════════
+      const { data: existingPolls } = await sb.from("polls").select("id").eq("organization_id", org.id).limit(1);
+      if (!existingPolls || existingPolls.length === 0) {
+        const creatorId = directorId || (teacherIds.length > 0 ? teacherIds[0] : null);
+        if (creatorId) {
+          const pollData = [
+            {
+              title: "Preferință program activități",
+              description: "Alegeți intervalul orar preferat pentru activitățile extrașcolare",
+              deadline: new Date(Date.now() + 14 * 86400000).toISOString(),
+              options: ["08:00 - 10:00", "10:00 - 12:00", "14:00 - 16:00", "16:00 - 18:00"],
+            },
+            {
+              title: "Feedback servicii",
+              description: "Cât de mulțumit(ă) sunteți de serviciile oferite?",
+              deadline: new Date(Date.now() + 30 * 86400000).toISOString(),
+              options: ["Foarte mulțumit", "Mulțumit", "Neutru", "Nemulțumit"],
+            },
+          ];
+
+          for (const poll of pollData) {
+            const { data: inserted } = await sb.from("polls").insert({
+              organization_id: org.id,
+              created_by: creatorId,
+              title: poll.title,
+              description: poll.description,
+              deadline: poll.deadline,
+              poll_type: "single_choice",
+              results_visibility: "after_vote",
+              is_closed: false,
+            }).select("id").single();
+
+            if (inserted) {
+              const optionRows = poll.options.map((label, idx) => ({
+                poll_id: inserted.id,
+                label,
+                position: idx + 1,
+              }));
+              const { data: insertedOptions } = await sb.from("poll_options").insert(optionRows).select("id");
+
+              // Add some votes from parents
+              if (insertedOptions && parentIds.length > 0) {
+                for (let v = 0; v < Math.min(parentIds.length, 4); v++) {
+                  const optIdx = v % insertedOptions.length;
+                  await sb.from("poll_votes").insert({
+                    poll_id: inserted.id,
+                    user_id: parentIds[v],
+                    option_id: insertedOptions[optIdx].id,
+                  }).catch(() => {});
+                }
+              }
+            }
+          }
+          results.push(`📊 ${org.name}: 2 polls created`);
+        }
+      }
+
+      // ═══════════════════════════════════════
+      // COMMON: Conversations & Messages
+      // ═══════════════════════════════════════
+      const { data: existingConvs } = await sb.from("conversations").select("id").eq("organization_id", org.id).limit(1);
+      if ((!existingConvs || existingConvs.length === 0) && directorId && parentIds.length > 0) {
+        // Create a few 1-on-1 conversations
+        const convPairs = [
+          { p1: parentIds[0], p2: directorId, msgs: [
+            { from: 0, text: "Bună ziua! Aș dori informații despre programul de mâine." },
+            { from: 1, text: "Bună ziua! Programul de mâine este normal, 08:00-17:00." },
+            { from: 0, text: "Mulțumesc frumos!" },
+          ]},
+        ];
+        if (teacherIds.length > 0 && parentIds.length > 1) {
+          convPairs.push({
+            p1: parentIds[1], p2: teacherIds[0], msgs: [
+              { from: 0, text: "Bună! Cum s-a descurcat copilul azi?" },
+              { from: 1, text: "A fost foarte activ, a participat la toate activitățile!" },
+              { from: 0, text: "Mă bucur să aud, mulțumesc!" },
+              { from: 1, text: "Cu plăcere! O zi bună!" },
+            ],
+          });
+        }
+
+        for (const conv of convPairs) {
+          const { data: newConv } = await sb.from("conversations").insert({
+            participant_1: conv.p1,
+            participant_2: conv.p2,
+            organization_id: org.id,
+            grupa: groups[0].slug,
+          }).select("id").single();
+
+          if (newConv) {
+            const msgRows = conv.msgs.map((m, idx) => ({
+              conversation_id: newConv.id,
+              sender_id: m.from === 0 ? conv.p1 : conv.p2,
+              mesaj: m.text,
+              citit: idx < conv.msgs.length - 1,
+            }));
+            await sb.from("messages").insert(msgRows);
+          }
+        }
+        results.push(`💬 ${org.name}: conversations seeded`);
+      }
+
       // ═══════════════════════════════════════
       // KIDS vertical
       // ═══════════════════════════════════════
@@ -78,7 +331,7 @@ serve(async (req) => {
           await sb.from("children").insert(children);
         }
 
-        // Get all children for attendance
+        // Attendance
         const { data: allChildren } = await sb.from("children").select("id").eq("organization_id", org.id);
         if (allChildren && allChildren.length > 0) {
           const { data: existingAtt } = await sb.from("attendance").select("id").eq("data", today).in("child_id", allChildren.map((c: any) => c.id)).limit(1);
@@ -86,22 +339,16 @@ serve(async (req) => {
             const attRows = [];
             for (const date of week) {
               for (const child of allChildren) {
-                attRows.push({
-                  child_id: child.id,
-                  data: date,
-                  prezent: Math.random() > 0.15,
-                  marked_at: new Date().toISOString(),
-                });
+                attRows.push({ child_id: child.id, data: date, prezent: Math.random() > 0.15, marked_at: new Date().toISOString() });
               }
             }
-            // Insert in batches
             for (let i = 0; i < attRows.length; i += 500) {
               await sb.from("attendance").insert(attRows.slice(i, i + 500));
             }
           }
         }
 
-        // Menu items for current week
+        // Menu items
         const weekStr = (() => {
           const d = new Date();
           const jan1 = new Date(d.getFullYear(), 0, 1);
@@ -121,11 +368,8 @@ serve(async (req) => {
           for (const meal of meals) {
             for (let d = 0; d < days.length; d++) {
               menuRows.push({
-                organization_id: org.id,
-                saptamana: weekStr,
-                zi: days[d],
-                masa: meal.masa,
-                continut: meal.items[d],
+                organization_id: org.id, saptamana: weekStr, zi: days[d],
+                masa: meal.masa, continut: meal.items[d],
                 emoji: meal.items[d].match(/[\p{Emoji_Presentation}]/u)?.[0] || "🍽️",
               });
             }
@@ -143,39 +387,34 @@ serve(async (req) => {
             { nume_fisier: "Activitate_pictură_2.jpg", tip_fisier: "jpg", categorie: "fotografii", url: "https://images.unsplash.com/photo-1587654780291-39c9404d7dd0?w=400", marime: 280000 },
             { nume_fisier: "Excursie_parc.jpg", tip_fisier: "jpg", categorie: "fotografii", url: "https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=400", marime: 410000 },
             { nume_fisier: "Ziua_copilului.jpg", tip_fisier: "jpg", categorie: "fotografii", url: "https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=400", marime: 350000 },
-            { nume_fisier: "Grafic_activități_martie.pdf", tip_fisier: "pdf", categorie: "activitati", url: "https://example.com/grafic.pdf", marime: 156000 },
-            { nume_fisier: "Felicitare_8_martie.jpg", tip_fisier: "jpg", categorie: "fotografii", url: "https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=400", marime: 290000 },
-            { nume_fisier: "Meniu_luna_martie.pdf", tip_fisier: "pdf", categorie: "administrativ", url: "https://example.com/meniu.pdf", marime: 98000 },
-            { nume_fisier: "Spectacol_primăvară.jpg", tip_fisier: "jpg", categorie: "fotografii", url: "https://images.unsplash.com/photo-1576267423445-b2e0074d68a4?w=400", marime: 375000 },
-            { nume_fisier: "Jocuri_curte.jpg", tip_fisier: "jpg", categorie: "fotografii", url: "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=400", marime: 420000 },
-            { nume_fisier: "Tema_săptămânii.pdf", tip_fisier: "pdf", categorie: "teme", url: "https://example.com/tema.pdf", marime: 67000 },
           ];
           await sb.from("documents").insert(docRows.map(d => ({
-            ...d,
-            organization_id: org.id,
-            group_id: groups[0].id,
-            uploadat_de_nume: "Educatoare Elena",
+            ...d, organization_id: org.id, group_id: groups[0].id, uploadat_de_nume: "Educatoare Elena",
           })));
         }
 
         // Cancelarie teachers
         const { data: existingTeachers } = await sb.from("cancelarie_teachers").select("id").eq("organization_id", org.id).limit(1);
         if (!existingTeachers || existingTeachers.length === 0) {
-          await sb.from("cancelarie_teachers").insert([
-            { nume: "Elena Popescu", organization_id: org.id, qr_data: `teacher-1-${org.id}` },
-            { nume: "Mihaela Ionescu", organization_id: org.id, qr_data: `teacher-2-${org.id}` },
-            { nume: "Andreea Stan", organization_id: org.id, qr_data: `teacher-3-${org.id}` },
-            { nume: "Gabriela Radu", organization_id: org.id, qr_data: `teacher-4-${org.id}` },
-          ]);
+          const teacherEntries = teacherIds.length > 0
+            ? teacherIds.slice(0, 4).map((tId, i) => ({
+                nume: teacherNames[i] ? `${teacherNames[i].f} ${teacherNames[i].l}` : `Educatoare ${i + 1}`,
+                organization_id: org.id, qr_data: `teacher-${i + 1}-${org.id}`, profile_id: tId,
+              }))
+            : [
+                { nume: "Elena Popescu", organization_id: org.id, qr_data: `teacher-1-${org.id}` },
+                { nume: "Mihaela Ionescu", organization_id: org.id, qr_data: `teacher-2-${org.id}` },
+                { nume: "Andreea Stan", organization_id: org.id, qr_data: `teacher-3-${org.id}` },
+                { nume: "Gabriela Radu", organization_id: org.id, qr_data: `teacher-4-${org.id}` },
+              ];
+          await sb.from("cancelarie_teachers").insert(teacherEntries);
         }
 
         // Contributions config
         const { data: existingContrib } = await sb.from("contributions_config").select("id").eq("organization_id", org.id).limit(1);
         if (!existingContrib || existingContrib.length === 0) {
           await sb.from("contributions_config").insert({
-            organization_id: org.id,
-            daily_rate: 17,
-            effective_from: "2026-01-01",
+            organization_id: org.id, daily_rate: 17, effective_from: "2026-01-01",
           });
         }
 
@@ -190,15 +429,12 @@ serve(async (req) => {
           const { data: existing } = await sb.from("children").select("id").eq("group_id", group.id).limit(1);
           if (existing && existing.length > 0) continue;
           const children = Array.from({ length: 25 }, (_, i) => ({
-            nume_prenume: randomChild(i),
-            group_id: group.id,
-            organization_id: org.id,
+            nume_prenume: randomChild(i), group_id: group.id, organization_id: org.id,
             data_nasterii: randomDate(2012, 2018),
           }));
           await sb.from("children").insert(children);
         }
 
-        // Attendance
         const { data: allChildren } = await sb.from("children").select("id").eq("organization_id", org.id);
         if (allChildren && allChildren.length > 0) {
           const { data: existingAtt } = await sb.from("attendance").select("id").eq("data", today).in("child_id", allChildren.map((c: any) => c.id)).limit(1);
@@ -215,18 +451,15 @@ serve(async (req) => {
           }
         }
 
-        // Documents
         const { data: existingDocs } = await sb.from("documents").select("id").eq("organization_id", org.id).limit(1);
         if (!existingDocs || existingDocs.length === 0) {
           await sb.from("documents").insert([
             { organization_id: org.id, group_id: groups[0].id, nume_fisier: "Orar_semestrul_2.pdf", tip_fisier: "pdf", categorie: "administrativ", url: "https://example.com/orar.pdf", marime: 134000, uploadat_de_nume: "Secretariat" },
             { organization_id: org.id, group_id: groups[0].id, nume_fisier: "Concurs_matematica.pdf", tip_fisier: "pdf", categorie: "activitati", url: "https://example.com/concurs.pdf", marime: 89000, uploadat_de_nume: "Prof. Andrei" },
             { organization_id: org.id, group_id: groups[0].id, nume_fisier: "Excursie_muzeu.jpg", tip_fisier: "jpg", categorie: "fotografii", url: "https://images.unsplash.com/photo-1580477667995-2b94f01c9516?w=400", marime: 380000, uploadat_de_nume: "Prof. Maria" },
-            { organization_id: org.id, group_id: groups[0].id, nume_fisier: "Regulament_elevi.pdf", tip_fisier: "pdf", categorie: "administrativ", url: "https://example.com/regulament-elevi.pdf", marime: 210000, uploadat_de_nume: "Director" },
           ]);
         }
 
-        // Menu
         const weekStr2 = (() => {
           const d = new Date();
           const jan1 = new Date(d.getFullYear(), 0, 1);
@@ -237,15 +470,9 @@ serve(async (req) => {
         if (!existingMenu || existingMenu.length === 0) {
           const days = ["Luni", "Marți", "Miercuri", "Joi", "Vineri"];
           const pranzItems = ["Ciorbă de fasole, Șnițel cu piure 🥘", "Supă de pui, Paste carbonara 🍝", "Ciorbă de legume, Tocăniță de vită 🥩", "Borș de sfeclă, Pui la grătar cu orez 🍗", "Supă cremă de ciuperci, Pește cu garnitură 🐟"];
-          const rows = days.map((zi, i) => ({
-            organization_id: org.id,
-            saptamana: weekStr2,
-            zi,
-            masa: "pranz",
-            continut: pranzItems[i],
-            emoji: "🍽️",
-          }));
-          await sb.from("menu_items").insert(rows);
+          await sb.from("menu_items").insert(days.map((zi, i) => ({
+            organization_id: org.id, saptamana: weekStr2, zi, masa: "pranz", continut: pranzItems[i], emoji: "🍽️",
+          })));
         }
 
         // Cancelarie teachers
@@ -256,8 +483,6 @@ serve(async (req) => {
             { nume: "Prof. Maria Gheorghe", organization_id: org.id, qr_data: `teacher-s2-${org.id}` },
             { nume: "Prof. Ion Vasilescu", organization_id: org.id, qr_data: `teacher-s3-${org.id}` },
             { nume: "Prof. Dana Preda", organization_id: org.id, qr_data: `teacher-s4-${org.id}` },
-            { nume: "Prof. Cristian Lungu", organization_id: org.id, qr_data: `teacher-s5-${org.id}` },
-            { nume: "Prof. Alina Marin", organization_id: org.id, qr_data: `teacher-s6-${org.id}` },
           ]);
         }
 
@@ -271,25 +496,24 @@ serve(async (req) => {
         const { data: ed } = await sb.from("doctor_profiles").select("id").eq("organization_id", org.id).limit(1);
         if (!ed || ed.length === 0) {
           await sb.from("doctor_profiles").insert([
-            { name: "Dr. Alexandru Marin", specialization: "Ortodonție", bio: "Specialist cu 15 ani experiență în ortodonție și estetică dentară.", credentials: "UMF București, 2011", organization_id: org.id, activ: true, ordine: 1 },
-            { name: "Dr. Cristina Radu", specialization: "Implantologie", bio: "Expert în implantologie avansată și chirurgie orală.", credentials: "UMF Iași, 2013", organization_id: org.id, activ: true, ordine: 2 },
-            { name: "Dr. Florin Stoica", specialization: "Stomatologie generală", bio: "Medic stomatolog cu abordare modernă și grijă pentru confort.", credentials: "UMF Cluj, 2015", organization_id: org.id, activ: true, ordine: 3 },
+            { name: "Dr. Alexandru Marin", specialization: "Ortodonție", bio: "Specialist cu 15 ani experiență.", credentials: "UMF București, 2011", organization_id: org.id, activ: true, ordine: 1 },
+            { name: "Dr. Cristina Radu", specialization: "Implantologie", bio: "Expert în implantologie avansată.", credentials: "UMF Iași, 2013", organization_id: org.id, activ: true, ordine: 2 },
+            { name: "Dr. Florin Stoica", specialization: "Stomatologie generală", bio: "Medic cu abordare modernă.", credentials: "UMF Cluj, 2015", organization_id: org.id, activ: true, ordine: 3 },
           ]);
         }
 
         const { data: es } = await sb.from("medicine_services").select("id").eq("organization_id", org.id).limit(1);
         if (!es || es.length === 0) {
           await sb.from("medicine_services").insert([
-            { name: "Consultație generală", description: "Examinare completă și plan de tratament", price_from: 150, price_to: 200, duration_minutes: 30, organization_id: org.id, activ: true, ordine: 1 },
+            { name: "Consultație generală", description: "Examinare completă", price_from: 150, price_to: 200, duration_minutes: 30, organization_id: org.id, activ: true, ordine: 1 },
             { name: "Detartraj profesional", description: "Curățare profesională cu ultrasunete", price_from: 200, price_to: 350, duration_minutes: 45, organization_id: org.id, activ: true, ordine: 2 },
-            { name: "Albire dentară", description: "Albire cu gel profesional și lampă LED", price_from: 800, price_to: 1200, duration_minutes: 60, organization_id: org.id, activ: true, ordine: 3 },
-            { name: "Plombare estetică", description: "Obturație compozit fotopolimerizabil", price_from: 250, price_to: 500, duration_minutes: 40, organization_id: org.id, activ: true, ordine: 4 },
+            { name: "Albire dentară", description: "Albire cu gel profesional", price_from: 800, price_to: 1200, duration_minutes: 60, organization_id: org.id, activ: true, ordine: 3 },
+            { name: "Plombare estetică", description: "Obturație compozit", price_from: 250, price_to: 500, duration_minutes: 40, organization_id: org.id, activ: true, ordine: 4 },
             { name: "Extracție dentară", description: "Extracție simplă sau chirurgicală", price_from: 200, price_to: 600, duration_minutes: 30, organization_id: org.id, activ: true, ordine: 5 },
             { name: "Implant dentar", description: "Implant din titan cu coroană ceramică", price_from: 2500, price_to: 4000, duration_minutes: 90, organization_id: org.id, activ: true, ordine: 6 },
           ]);
         }
 
-        // Documents
         const { data: existingDocs } = await sb.from("documents").select("id").eq("organization_id", org.id).limit(1);
         if (!existingDocs || existingDocs.length === 0) {
           await sb.from("documents").insert([
@@ -305,7 +529,6 @@ serve(async (req) => {
       // CONSTRUCTION vertical
       // ═══════════════════════════════════════
       else if (org.vertical_type === "construction") {
-        // Sites
         const { data: existingSites } = await sb.from("construction_sites").select("id").eq("organization_id", org.id);
         if (!existingSites || existingSites.length === 0) {
           await sb.from("construction_sites").insert([
@@ -314,7 +537,6 @@ serve(async (req) => {
           ]);
         }
 
-        // Teams
         const { data: existingTeams } = await sb.from("construction_teams").select("id").eq("organization_id", org.id);
         if (!existingTeams || existingTeams.length === 0) {
           await sb.from("construction_teams").insert([
@@ -324,7 +546,6 @@ serve(async (req) => {
           ]);
         }
 
-        // Tasks
         const { data: sites } = await sb.from("construction_sites").select("id").eq("organization_id", org.id).limit(1);
         if (sites && sites.length > 0) {
           const { data: existingTasks } = await sb.from("construction_tasks").select("id").eq("organization_id", org.id).limit(1);
@@ -339,7 +560,6 @@ serve(async (req) => {
           }
         }
 
-        // Inventory
         const { data: existingInv } = await sb.from("inventory_items").select("id").eq("organization_id", org.id).limit(1);
         if (!existingInv || existingInv.length === 0) {
           await sb.from("inventory_items").insert([
@@ -364,9 +584,7 @@ serve(async (req) => {
           for (let floor = 0; floor <= 8; floor++) {
             for (let apt = 1; apt <= 4; apt++) {
               apts.push({
-                organization_id: org.id,
-                apartment_number: `${floor}${apt}`,
-                floor,
+                organization_id: org.id, apartment_number: `${floor}${apt}`, floor,
                 owner_name: `${pickRandom(FIRST_NAMES_M)} ${pickRandom(LAST_NAMES)}`,
                 balance: Math.random() > 0.3 ? 0 : -(Math.floor(Math.random() * 500) + 100),
               });
@@ -375,21 +593,18 @@ serve(async (req) => {
           await sb.from("living_apartments").insert(apts);
         }
 
-        // Expenses
         const { data: existingExp } = await sb.from("living_expenses").select("id").eq("organization_id", org.id).limit(1);
         if (!existingExp || existingExp.length === 0) {
           const now = new Date();
-          const expenses = [
-            { category: "intretinere", amount: 12500, description: "Întreținere încălzire centrală", month: now.getMonth() + 1, year: now.getFullYear() },
-            { category: "intretinere", amount: 3200, description: "Apă rece + caldă", month: now.getMonth() + 1, year: now.getFullYear() },
-            { category: "reparatii", amount: 4800, description: "Reparație liftul Scara A", month: now.getMonth() + 1, year: now.getFullYear() },
-            { category: "fond_rulment", amount: 2000, description: "Fond rulment lunar", month: now.getMonth() + 1, year: now.getFullYear() },
-            { category: "intretinere", amount: 1500, description: "Gunoi + salubritate", month: now.getMonth() + 1, year: now.getFullYear() },
-          ];
-          await sb.from("living_expenses").insert(expenses.map(e => ({ ...e, organization_id: org.id })));
+          await sb.from("living_expenses").insert([
+            { category: "intretinere", amount: 12500, description: "Întreținere încălzire centrală", month: now.getMonth() + 1, year: now.getFullYear(), organization_id: org.id },
+            { category: "intretinere", amount: 3200, description: "Apă rece + caldă", month: now.getMonth() + 1, year: now.getFullYear(), organization_id: org.id },
+            { category: "reparatii", amount: 4800, description: "Reparație liftul Scara A", month: now.getMonth() + 1, year: now.getFullYear(), organization_id: org.id },
+            { category: "fond_rulment", amount: 2000, description: "Fond rulment lunar", month: now.getMonth() + 1, year: now.getFullYear(), organization_id: org.id },
+            { category: "intretinere", amount: 1500, description: "Gunoi + salubritate", month: now.getMonth() + 1, year: now.getFullYear(), organization_id: org.id },
+          ]);
         }
 
-        // Documents
         const { data: existingDocs } = await sb.from("documents").select("id").eq("organization_id", org.id).limit(1);
         if (!existingDocs || existingDocs.length === 0) {
           await sb.from("documents").insert([
@@ -408,20 +623,17 @@ serve(async (req) => {
         const { data: existingShows } = await sb.from("culture_shows").select("id").eq("organization_id", org.id).limit(1);
         if (!existingShows || existingShows.length === 0) {
           const shows = [
-            { title: "La Traviata", synopsis: "Opera în 3 acte de Giuseppe Verdi. Povestea tragică de dragoste a Violettei Valéry.", show_date: "2026-03-15", show_time: "19:00", duration_minutes: 150, acts: 3, language: "it", has_surtitles: true, status: "scheduled" },
+            { title: "La Traviata", synopsis: "Opera în 3 acte de Giuseppe Verdi.", show_date: "2026-03-15", show_time: "19:00", duration_minutes: 150, acts: 3, language: "it", has_surtitles: true, status: "scheduled" },
             { title: "Lacul Lebedelor", synopsis: "Baletul clasic de Ceaikovski în 4 acte.", show_date: "2026-03-20", show_time: "19:00", duration_minutes: 140, acts: 4, language: "ro", has_surtitles: false, status: "scheduled" },
             { title: "Carmen", synopsis: "Opera în 4 acte de Georges Bizet.", show_date: "2026-03-25", show_time: "19:00", duration_minutes: 165, acts: 4, language: "fr", has_surtitles: true, status: "scheduled" },
             { title: "Rigoletto", synopsis: "Opera în 3 acte de Giuseppe Verdi.", show_date: "2026-04-01", show_time: "19:00", duration_minutes: 135, acts: 3, language: "it", has_surtitles: true, status: "scheduled" },
           ];
           const { data: inserted } = await sb.from("culture_shows").insert(shows.map(s => ({ ...s, organization_id: org.id }))).select("id");
 
-          // Surtitle blocks for first show
           if (inserted && inserted.length > 0) {
             const blocks = Array.from({ length: 20 }, (_, i) => ({
-              show_id: inserted[0].id,
-              sequence_number: i + 1,
-              act_number: Math.floor(i / 7) + 1,
-              scene_number: (i % 7) + 1,
+              show_id: inserted[0].id, sequence_number: i + 1,
+              act_number: Math.floor(i / 7) + 1, scene_number: (i % 7) + 1,
               text_ro: `Bloc supra ${i + 1}: Text tradus în română pentru scena ${(i % 7) + 1}.`,
               text_en: `Block ${i + 1}: English translation for scene ${(i % 7) + 1}.`,
               text_fr: `Bloc ${i + 1}: Traduction française pour la scène ${(i % 7) + 1}.`,
@@ -430,7 +642,6 @@ serve(async (req) => {
           }
         }
 
-        // Documents
         const { data: existingDocs } = await sb.from("documents").select("id").eq("organization_id", org.id).limit(1);
         if (!existingDocs || existingDocs.length === 0) {
           await sb.from("documents").insert([
@@ -443,7 +654,7 @@ serve(async (req) => {
       }
 
       // ═══════════════════════════════════════
-      // WORKSHOPS vertical (auto service)
+      // WORKSHOPS vertical
       // ═══════════════════════════════════════
       else if (org.vertical_type === "workshops") {
         const { data: existingInv } = await sb.from("inventory_items").select("id").eq("organization_id", org.id).limit(1);
@@ -454,17 +665,13 @@ serve(async (req) => {
             { organization_id: org.id, nume: "Plăcuțe frână față", categorie: "piese", cantitate: 12, unitate: "set", pret_unitar: 180, locatie: "Raft B1" },
             { organization_id: org.id, nume: "Bujii NGK", categorie: "piese", cantitate: 40, unitate: "buc", pret_unitar: 25, locatie: "Raft B2" },
             { organization_id: org.id, nume: "Antigel G12", categorie: "consumabile", cantitate: 20, unitate: "litri", pret_unitar: 45, locatie: "Raft A3" },
-            { organization_id: org.id, nume: "Curea distribuție", categorie: "piese", cantitate: 8, unitate: "buc", pret_unitar: 220, locatie: "Raft C1" },
-            { organization_id: org.id, nume: "Disc frână spate", categorie: "piese", cantitate: 6, unitate: "buc", pret_unitar: 150, locatie: "Raft B3" },
           ]);
         }
 
-        // Documents
         const { data: existingDocs } = await sb.from("documents").select("id").eq("organization_id", org.id).limit(1);
         if (!existingDocs || existingDocs.length === 0) {
           await sb.from("documents").insert([
             { organization_id: org.id, group_id: groups[0].id, nume_fisier: "Prețuri_manoperă_2026.pdf", tip_fisier: "pdf", categorie: "administrativ", url: "https://example.com/preturi-service.pdf", marime: 88000, uploadat_de_nume: "Marian Popescu" },
-            { organization_id: org.id, group_id: groups[0].id, nume_fisier: "Atelier_foto.jpg", tip_fisier: "jpg", categorie: "fotografii", url: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=400", marime: 380000, uploadat_de_nume: "Marian Popescu" },
           ]);
         }
 
@@ -475,13 +682,11 @@ serve(async (req) => {
       // STUDENTS vertical
       // ═══════════════════════════════════════
       else if (org.vertical_type === "students") {
-        // Documents
         const { data: existingDocs } = await sb.from("documents").select("id").eq("organization_id", org.id).limit(1);
         if (!existingDocs || existingDocs.length === 0) {
           await sb.from("documents").insert([
             { organization_id: org.id, group_id: groups[0].id, nume_fisier: "Calendar_sesiune_vara.pdf", tip_fisier: "pdf", categorie: "administrativ", url: "https://example.com/sesiune.pdf", marime: 156000, uploadat_de_nume: "Secretariat" },
             { organization_id: org.id, group_id: groups[0].id, nume_fisier: "Catalog_cursuri_opționale.pdf", tip_fisier: "pdf", categorie: "administrativ", url: "https://example.com/optionale.pdf", marime: 210000, uploadat_de_nume: "Decanat" },
-            { organization_id: org.id, group_id: groups[0].id, nume_fisier: "Campus_foto.jpg", tip_fisier: "jpg", categorie: "fotografii", url: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400", marime: 420000, uploadat_de_nume: "Comunicare" },
           ]);
         }
 
@@ -493,17 +698,15 @@ serve(async (req) => {
       }
 
       // ═══════════════════════════════════════
-      // Common: Announcements (ensure at least 2 per org)
+      // Common: Announcements
       // ═══════════════════════════════════════
       const { data: existingAnn } = await sb.from("announcements").select("id").eq("organization_id", org.id);
       if (!existingAnn || existingAnn.length < 2) {
-        const announcements = [
-          { titlu: "Bine ați venit!", continut: `Bine ați venit la ${org.name}! Aceasta este platforma digitală pentru comunicare și management.`, prioritate: "normal", target: "scoala", autor_nume: "Sistem" },
-          { titlu: "Program actualizat", continut: "Programul de funcționare a fost actualizat. Verificați secțiunea dedicată pentru detalii.", prioritate: "normal", target: "scoala", autor_nume: "Administrație" },
-        ];
-        for (const ann of announcements) {
-          await sb.from("announcements").upsert({ ...ann, organization_id: org.id }, { onConflict: "id" });
-        }
+        await sb.from("announcements").insert([
+          { titlu: "Bine ați venit!", continut: `Bine ați venit la ${org.name}! Aceasta este platforma digitală.`, prioritate: "normal", target: "scoala", autor_nume: "Sistem", organization_id: org.id },
+          { titlu: "Program actualizat", continut: "Programul de funcționare a fost actualizat. Verificați secțiunea dedicată.", prioritate: "normal", target: "scoala", autor_nume: "Administrație", organization_id: org.id },
+          { titlu: "Anunț important", continut: "Vă reamintim că termenul limită pentru documente este vineri.", prioritate: "urgent", target: "scoala", autor_nume: "Director", organization_id: org.id },
+        ]);
       }
 
       // Infodisplay panels
