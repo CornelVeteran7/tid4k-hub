@@ -186,7 +186,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.97 }}
                 transition={{ type: 'spring', damping: 22, stiffness: 300, delay: i * 0.03 }}
-                className={mod.wide ? 'lg:col-span-2' : ''}
+                className={mod.wide && !desktopSingleColumn ? 'lg:col-span-2' : ''}
               >
                 {openModule !== mod.key && (
                   <ModuleCard
