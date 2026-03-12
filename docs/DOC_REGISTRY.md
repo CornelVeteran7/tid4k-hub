@@ -1,11 +1,14 @@
 # Documentation Auto-Update Registry
 
+> Last updated: 2026-03-13
+>
 > This file tracks which doc files need updating when specific source files change.
 
 ## Registry
 
 | Doc File | Trigger Files | Description |
 |----------|--------------|-------------|
+| `.github/workflows/protectie-api.yml` | `src/api/*.ts`, `src/contexts/AuthContext.tsx` | **ALERTA AUTOMATA** - creeaza Issue pe GitHub |
 | `docs/APP_OVERVIEW.md` | `src/App.tsx`, `src/config/verticalConfig.ts`, `package.json` | Architecture, verticals, tech stack |
 | `docs/PAGES.md` | `src/pages/*.tsx`, `src/App.tsx` | All page routes and features |
 | `docs/API.md` | `src/api/*.ts` | API function signatures and behavior |

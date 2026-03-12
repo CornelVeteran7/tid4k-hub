@@ -1,8 +1,32 @@
 # Database Schema Reference
 
-> Last updated: 2026-03-10
+> Last updated: 2026-03-13
 
-All tables are in Supabase PostgreSQL. Full types in `src/integrations/supabase/types.ts`.
+## Productie: MariaDB pe tid4kdemo.ro
+
+Baza de date reala este MariaDB, accesibila prin PHP endpoints.
+Interogari directe: `https://tid4kdemo.ro/claude_se_conecteaza_la_BD.php?sql=...`
+
+### Tabele principale TID4K
+
+| Tabel | Scop | Coloane cheie |
+|-------|------|---------------|
+| `utilizatori` | Utilizatori | `id_utilizator, nume_prenume, telefon, status, id_cookie, temp_path` |
+| `asociere_multipla` | Asociere utilizator-grupa | `id_utilizator, grupa_clasa_copil, index_grupa_clasa_curenta` |
+| `copii` | Copii (pentru parinti) | `id_utilizator, grupa_clasa_copil, nume_copil` |
+| `informatii_{grupa}` | Fisiere per grupa (dinamic!) | `id_info, id_utilizator, nume_fisier, extensie, tip_fisier, continut (BLOB), thumbnail (BLOB), data_upload` |
+| `informatii_meniul` | Meniuri saptamanale | `continut_html, data_expirare, denumire_meniu` |
+| `mesaje` | Mesaje intre utilizatori | `id_utilizator_expeditor, id_utilizator_destinatar, mesaj, data` |
+
+**IMPORTANT**: Tabelele `informatii_{grupa}` sunt create dinamic per grupa (ex: `informatii_grupa_mica_A`, `informatii_clasa_I`). Numele tabelei = "informatii_" + grupa cu spatii inlocuite cu underscore.
+
+---
+
+## Viitor: Supabase PostgreSQL
+
+Tipuri Supabase in `src/integrations/supabase/types.ts` (planificat pentru migrare).
+
+### Tabele Supabase (planificate)
 
 ## Core Tables
 

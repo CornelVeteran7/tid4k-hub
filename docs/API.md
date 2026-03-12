@@ -1,96 +1,108 @@
 # API Layer Reference
 
-> Last updated: 2026-03-10
+> Last updated: 2026-03-12
 
-All API functions are in `src/api/`. They wrap Supabase client calls and return typed data.
+## Arhitectura API (Dual Mode)
+
+Aplicatia functioneaza in **doua moduri**:
+
+### Modul TID4K Backend (PRODUCTIE - tid4kdemo.ro)
+Toate API-urile din `src/api/` comunica cu backend-ul PHP real prin **`api_gateway.php`** via `tid4kClient.ts`.
+
+**Flux:** React → `tid4kClient.call(action, params)` → `api_gateway.php` → endpoint PHP → MariaDB
+
+### Modul Supabase (VIITOR - planificat)
+Endpoint-urile vor migra treptat la Supabase. Pana atunci, Supabase NU este folosit in productie.
+
+---
+
+## Client HTTP Central: `tid4kClient.ts`
+
+**FISIER PROTEJAT** - nu modifica din Lovable!
+
+- Singleton `tid4kApi` partajat in toata aplicatia
+- Trimite `X-TID4K-Session` header din localStorage
+- Trimite `X-TID4K-API-Key` pentru autentificare gateway
+- Fallback: daca gateway-ul nu raspunde, apeleaza endpoint-ul direct
+- Metode: `call(action, params)`, `autentificareTelefon(telefon)`, `verificaSesiune()`
+
+### `config.ts` — Configurare API
+- `API_BASE_URL` — auto-detectie server pe baza hostname-ului
+- `API_KEY` — cheie API pentru gateway
+- `GATEWAY_PATH` — calea catre `api_gateway.php`
+- `USE_TID4K_BACKEND = true` — flag pentru modul TID4K
 
 ## Core APIs
 
-### `auth.ts` — Authentication
-- `login(email, password)` — Supabase signInWithPassword
-- `signUp(email, password, fullName)` — Supabase signUp + profile creation
-- `loginWithGoogle()` — Supabase signInWithOAuth (Google)
-- `logout()` — Supabase signOut
-- `getProfile(userId)` — Fetch profile + organization data
+### `auth.ts` — Autentificare
+- `autentificareTelefon(telefon)` — Login prin numar telefon via `api_auth.php`
+- Superuser Inky: telefon `1313131313`, afisaj "Inky"
+- Sesiunea salvata in localStorage ca `tid4k_session` (valoarea `id_cookie`)
 
-### `orgConfig.ts` — Organization Config (Key-Value Store)
-- `getOrgConfig(orgId)` — All config rows for org
-- `getOrgConfigByKey(orgId, key)` — Single config value
-- `upsertOrgConfig(orgId, key, value)` — Upsert with conflict on `(organization_id, config_key)`
-- `updateOrganization(id, data)` — Update org table
-- `getOrganization(id)` — Fetch single org
-
-### `config.ts` — App Configuration
-- API base URL and common config constants
-
-## Content APIs
+## Content APIs (conectate la TID4K backend)
 
 ### `announcements.ts`
-- `getAnnouncements(groupId?)` — Fetch with optional group filter
-- `createAnnouncement(data)` — Insert new announcement
-- `hideFromTicker(id)` / `restoreToTicker(id)` — Toggle ticker visibility
-- `markAsRead(id)` — Insert into `announcement_reads`
+- `getAnnouncements()` — Fetch via `fetch_anunturi` endpoint
+- Mapare campuri: `text_preview`, `text_complet`, `imagine`, `continut_html`
 
 ### `attendance.ts`
-- `getWeeklyAttendance(groupId, weekStart)` — Weekly attendance grid data
-- `saveWeeklyAttendance(groupId, data)` — Upsert attendance records
-- `getParentChildAttendance(parentId, month, year)` — Parent view
-- `getAttendanceStats(groupId, month, year)` — Monthly statistics
-- `getContributions(groupId, month, year)` — Monthly contribution calculations
-- `getContributionConfig(orgId)` — Daily rate config
-- `saveContributionConfig(orgId, rate)` — Update daily rate
-- `saveMonthlyContributions(data)` — Bulk upsert contributions
-- `updateContributionPayment(id, amount, status)` — Mark as paid
-
-### `children.ts`
-- `getChildrenByGroup(groupId)` — List children in group
-- `addChild(data)` / `updateChild(id, data)` / `deleteChild(id)`
+- `getWeeklyAttendance(grupa)` — via `fetch_prezenta_saptamana`
+- `saveWeeklyAttendance(grupa, data)` — via `salveaza_prezenta_saptamana`
+- `getAttendanceStats(grupa)` — via `fetch_prezenta_stats`
 
 ### `documents.ts`
-- `getDocuments(groupId, category?)` — List with optional filter
-- `uploadDocument(file, groupId, category)` — Upload to Supabase Storage + insert record
-- `deleteDocument(id)` — Delete from storage + table
+- `getDocuments(grupa)` — Combina `fetch_iframes` (PDF) + `fetch_images` in paralel
+- Trimite parametrul `grupa` pentru a selecta tabela corecta
+- Construieste URL-uri via `serve_fisier_hub.php?id=X&grupa=Y`
+- Thumbnails: `&thumb=1` (imagini din BD, PDF-uri generate cu Imagick)
+- `uploadDocument(grupa, file, categorie)` — Upload via `upload_fisier_hub.php`
+- `deleteDocument(id)` — De implementat
 
-### `menu.ts` — Legacy Menu
-- `getMenu(week)` — Weekly menu items
-- `saveMenu(week, items)` — Save menu items
-
-### `menuOms.ts` — OMS-Compliant Menu System
-- `getMenuWeek(orgId, weekStart)` — Full week with meals, dishes, ingredients
-- `ensureMenuWeek(orgId, weekStart, ageGroup?)` — Create week if not exists
-- `addDish(mealId, name)` / `deleteDish(dishId)` / `updateDishName(dishId, name)`
-- `addIngredient(dishId, name, grams, refId?)` / `updateIngredient()` / `deleteIngredient()`
-- `getNutritionalReference()` — Reference ingredient database
-- `computeDayNutrition(meals)` — Calculate daily nutritional values
-- `getCalorieStatus(kcal, ageGroup)` — Green/yellow/red status
-- `checkBannedIngredients(ingredients)` — Check against banned list
-- `publishMenu(weekId)` / `unpublishMenu(weekId)`
-- `updateAgeGroup(weekId, ageGroup)` — Set target age group
+### `menu.ts` — Meniu Saptamanal
+- `getMenuSaptamana(saptamana, an)` — via `fetch_meniuri`
+- `getMenuTabs()` — via `fetch_meniuri` cu `lista_meniuri`
+- `saveMenu(data)` — via `salveaza_meniuHTML`
 
 ### `messages.ts`
-- `getConversations(userId)` — List conversations with last message
-- `getMessages(conversationId)` — Messages in conversation
-- `sendMessage(conversationId, senderId, text)` — Insert + realtime
+- `getMessages()` — via `fetch_mesaje` (necesita sesiune)
 
 ### `schedule.ts`
-- `getSchedule(groupId)` — Schedule cells for group
-- `saveSchedule(groupId, cells)` — Upsert all cells
-
-### `schools.ts`
-- `getSchools()` — All schools/entities for org
-- `createSchool(data)` / `updateSchool(id, data)` / `deleteSchool(id)`
+- `getSchedule()` — via `fetch_orar`
+- `saveSchedule(data)` — via `salveaza_orar`
+- `getCancelarie()` — via `fetch_cancelarie`
 
 ### `stories.ts`
-- `getStories()` — All stories
-- `createStory(data)` — Insert new story
+- `getStories()` — via `fetch_povesti`
+- `saveStory(data)` — via `salveaza_poveste`
 
-### `reports.ts`
-- `getAttendanceReport(groupId?, startDate, endDate)` — Aggregate report data
+## Endpoint-uri PHP pe Server (nu in repo)
 
-### `users.ts`
-- `getUsers(groupId?)` — Profiles with optional group filter
-- `updateUser(id, data)` — Update profile
-- `deleteUser(id)` — Delete profile
+Fisierele PHP sunt pe serverul tid4kdemo.ro, NU in repo-ul React:
+
+| Endpoint | Fisier pe server | Descriere |
+|----------|-----------------|-----------|
+| Gateway | `pages/api_gateway.php` | Rutare centrala, session bridge |
+| Auth | `pages/api_auth.php` | Login telefon, verificare sesiune |
+| Imagini | `pages/fetch_images.php` | Imagini din `informatii_{grupa}` |
+| PDF-uri | `pages/fetch_iframes.php` | Documente PDF din `informatii_{grupa}` |
+| Servire fisier | `pages/serve_fisier_hub.php` | Serveste BLOB din BD |
+| Thumbnail PDF | `pages/genereaza_thumbnail_hub.php` | Genereaza PNG din prima pagina PDF (Imagick) |
+| Upload | `pages/upload_fisier_hub.php` | Upload fisier pe disc + BD |
+| Anunturi | `pages/fetch_anunturi.php` | Anunturi per grupa |
+| Meniu | `pages/fetch_meniuri.php` | Meniu saptamanal |
+| Mesaje | `pages/fetch_mesaje.php` | Mesaje utilizator |
+| Prezenta | `pages/fetch_prezenta_saptamana.php` | Prezenta saptamanala |
+| Orar | `pages/fetch_orar.php` | Orar clasa/grupa |
+
+## Gateway Session Bridge
+
+`api_gateway.php` initializeaza `$_SESSION` din header-ul `X-TID4K-Session`:
+1. Cauta utilizatorul in `utilizatori` dupa `id_cookie`
+2. Seteaza `$_SESSION[id_utilizator]`, `$_SESSION[status]`, `$_SESSION[id_cookie]`, `$_SESSION[nume_prenume_curent]`
+3. Seteaza `$_SESSION[grupa_clasa_copil]` si `$_SESSION[grupa_clasa_copil_]`
+4. Daca request-ul contine `params.grupa`, suprascrie grupa din sesiune
+5. Status compus (ex: "profesor,director,administrator") → se foloseste "director" (vizibilitate maxima)
+6. Constanta `TID4K_GATEWAY_MODE` permite endpoint-urilor sa sara peste re-initializarea sesiunii
 
 ## Domain-Specific APIs
 

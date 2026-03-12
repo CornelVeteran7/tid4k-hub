@@ -1,73 +1,68 @@
-# Welcome to your Lovable project
+# TID4K Hub — Interfata React pentru Talk to Infodisplay
 
-## Project info
+## Despre proiect
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Interfata moderna React/TypeScript care inlocuieste interfata PHP veche de pe tid4kdemo.ro.
+Backend-ul PHP + MariaDB ramane acelasi, React-ul comunica prin `api_gateway.php`.
 
-## How can I edit this code?
+**Productie**: https://tid4kdemo.ro/app/
+**Lovable**: Design si prototipare UI
 
-There are several ways of editing your application.
+## Arhitectura
 
-**Use Lovable**
+```
+React (tid4k-hub)  →  api_gateway.php  →  endpoint-uri PHP  →  MariaDB
+     |                      |
+ tid4kClient.ts      session bridge
+ X-TID4K-Session     (id_cookie → $_SESSION)
+```
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Fisiere protejate (NU modifica din Lovable!)
 
-Changes made via Lovable will be committed automatically to this repo.
+Aceste fisiere contin logica de conectare la backend-ul real:
 
-**Use your preferred IDE**
+| Fisier | Rol |
+|--------|-----|
+| `src/api/tid4kClient.ts` | Client HTTP central |
+| `src/api/config.ts` | Configurare API, auto-detectie server |
+| `src/api/documents.ts` | Documente + imagini din BD |
+| `src/api/announcements.ts` | Anunturi |
+| `src/api/attendance.ts` | Prezenta |
+| `src/api/menu.ts` | Meniu saptamanal |
+| `src/api/messages.ts` | Mesaje |
+| `src/api/schedule.ts` | Orar |
+| `src/api/stories.ts` | Povesti |
+| `src/api/auth.ts` | Autentificare |
+| `src/contexts/AuthContext.tsx` | Sesiune utilizator |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+**GitHub Action**: Orice modificare a acestor fisiere creeaza automat un Issue de alerta.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Zone libere pentru design (Lovable)
 
-Follow these steps:
+- `src/components/` — componente UI, design, layout
+- `src/pages/` — partea de JSX/CSS (nu logica API)
+- `src/styles/` — stiluri
+- `public/` — assets, imagini
+
+## Dezvoltare locala
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone git@github.com:CornelVeteran7/tid4k-hub.git
+cd tid4k-hub
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Deploy pe tid4kdemo.ro
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+npm run build
+# Upload dist/ pe server via FTP la /public_html/app/
+```
 
-**Use GitHub Codespaces**
+## Tehnologii
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Vite + React 18 + TypeScript
+- shadcn/ui + Tailwind CSS
+- PWA (vite-plugin-pwa)
+- Backend: PHP 8.1 + MariaDB (existent)

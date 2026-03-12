@@ -1,6 +1,6 @@
 # Infodisplay Platform — App Overview
 
-> Last updated: 2026-03-10
+> Last updated: 2026-03-13
 
 ## What is this?
 
@@ -9,8 +9,10 @@ A **multi-vertical white-label SaaS platform** for digital signage, communicatio
 ## Tech Stack
 
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui
-- **Backend**: Supabase (PostgreSQL + Auth + Storage + Edge Functions + Realtime)
-- **State**: React Query, React Context (Auth, Group, Notifications, ExternalLink, ModuleConfig)
+- **Backend PRODUCTIE**: PHP 8.1 + MariaDB pe tid4kdemo.ro (via `api_gateway.php`)
+- **Backend VIITOR**: Supabase (PostgreSQL + Auth + Storage + Edge Functions + Realtime)
+- **API Client**: `tid4kClient.ts` — HTTP client central care comunica cu gateway-ul PHP
+- **State**: React Context (Auth, Group, Notifications, ExternalLink, ModuleConfig)
 - **Routing**: react-router-dom v6
 - **Charts**: Recharts
 - **Animations**: Framer Motion
@@ -35,7 +37,7 @@ A **multi-vertical white-label SaaS platform** for digital signage, communicatio
 
 ```
 src/
-├── api/           # Supabase data access layer (one file per domain)
+├── api/           # TID4K backend API layer (PROTEJAT - vezi .github/CODEOWNERS)
 ├── components/    # Reusable UI components
 │   ├── admin/     # Admin panel tab components
 │   ├── dashboard/ # Dashboard widgets
@@ -55,11 +57,12 @@ src/
 
 ## Authentication & Roles
 
-- **Supabase Auth** with email/password + Google OAuth
-- Roles stored as CSV in `profiles.status` field: `"profesor,director"`, `"parinte"`, `"administrator"`
-- Role hierarchy: `inky` (superuser) > `administrator`/`director` > `profesor` > `parinte`
+- **Productie**: Autentificare prin numar telefon via `api_auth.php` → `id_cookie` salvat in localStorage
+- **Viitor**: Supabase Auth cu email/password + Google OAuth
+- Roles stored as CSV in `utilizatori.status`: `"profesor,director,administrator"`, `"parinte"`
+- Role hierarchy: `inky` (superuser, tel 1313131313) > `administrator`/`director` > `profesor` > `parinte`
 - Guest access via daily-rotating QR tokens (no auth session)
-- Demo mode: localStorage-based mock user, no Supabase calls
+- Demo mode: localStorage-based mock user, date simulate
 
 ## Multi-tenancy
 

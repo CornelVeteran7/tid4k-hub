@@ -1,6 +1,6 @@
 # Contexts & State Management
 
-> Last updated: 2026-03-10
+> Last updated: 2026-03-13
 
 ## Provider Tree
 
@@ -28,11 +28,12 @@ QueryClientProvider (React Query)
 - `isDemo: boolean` — True when using demo mode
 
 **Key Behaviors**:
-1. On mount: checks Supabase session, loads profile if exists
-2. On login: fetches profile → org → groups → builds UserSession
-3. Applies `loadAndApplyBranding()` with org colors + vertical theme
-4. Demo mode: no Supabase calls, mock data from `demoEnvironments.ts`
-5. Listens to `onAuthStateChange` for session refresh/logout
+1. On mount: verifica sesiunea TID4K din localStorage (`tid4k_session`)
+2. On login: `tid4kApi.autentificareTelefon(telefon)` → seteaza sesiunea → builds UserSession
+3. Grupele vin din `toate_grupele_clase` (array din raspunsul auth)
+4. Applies `loadAndApplyBranding()` with org colors + vertical theme
+5. Demo mode: date simulate din `demoEnvironments.ts`, fara apeluri server
+6. **FISIER PROTEJAT** - `AuthContext.tsx` contine logica critica de sesiune TID4K
 
 ## GroupContext (`src/contexts/GroupContext.tsx`)
 
