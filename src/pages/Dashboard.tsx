@@ -237,7 +237,7 @@ const docCategoryData = [
 
 function DashboardCharts({ chartLabel }: { chartLabel: string }) {
   return (
-    <div className="hidden lg:flex flex-col gap-5">
+    <div className="flex flex-col gap-5">
       {/* Attendance trends */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
