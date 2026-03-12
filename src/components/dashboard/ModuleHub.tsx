@@ -221,7 +221,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ type: 'spring', damping: 22, stiffness: 300, delay: 0.15 }}
-                  className="lg:col-span-2"
+                  className={desktopSingleColumn ? '' : 'lg:col-span-2'}
                 >
                   <SponsorCard />
                 </motion.div>
