@@ -424,88 +424,119 @@ export default function Dashboard() {
   return (
     <div className="relative isolate min-w-0 pb-32">
       <BackgroundShapes />
-      {/* Desktop: 2-column layout — welcome + children on left, modules on right */}
-      <div className="relative z-10 lg:grid lg:grid-cols-[1fr_1.2fr] lg:gap-6 lg:items-start space-y-5 lg:space-y-0">
-        {/* Left column: Welcome + Children */}
-        <div className="space-y-5">
-          {/* Compact welcome banner with stats */}
-          <motion.div
-            data-tutorial="welcome-card"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="rounded-2xl overflow-hidden border border-white/30 shadow-lg"
-            style={{
-              background: 'rgba(255,255,255,0.45)',
-              backdropFilter: 'blur(24px) saturate(1.8)',
-              WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
-            }}
-          >
-            {/* Card title: Rezumatul zilei */}
-            <div className="hidden lg:flex items-center justify-between px-5 pt-4 pb-2">
-              <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-1.5">
-                <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                Rezumatul zilei
-              </h3>
-              <span className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
-                <Clock className="h-2.5 w-2.5" />
-                Acum 5 min
-              </span>
+
+      {/* Mobile: stacked layout */}
+      <div className="relative z-10 space-y-5 lg:hidden">
+        {/* Welcome banner */}
+        <motion.div
+          data-tutorial="welcome-card"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="rounded-2xl overflow-hidden border border-white/30 shadow-lg"
+          style={{
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(24px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+          }}
+        >
+          <div className="p-5">
+            <h1 className="text-xl font-display font-bold text-foreground truncate">
+              Bun venit, {user.nume_prenume.split(' ')[0]}! 👋
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Rezumatul zilei{currentGroup ? ` · ${currentGroup.nume}` : ''}
+            </p>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {roles.map(r => (
+                <Badge key={r} variant="secondary" className="bg-foreground/10 text-foreground/80 border-0 text-xs backdrop-blur-sm">
+                  {getVerticalRoleLabel(r, verticalType)}
+                </Badge>
+              ))}
             </div>
+            <QuickStatsRow config={config} onPrezentaClick={() => setShowAttendanceGrid(true)} attendanceLabel={attendanceLabel} />
+          </div>
+        </motion.div>
 
-            <div className="p-5 lg:pt-0">
-              {/* Mobile only: show name + rezumatul zilei */}
-              <h1 className="text-xl font-display font-bold text-foreground truncate lg:hidden">
-                Bun venit, {user.nume_prenume.split(' ')[0]}! 👋
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5 lg:hidden">
-                Rezumatul zilei{currentGroup ? ` · ${currentGroup.nume}` : ''}
-              </p>
-              {/* Desktop: show group info more prominently */}
-              <h1 className="hidden lg:block text-lg font-display font-bold text-foreground truncate">
-                {currentGroup?.nume || 'Dashboard'}
-              </h1>
-              <p className="hidden lg:block text-muted-foreground text-sm mt-0.5">
-                {currentGroup ? `${verticalDef.entityLabel}` : `Selectează ${verticalDef.entityLabel.toLowerCase()}`}
-              </p>
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {roles.map(r => (
-                  <Badge key={r} variant="secondary" className="bg-foreground/10 text-foreground/80 border-0 text-xs backdrop-blur-sm">
-                    {getVerticalRoleLabel(r, verticalType)}
-                  </Badge>
-                ))}
-              </div>
+        {/* Module cards */}
+        <div data-tutorial="module-hub">
+          <ModuleHub
+            visibility={visibility}
+            searchQuery={searchQuery}
+            editMode={editMode}
+            onToggle={handleToggle}
+            moduleOrder={moduleOrder}
+            onReorder={(order) => { setModuleOrder(order); saveModuleOrder(order); }}
+            verticalModules={verticalDef.defaultModules}
+            cardVariant={verticalDef.cardVariant}
+          />
+        </div>
+      </div>
 
-              {/* Quick stats row */}
-              <QuickStatsRow config={config} onPrezentaClick={() => setShowAttendanceGrid(true)} attendanceLabel={attendanceLabel} />
-
-              {/* Desktop: Rezumatul zilei details */}
-              <DesktopSummary config={config} verticalType={verticalType} />
+      {/* Desktop: 3-column grid layout */}
+      <div className="relative z-10 hidden lg:grid lg:grid-cols-3 lg:gap-5 lg:items-start">
+        {/* Welcome card — spans 2 columns */}
+        <motion.div
+          data-tutorial="welcome-card"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="lg:col-span-2 rounded-2xl overflow-hidden border border-white/30 shadow-lg"
+          style={{
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(24px) saturate(1.8)',
+            WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.08)',
+          }}
+        >
+          <div className="flex items-center justify-between px-5 pt-4 pb-2">
+            <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-1.5">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              Rezumatul zilei
+            </h3>
+            <span className="flex items-center gap-1 text-[10px] text-muted-foreground/60">
+              <Clock className="h-2.5 w-2.5" />
+              Acum 5 min
+            </span>
+          </div>
+          <div className="p-5 pt-0">
+            <h1 className="text-lg font-display font-bold text-foreground truncate">
+              {currentGroup?.nume || 'Dashboard'}
+            </h1>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              {currentGroup ? `${verticalDef.entityLabel}` : `Selectează ${verticalDef.entityLabel.toLowerCase()}`}
+            </p>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {roles.map(r => (
+                <Badge key={r} variant="secondary" className="bg-foreground/10 text-foreground/80 border-0 text-xs backdrop-blur-sm">
+                  {getVerticalRoleLabel(r, verticalType)}
+                </Badge>
+              ))}
             </div>
-          </motion.div>
+            <QuickStatsRow config={config} onPrezentaClick={() => setShowAttendanceGrid(true)} attendanceLabel={attendanceLabel} />
+            <DesktopSummary config={config} verticalType={verticalType} />
+          </div>
+        </motion.div>
 
-          {/* Desktop-only: Charts */}
-          <DashboardCharts chartLabel={verticalDef.summaryLabels.attendanceLabel} />
-
+        {/* Module cards — single column on the right, all rows */}
+        <div className="lg:row-span-3 space-y-3" data-tutorial="module-hub">
+          <ModuleHub
+            visibility={visibility}
+            searchQuery={searchQuery}
+            editMode={editMode}
+            onToggle={handleToggle}
+            moduleOrder={moduleOrder}
+            onReorder={(order) => { setModuleOrder(order); saveModuleOrder(order); }}
+            verticalModules={verticalDef.defaultModules}
+            cardVariant={verticalDef.cardVariant}
+            desktopSingleColumn
+          />
         </div>
 
-        {/* Right column: Module cards */}
-        <div className="space-y-3">
-          {/* Module card stack */}
-          <div data-tutorial="module-hub">
-            <ModuleHub
-              visibility={visibility}
-              searchQuery={searchQuery}
-              editMode={editMode}
-              onToggle={handleToggle}
-              moduleOrder={moduleOrder}
-              onReorder={(order) => { setModuleOrder(order); saveModuleOrder(order); }}
-              verticalModules={verticalDef.defaultModules}
-              cardVariant={verticalDef.cardVariant}
-            />
-          </div>
-
+        {/* Charts — span 2 columns below welcome */}
+        <div className="lg:col-span-2">
+          <DashboardCharts chartLabel={verticalDef.summaryLabels.attendanceLabel} />
         </div>
       </div>
 
