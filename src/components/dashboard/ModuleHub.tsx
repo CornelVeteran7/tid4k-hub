@@ -99,9 +99,10 @@ interface ModuleHubProps {
   onReorder?: (order: string[]) => void;
   verticalModules?: string[];
   cardVariant?: 'solid' | 'glass';
+  desktopSingleColumn?: boolean;
 }
 
-export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules, cardVariant = 'solid' }: ModuleHubProps) {
+export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules, cardVariant = 'solid', desktopSingleColumn = false }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<ExternalWorkshop | null>(null);
