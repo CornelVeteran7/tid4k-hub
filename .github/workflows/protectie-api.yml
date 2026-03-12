@@ -1,0 +1,81 @@
+name: Protectie fisiere API backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/api/**'
+      - 'src/contexts/AuthContext.tsx'
+
+jobs:
+  verifica-modificari:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detecteaza fisiere API modificate
+        id: check
+        run: |
+          # Lista fisierelor protejate modificate in ultimul commit
+          MODIFIED=$(git diff --name-only HEAD~1 HEAD -- \
+            'src/api/tid4kClient.ts' \
+            'src/api/config.ts' \
+            'src/api/documents.ts' \
+            'src/api/announcements.ts' \
+            'src/api/attendance.ts' \
+            'src/api/auth.ts' \
+            'src/api/menu.ts' \
+            'src/api/messages.ts' \
+            'src/api/schedule.ts' \
+            'src/api/stories.ts' \
+            'src/contexts/AuthContext.tsx')
+
+          if [ -n "$MODIFIED" ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "files<<EOF" >> $GITHUB_OUTPUT
+            echo "$MODIFIED" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+
+            AUTHOR=$(git log -1 --format='%an <%ae>')
+            echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+
+            COMMIT=$(git log -1 --format='%H')
+            echo "commit=$COMMIT" >> $GITHUB_OUTPUT
+
+            MSG=$(git log -1 --format='%s')
+            echo "message=$MSG" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Creeaza Issue de alerta
+        if: steps.check.outputs.found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = `${{ steps.check.outputs.files }}`;
+            const author = `${{ steps.check.outputs.author }}`;
+            const commit = `${{ steps.check.outputs.commit }}`;
+            const message = `${{ steps.check.outputs.message }}`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `⚠️ ALERTA: Fisiere API backend modificate`,
+              body: `## Fisiere protejate au fost modificate!\n\n` +
+                `**Autor commit:** ${author}\n` +
+                `**Commit:** ${commit}\n` +
+                `**Mesaj:** ${message}\n\n` +
+                `### Fisiere modificate:\n` +
+                files.split('\n').filter(f => f).map(f => `- \`${f}\``).join('\n') + '\n\n' +
+                `### De ce e important?\n` +
+                `Aceste fisiere contin logica de conectare la backend-ul PHP real (tid4kdemo.ro).\n` +
+                `Modificarile din Lovable pot suprascrie integrarea cu serverul real.\n\n` +
+                `### Ce trebuie facut:\n` +
+                `1. Verificati daca modificarile sunt intentionate\n` +
+                `2. Daca vin din Lovable (design/UI) si au suprascris logica API → revert necesitar\n` +
+                `3. Contactati @CornelVeteran7 pentru validare\n`,
+              labels: ['alerta-api', 'urgent']
+            });

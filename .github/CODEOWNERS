@@ -1,0 +1,10 @@
+# Fisiere API backend - conectate la serverul real tid4kdemo.ro
+# Orice modificare necesita review de la Cornel
+src/api/                    @CornelVeteran7
+src/contexts/AuthContext.tsx @CornelVeteran7
+
+# David (Lovable) lucreaza liber pe:
+# src/components/  - componente UI, design
+# src/pages/       - layout si JSX (nu logica de date)
+# src/styles/      - stiluri
+# public/          - assets
