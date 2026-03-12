@@ -1,98 +1,85 @@
-import { supabase } from '@/integrations/supabase/client';
+/**
+ * API Anunturi - conectat la TID4K backend
+ *
+ * Endpoint-uri: fetch_anunturi, salveaza_anuntul
+ */
+
+import { tid4kApi } from './tid4kClient';
+import { USE_TID4K_BACKEND } from './config';
 import type { Announcement } from '@/types';
 
-async function getUserOrgId(): Promise<string | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data: profile } = await supabase.from('profiles').select('organization_id').eq('id', user.id).single();
-  return profile?.organization_id || null;
-}
-
 export async function getAnnouncements(grupa?: string): Promise<Announcement[]> {
-  const { data: { user } } = await supabase.auth.getUser();
-  const orgId = await getUserOrgId();
+  if (!USE_TID4K_BACKEND) return [];
 
-  let query = supabase.from('announcements').select('*').order('created_at', { ascending: false });
-  if (orgId) {
-    query = query.eq('organization_id', orgId);
+  try {
+    const data = await tid4kApi.call<any>('fetch_anunturi', {
+      all: '1',
+      include_expirate: '0',
+    });
+
+    // Adapteaza raspunsul TID4K la formatul Announcement
+    const anunturi = Array.isArray(data) ? data : (data?.anunturi || data?.lista || []);
+
+    return anunturi.map((a: any, index: number) => ({
+      id: String(a.id || a.id_anunt || index),
+      titlu: a.titlu || a.text_preview || a.text_complet || a.subiect || '',
+      continut: a.text_complet || a.text_preview || a.continut || a.mesaj || '',
+      continut_html: a.continut_html || '',
+      imagine: a.imagine || '',
+      data_upload: a.data_upload || a.data || a.created_at || new Date().toISOString(),
+      data_expirare: a.data_expirare || '',
+      autor: a.autor || a.autor_nume || a.expeditor || '',
+      prioritate: (a.prioritate === 'urgent' ? 'urgent' : 'normal') as 'normal' | 'urgent',
+      target: a.target || a.destinatar || grupa || 'scoala',
+      citit: a.citit || false,
+      ascuns_banda: a.ascuns_banda ? true : false,
+      pozitie_banda: a.pozitie_banda || undefined,
+    }));
+  } catch (err) {
+    console.error('[Anunturi] Eroare la incarcarea anunturilor:', err);
+    return [];
   }
-  if (grupa) {
-    query = query.or(`target.eq.${grupa},target.eq.scoala`);
-  }
-
-  const { data, error } = await query;
-  if (error) throw error;
-
-  // Check read status
-  let readIds = new Set<string>();
-  if (user) {
-    const { data: reads } = await supabase
-      .from('announcement_reads')
-      .select('announcement_id')
-      .eq('user_id', user.id);
-    readIds = new Set((reads || []).map(r => r.announcement_id));
-  }
-
-  return (data || []).map(a => ({
-    id: a.id,
-    titlu: a.titlu,
-    continut: a.continut,
-    data_upload: a.created_at,
-    autor: a.autor_nume || '',
-    prioritate: a.prioritate as 'normal' | 'urgent',
-    target: a.target || 'scoala',
-    citit: readIds.has(a.id),
-    ascuns_banda: a.ascuns_banda || false,
-    pozitie_banda: a.pozitie_banda || undefined,
-  }));
 }
 
 export async function createAnnouncement(ann: Partial<Announcement>): Promise<Announcement> {
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase.from('profiles').select('nume_prenume, organization_id').eq('id', user?.id).single();
+  if (!USE_TID4K_BACKEND) {
+    throw new Error('Backend indisponibil');
+  }
 
-  const { data, error } = await supabase.from('announcements').insert({
-    titlu: ann.titlu || '',
-    continut: ann.continut || '',
-    autor_id: user?.id || null,
-    autor_nume: profile?.nume_prenume || ann.autor || '',
-    prioritate: ann.prioritate || 'normal',
-    target: ann.target || 'scoala',
-    ascuns_banda: ann.ascuns_banda || false,
-    pozitie_banda: ann.pozitie_banda || null,
-    organization_id: profile?.organization_id || null,
-    data_expirare: (ann as any).data_expirare || null,
-  }).select().single();
+  try {
+    const data = await tid4kApi.call<any>('salveaza_anuntul', {
+      continut: ann.continut || '',
+      titlu: ann.titlu || '',
+      prioritate: ann.prioritate || 'normal',
+      target: ann.target || 'scoala',
+    });
 
-  if (error) throw error;
-
-  return {
-    id: data.id,
-    titlu: data.titlu,
-    continut: data.continut,
-    data_upload: data.created_at,
-    autor: data.autor_nume || '',
-    prioritate: data.prioritate as 'normal' | 'urgent',
-    target: data.target || 'scoala',
-    citit: false,
-    ascuns_banda: data.ascuns_banda || false,
-    pozitie_banda: data.pozitie_banda || undefined,
-  };
+    return {
+      id: String(data?.id || Date.now()),
+      titlu: ann.titlu || '',
+      continut: ann.continut || '',
+      data_upload: new Date().toISOString(),
+      autor: ann.autor || '',
+      prioritate: (ann.prioritate || 'normal') as 'normal' | 'urgent',
+      target: ann.target || 'scoala',
+      citit: false,
+      ascuns_banda: false,
+    };
+  } catch (err) {
+    console.error('[Anunturi] Eroare la crearea anuntului:', err);
+    throw err;
+  }
 }
 
 export async function markAsRead(announcementId: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  await supabase.from('announcement_reads').upsert({
-    announcement_id: announcementId,
-    user_id: user.id,
-  }, { onConflict: 'announcement_id,user_id' });
+  // TODO: endpoint de marcare ca citit pe server
+  console.log('[Anunturi] markAsRead:', announcementId);
 }
 
 export async function hideFromTicker(id: string): Promise<void> {
-  await supabase.from('announcements').update({ ascuns_banda: true, pozitie_banda: null }).eq('id', id);
+  console.log('[Anunturi] hideFromTicker:', id);
 }
 
 export async function restoreToTicker(id: string): Promise<void> {
-  await supabase.from('announcements').update({ ascuns_banda: false }).eq('id', id);
+  console.log('[Anunturi] restoreToTicker:', id);
 }

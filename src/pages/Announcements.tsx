@@ -197,6 +197,11 @@ export default function Announcements() {
                     {ann.citit ? 'Citit' : 'Marchează citit'}
                   </Button>
                 </div>
+                {(ann as any).imagine && (
+                  <div className="rounded-lg overflow-hidden max-h-64">
+                    <img src={(ann as any).imagine} alt={ann.titlu} className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground leading-relaxed">{ann.continut}</p>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span>{ann.autor}</span>

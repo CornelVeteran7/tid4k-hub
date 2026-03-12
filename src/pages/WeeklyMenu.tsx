@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
+import { USE_TID4K_BACKEND } from '@/api/config';
+import { getMeniuriTID4K, type TID4KMenuEntry } from '@/api/menu';
 import {
   getMenuWeek, ensureMenuWeek, getNutritionalReference, addDish, addIngredient,
   updateIngredient, deleteIngredient, deleteDish, updateDishName, publishMenu,
@@ -60,7 +62,108 @@ const STATUS_COLORS = {
   gray: 'bg-muted text-muted-foreground border-border',
 };
 
+// ============================================================================
+// VIEWER TID4K - afiseaza meniurile HTML din baza de date TID4K
+// ============================================================================
+function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
+  const [meniuri, setMeniuri] = useState<TID4KMenuEntry[]>([]);
+  const [indexCurent, setIndexCurent] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getMeniuriTID4K().then(data => {
+      setMeniuri(data);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (meniuri.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center text-muted-foreground">
+          Nu sunt meniuri disponibile.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const meniu = meniuri[indexCurent];
+  const dataExp = meniu.data_expirare ? new Date(meniu.data_expirare) : null;
+
+  // Calculeaza lunea saptamanii din data_expirare (vineri) - 4 zile
+  const getLuniVineri = () => {
+    if (!dataExp) return '';
+    const luni = new Date(dataExp);
+    luni.setDate(dataExp.getDate() - 4);
+    return `${format(luni, 'd MMMM', { locale: ro })} – ${format(dataExp, 'd MMMM yyyy', { locale: ro })}`;
+  };
+
+  return (
+    <div className={embedded ? '' : 'space-y-4'}>
+      {!embedded && (
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-display font-bold">Meniu Saptamanal</h1>
+        </div>
+      )}
+
+      {/* Navigare saptamani */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={indexCurent >= meniuri.length - 1}
+              onClick={() => setIndexCurent(i => Math.min(i + 1, meniuri.length - 1))}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+            </Button>
+            <CardTitle className="text-base font-display">
+              {getLuniVineri()}
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={indexCurent <= 0}
+              onClick={() => setIndexCurent(i => Math.max(i - 1, 0))}
+            >
+              Urmator <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Render HTML meniu din TID4K */}
+          <div
+            className="tid4k-meniu-html overflow-x-auto text-sm"
+            dangerouslySetInnerHTML={{ __html: meniu.continut || '' }}
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
+// COMPONENTA PRINCIPALA - alege intre viewer TID4K si editor OMS
+// ============================================================================
 export default function WeeklyMenu({ embedded }: { embedded?: boolean }) {
+  // Daca backend-ul TID4K e activ, afiseaza viewer-ul cu date reale
+  if (USE_TID4K_BACKEND) {
+    return <TID4KMenuViewer embedded={embedded} />;
+  }
+
+  return <WeeklyMenuOMS embedded={embedded} />;
+}
+
+function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
   const [monday, setMonday] = useState(() => getMondayOfWeek(new Date()));
   const [menuWeek, setMenuWeek] = useState<MenuWeek | null>(null);

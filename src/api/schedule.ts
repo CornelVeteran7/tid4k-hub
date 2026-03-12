@@ -1,81 +1,83 @@
-import { supabase } from '@/integrations/supabase/client';
+/**
+ * API Orar - conectat la TID4K backend
+ *
+ * Orarul este citit din tabelele TID4K existente.
+ * Cancelaria foloseste endpoint-uri dedicate.
+ */
+
+import { tid4kApi } from './tid4kClient';
+import { USE_TID4K_BACKEND } from './config';
 import type { ScheduleCell, CancelarieTeacher } from '@/types';
 
 export async function getSchedule(groupId: string): Promise<ScheduleCell[]> {
-  // groupId can be a UUID (from GroupContext) or a slug
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
-  let resolvedId = groupId;
-  if (!isUuid) {
-    const { data: group } = await supabase.from('groups').select('id').eq('slug', groupId).single();
-    if (!group) return [];
-    resolvedId = group.id;
+  if (!USE_TID4K_BACKEND) return [];
+
+  try {
+    // Apelam gateway-ul - endpoint de creat pentru orar
+    const data = await tid4kApi.call<any>('fetch_orar', {
+      grupa: groupId,
+    });
+
+    const celule = Array.isArray(data) ? data : (data?.orar || data?.celule || []);
+
+    return celule.map((c: any) => ({
+      id: String(c.id || `${c.zi}-${c.ora}`),
+      zi: c.zi || '',
+      ora: c.ora || '',
+      materie: c.materie || c.disciplina || '',
+      profesor: c.profesor || c.nume_profesor || '',
+      sala: c.sala || '',
+      culoare: c.culoare || '#E3F2FD',
+    }));
+  } catch (err) {
+    console.error('[Orar] Eroare la incarcarea orarului:', err);
+    return [];
   }
-
-  const { data, error } = await supabase
-    .from('schedule')
-    .select('*')
-    .eq('group_id', resolvedId)
-    .order('zi')
-    .order('ora');
-
-  if (error) throw error;
-
-  return (data || []).map(s => ({
-    id: s.id,
-    zi: s.zi,
-    ora: s.ora,
-    materie: s.materie,
-    profesor: s.profesor || '',
-    sala: s.sala || '',
-    culoare: s.culoare || '#E3F2FD',
-  }));
 }
 
 export async function saveSchedule(groupId: string, cells: ScheduleCell[]): Promise<void> {
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
-  let resolvedId = groupId;
-  if (!isUuid) {
-    const { data: group } = await supabase.from('groups').select('id').eq('slug', groupId).single();
-    if (!group) return;
-    resolvedId = group.id;
-  }
+  if (!USE_TID4K_BACKEND) return;
 
-  // Delete existing schedule for this group
-  await supabase.from('schedule').delete().eq('group_id', resolvedId);
-
-  // Insert new cells
-  if (cells.length > 0) {
-    await supabase.from('schedule').insert(
-      cells.map(c => ({
-        group_id: resolvedId,
+  try {
+    await tid4kApi.call('salveaza_orar', {
+      grupa: groupId,
+      celule: cells.map(c => ({
         zi: c.zi,
         ora: c.ora,
         materie: c.materie,
         profesor: c.profesor,
-        sala: c.sala || null,
+        sala: c.sala || '',
         culoare: c.culoare,
-      }))
-    );
+      })),
+    });
+  } catch (err) {
+    console.error('[Orar] Eroare la salvarea orarului:', err);
+    throw err;
   }
 }
 
 export async function getCancelarieTeachers(): Promise<CancelarieTeacher[]> {
-  const { data: teachers, error } = await supabase
-    .from('cancelarie_teachers')
-    .select('*, cancelarie_activities(*)')
-    .order('nume');
+  if (!USE_TID4K_BACKEND) return [];
 
-  if (error) throw error;
+  try {
+    // Cancelaria - endpoint dedicat existent
+    const data = await tid4kApi.call<any>('fetch_cancelarie', {});
 
-  return (teachers || []).map(t => ({
-    id: t.id,
-    nume: t.nume,
-    avatar_url: t.avatar_url || '/placeholder.svg',
-    qr_data: t.qr_data || '',
-    absent_dates: (t.absent_dates || []).map((d: any) => String(d)),
-    activitati: ((t.cancelarie_activities as any[]) || []).map((a: any) => ({
-      data: a.data,
-      descriere: a.descriere,
-    })),
-  }));
+    const profesori = Array.isArray(data) ? data : (data?.profesori || []);
+
+    return profesori.map((t: any) => ({
+      id: String(t.id || t.id_profesor || ''),
+      nume: t.nume || t.nume_prenume || '',
+      avatar_url: t.avatar_url || t.avatar || '/placeholder.svg',
+      qr_data: t.qr_data || t.qr_code || '',
+      absent_dates: (t.absent_dates || t.zile_absenta || []).map(String),
+      activitati: (t.activitati || []).map((a: any) => ({
+        data: a.data || '',
+        descriere: a.descriere || '',
+      })),
+    }));
+  } catch (err) {
+    console.error('[Orar] Eroare la incarcarea cancelariei:', err);
+    return [];
+  }
 }

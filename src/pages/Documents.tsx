@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { isStaff } from '@/utils/roles';
-import { getDocuments, deleteDocument, uploadDocument } from '@/api/documents';
-import { supabase } from '@/integrations/supabase/client';
+import { getDocuments, deleteDocument } from '@/api/documents';
+import { API_BASE_URL, API_KEY } from '@/api/config';
 import type { DocumentItem } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,24 +29,30 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
   const { currentGroup } = useGroup();
   const { user } = useAuth();
   const canManage = isStaff(user?.status || '', user?.nume_prenume || '');
-  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [allDocuments, setAllDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [uploadOpen, setUploadOpen] = useState(false);
 
+  // Incarca toate documentele o singura data, filtram local
   useEffect(() => {
     if (!currentGroup) return;
     setLoading(true);
-    getDocuments(currentGroup.id, category === 'all' ? undefined : category).then((docs) => {
-      setDocuments(docs);
+    getDocuments(currentGroup.id).then((docs) => {
+      setAllDocuments(docs);
       setLoading(false);
     });
-  }, [currentGroup, category]);
+  }, [currentGroup]);
+
+  // Filtrare locala pe categorie
+  const documents = category === 'all'
+    ? allDocuments
+    : allDocuments.filter(d => d.categorie === category);
 
   const handleDelete = async (id: string) => {
     await deleteDocument(id);
-    setDocuments((prev) => prev.filter((d) => d.id !== id));
+    setAllDocuments((prev) => prev.filter((d) => d.id !== id));
     toast.success('Document șters.');
   };
 
@@ -81,7 +87,7 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
                 <UploadForm
                   groupId={currentGroup?.id || ''}
                   onUploaded={(doc) => {
-                    setDocuments(prev => [doc, ...prev]);
+                    setAllDocuments(prev => [doc, ...prev]);
                     setUploadOpen(false);
                   }}
                 />
@@ -122,8 +128,15 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
             <Card key={doc.id} className="glass-card overflow-hidden hover:shadow-md transition-shadow">
               <CardContent className={viewMode === 'grid' ? 'p-4' : 'p-4 flex items-center gap-4'}>
                 {/* Thumbnail */}
-                <div className={`${viewMode === 'grid' ? 'mb-3 h-28' : 'h-12 w-12 shrink-0'} rounded-lg bg-muted/50 flex items-center justify-center`}>
-                  {doc.tip_fisier === 'pdf' ? (
+                <div className={`${viewMode === 'grid' ? 'mb-3 h-28' : 'h-12 w-12 shrink-0'} rounded-lg bg-muted/50 flex items-center justify-center overflow-hidden`}>
+                  {doc.thumbnail_url || (doc.url && doc.tip_fisier !== 'pdf') ? (
+                    <img
+                      src={doc.thumbnail_url || doc.url}
+                      alt={doc.nume_fisier}
+                      className="w-full h-full object-contain"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : doc.tip_fisier === 'pdf' ? (
                     <FileText className="h-8 w-8 text-destructive" />
                   ) : (
                     <Image className="h-8 w-8 text-primary" />
@@ -184,17 +197,37 @@ function UploadForm({ groupId, onUploaded }: { groupId: string; onUploaded: (doc
     }
     setUploading(true);
     try {
-      // Upload to Supabase Storage
-      const path = `${groupId}/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage.from('documents').upload(path, file);
-      if (uploadError) throw uploadError;
+      // Upload pe serverul TID4K via upload_fisier_hub.php
+      // Salveaza pe disc SI inregistreaza in BD
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('categorie', cat);
 
-      const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path);
+      const sessionCookie = localStorage.getItem('tid4k_session') || '';
+      const response = await fetch(`${API_BASE_URL}/pages/upload_fisier_hub.php`, {
+        method: 'POST',
+        headers: {
+          'X-TID4K-Session': sessionCookie,
+        },
+        body: formData,
+      });
 
-      const doc = await uploadDocument(groupId, file, cat);
-      // Update with real URL
-      await supabase.from('documents').update({ url: urlData.publicUrl }).eq('id', doc.id);
-      doc.url = urlData.publicUrl;
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Eroare la upload pe server');
+      }
+
+      const doc: DocumentItem = {
+        id: String(result.id || Date.now()),
+        nume_fisier: result.nume_fisier || file.name,
+        tip_fisier: (result.extensie || file.name.split('.').pop() || 'pdf') as DocumentItem['tip_fisier'],
+        categorie: cat as DocumentItem['categorie'],
+        data_upload: result.data_upload || new Date().toISOString(),
+        uploadat_de: '',
+        uploadat_de_id: '',
+        url: result.url || '',
+        marime: file.size,
+      };
 
       onUploaded(doc);
       toast.success('Document încărcat!');

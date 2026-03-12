@@ -114,7 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try { sessionStorage.setItem('demo_mode', '1'); } catch {}
   }, []);
 
-  // No-op auth functions — demo mode only
+  // No-op auth functions — demo mode only for now
+  // TID4K real auth will be activated when backend endpoints are tested
   const login = useCallback(async (_email: string, _password: string) => {
     toast.info('Funcție disponibilă în producție');
   }, []);

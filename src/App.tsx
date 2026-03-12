@@ -47,6 +47,7 @@ import DigitalProgram from "./pages/DigitalProgram";
 import SponsorMap from "./pages/SponsorMap";
 import PublicWebsite from "./pages/PublicWebsite";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
 import SettingsPage from "./pages/Settings";
 import MyProfile from "./pages/MyProfile";
 import PublicDisplay from "./pages/PublicDisplay";
@@ -121,9 +122,9 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              {/* Legacy redirects */}
-              <Route path="/login" element={<Navigate to="/" replace />} />
-              <Route path="/login/:orgSlug" element={<Navigate to="/" replace />} />
+              {/* Login page */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/login/:orgSlug" element={<Login />} />
               <Route path="/demo" element={<Navigate to="/" replace />} />
               {/* Public routes — no auth required */}
               <Route path="/display/:orgSlug" element={<PublicDisplay />} />

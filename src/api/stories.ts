@@ -1,70 +1,78 @@
-import { supabase } from '@/integrations/supabase/client';
+/**
+ * API Povesti - conectat la TID4K backend
+ *
+ * Endpoint-uri: fetch_povesti, salveaza_poveste
+ */
+
+import { tid4kApi } from './tid4kClient';
+import { USE_TID4K_BACKEND } from './config';
 import type { Story } from '@/types';
 
 export async function getStories(): Promise<Story[]> {
-  const { data: { user } } = await supabase.auth.getUser();
+  if (!USE_TID4K_BACKEND) return [];
 
-  const { data, error } = await supabase
-    .from('stories')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    const data = await tid4kApi.call<any>('fetch_povesti', {
+      all: '1',
+    });
 
-  if (error) throw error;
+    const povesti = Array.isArray(data) ? data : (data?.povesti || data?.lista || []);
 
-  // Get favorites
-  let favIds = new Set<string>();
-  if (user) {
-    const { data: favs } = await supabase
-      .from('story_favorites')
-      .select('story_id')
-      .eq('user_id', user.id);
-    favIds = new Set((favs || []).map(f => f.story_id));
+    return povesti.map((p: any, index: number) => {
+      const hasVideo = !!p.video_url;
+      const hasAudio = !!p.audio_url || !!p.citeste_povestea;
+      const media_type: Story['media_type'] = hasVideo ? 'video' : hasAudio ? 'audio' : 'text';
+
+      return {
+        id: String(p.id || p.id_infobox || p.id_poveste || index),
+        titlu: p.titlu || p.nume_fisier || p.titlu_poveste || '',
+        continut: p.continut || p.text_complet || p.text_preview || p.text || '',
+        categorie: (p.categorie || 'educative') as Story['categorie'],
+        varsta: (p.varsta || '3-5') as Story['varsta'],
+        thumbnail: p.thumbnail || p.imagine || undefined,
+        audio_url: p.audio_url || undefined,
+        video_url: p.video_url || undefined,
+        media_type,
+        favorit: p.favorit || false,
+      };
+    });
+  } catch (err) {
+    console.error('[Povesti] Eroare la incarcarea povestilor:', err);
+    return [];
   }
-
-  return (data || []).map(s => {
-    const hasVideo = !!(s as any).video_url;
-    const hasAudio = !!s.audio_url;
-    const media_type: Story['media_type'] = hasVideo ? 'video' : hasAudio ? 'audio' : 'text';
-    return {
-      id: s.id,
-      titlu: s.titlu,
-      continut: s.continut,
-      categorie: s.categorie as Story['categorie'],
-      varsta: s.varsta as Story['varsta'],
-      thumbnail: s.thumbnail || undefined,
-      audio_url: s.audio_url || undefined,
-      video_url: (s as any).video_url || undefined,
-      media_type,
-      favorit: favIds.has(s.id),
-    };
-  });
 }
 
 export async function createStory(story: Partial<Story>): Promise<Story> {
-  const { data, error } = await supabase.from('stories').insert({
-    titlu: story.titlu || '',
-    continut: story.continut || '',
-    categorie: story.categorie || 'educative',
-    varsta: story.varsta || '3-5',
-    thumbnail: story.thumbnail || null,
-    audio_url: story.audio_url || null,
-  }).select().single();
+  if (!USE_TID4K_BACKEND) {
+    throw new Error('Backend indisponibil');
+  }
 
-  if (error) throw error;
+  try {
+    const data = await tid4kApi.call<any>('salveaza_poveste', {
+      titlu: story.titlu || '',
+      text: story.continut || '',
+      nou: '1',
+      categorie: story.categorie || 'educative',
+      varsta: story.varsta || '3-5',
+    });
 
-  return {
-    id: data.id,
-    titlu: data.titlu,
-    continut: data.continut,
-    categorie: data.categorie as Story['categorie'],
-    varsta: data.varsta as Story['varsta'],
-    thumbnail: data.thumbnail || undefined,
-    audio_url: data.audio_url || undefined,
-    favorit: false,
-  };
+    return {
+      id: String(data?.id || Date.now()),
+      titlu: story.titlu || '',
+      continut: story.continut || '',
+      categorie: (story.categorie || 'educative') as Story['categorie'],
+      varsta: (story.varsta || '3-5') as Story['varsta'],
+      thumbnail: story.thumbnail || undefined,
+      audio_url: story.audio_url || undefined,
+      favorit: false,
+    };
+  } catch (err) {
+    console.error('[Povesti] Eroare la crearea povestii:', err);
+    throw err;
+  }
 }
 
 export async function generateTTS(id: string): Promise<{ audio_url: string }> {
-  // TTS not yet implemented — would be an Edge Function
+  // TTS - de implementat cu endpoint dedicat
   return { audio_url: '' };
 }

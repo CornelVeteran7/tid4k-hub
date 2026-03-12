@@ -1,12 +1,17 @@
-// Auth is now handled by Supabase Auth via AuthContext.
-// This file is kept for legacy compatibility.
-import { supabase } from '@/integrations/supabase/client';
+/**
+ * API Auth - conectat la TID4K backend
+ *
+ * Autentificare prin numar de telefon (mecanismul actual TID4K)
+ * + pregatire pentru email/parola in viitor
+ */
+
+import { tid4kApi } from './tid4kClient';
 
 export async function logout(): Promise<void> {
-  await supabase.auth.signOut();
+  tid4kApi.delogare();
 }
 
 export async function validateSession() {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.user || null;
+  const sesiune = await tid4kApi.verificaSesiune();
+  return sesiune || null;
 }
