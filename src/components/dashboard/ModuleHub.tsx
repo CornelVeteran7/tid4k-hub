@@ -99,9 +99,10 @@ interface ModuleHubProps {
   onReorder?: (order: string[]) => void;
   verticalModules?: string[];
   cardVariant?: 'solid' | 'glass';
+  desktopSingleColumn?: boolean;
 }
 
-export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules, cardVariant = 'solid' }: ModuleHubProps) {
+export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules, cardVariant = 'solid', desktopSingleColumn = false }: ModuleHubProps) {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<ExternalWorkshop | null>(null);
@@ -175,7 +176,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
 
   return (
     <LayoutGroup>
-      <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+      <div className={`space-y-3 ${desktopSingleColumn ? '' : 'lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0'}`}>
         <AnimatePresence mode="popLayout">
           {displayModules.map((mod, i) => (
             <React.Fragment key={mod.key}>
@@ -185,7 +186,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.97 }}
                 transition={{ type: 'spring', damping: 22, stiffness: 300, delay: i * 0.03 }}
-                className={mod.wide ? 'lg:col-span-2' : ''}
+                className={mod.wide && !desktopSingleColumn ? 'lg:col-span-2' : ''}
               >
                 {openModule !== mod.key && (
                   <ModuleCard
@@ -220,7 +221,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ type: 'spring', damping: 22, stiffness: 300, delay: 0.15 }}
-                  className="lg:col-span-2"
+                  className={desktopSingleColumn ? '' : 'lg:col-span-2'}
                 >
                   <SponsorCard />
                 </motion.div>
