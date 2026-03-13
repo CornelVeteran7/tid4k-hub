@@ -174,6 +174,10 @@ export default function SuperAdmin() {
       case 'calculator': return <SuperAdminCostCalculator />;
       case 'content': return <SuperAdminContentManager />;
       case 'preview': return <SuperAdminPreview />;
+      case 'crm-dashboard': return <CRMDashboard />;
+      case 'crm-pipeline': return <CRMPipeline />;
+      case 'crm-contracts': return <CRMContracts />;
+      case 'crm-tasks': return <CRMTasks />;
       default: return <SuperAdminOrganizations />;
     }
   };
