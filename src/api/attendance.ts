@@ -23,7 +23,19 @@ export async function getAttendance(grupa: string, data: string): Promise<Attend
       data,
     });
 
-    const records: AttendanceRecord[] = (result?.copii || result?.records || []).map((c: any) => ({
+    // Handle auth errors from backend
+    if (result?.error === 'Neautentificat' || result?.error) {
+      console.warn('[Prezenta] Backend-ul a returnat eroare:', result.error);
+      return { data, records: [] };
+    }
+
+    const rawRecords = result?.copii || result?.records || [];
+    
+    if (!Array.isArray(rawRecords) || rawRecords.length === 0) {
+      return { data, records: [] };
+    }
+
+    const records: AttendanceRecord[] = rawRecords.map((c: any) => ({
       child_id: String(c.id_copil || c.child_id || c.id),
       nume_prenume_copil: c.nume_prenume_copil || c.nume_copil || c.nume || '',
       prezent: c.prezent ?? false,
