@@ -136,8 +136,9 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
                   Se încarcă...
                 </div>
               ) : records.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-                  Nu sunt copii înregistrați în această grupă.
+                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-sm gap-2">
+                  <span>Nu sunt copii înregistrați în această grupă.</span>
+                  <span className="text-xs text-muted-foreground/60">Verifică autentificarea pe serverul TID4K.</span>
                 </div>
               ) : (
                 <div className={`grid ${gridCols} gap-3`}>
