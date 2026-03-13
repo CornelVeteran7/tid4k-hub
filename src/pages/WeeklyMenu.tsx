@@ -375,6 +375,17 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
               {menuWeek.status === 'published' ? '✅ Publicat' : '📝 Draft'}
             </Badge>
           )}
+          {omsClassification && omsClassification.classification !== 'gol' && (
+            <Badge variant="outline" className={cn('gap-1 text-xs', OMS_BADGE_STYLES[omsClassification.classification])}>
+              <Award className="h-3 w-3" />
+              {OMS_BADGE_LABELS[omsClassification.classification]}
+            </Badge>
+          )}
+          {menuWeek && (
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => window.print()}>
+              <Printer className="h-4 w-4" /> Print
+            </Button>
+          )}
         </div>
       </div>
 
