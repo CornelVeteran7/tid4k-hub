@@ -154,11 +154,13 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const verticalDef = VERTICAL_DEFINITIONS[verticalType];
   const { activeModules } = useActiveModules(user.organization_id, verticalType);
 
-  const showGroupSelector =
+  const isSuperAdmin = location.pathname === '/superadmin';
+
+  const showGroupSelector = !isSuperAdmin && (
   areRol(userStatus, 'director') ||
   areRol(userStatus, 'administrator') ||
   userIsInky ||
-  availableGroups.length > 1;
+  availableGroups.length > 1);
 
   const canSee = (roles: string[]) =>
   roles.some((role) => areRol(userStatus, role) || userIsInky);
