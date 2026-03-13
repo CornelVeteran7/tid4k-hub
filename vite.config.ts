@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
     VitePWA({
       registerType: "autoUpdate",
       workbox: {
-        navigateFallback: '/app/index.html',
+        navigateFallback: isProduction ? '/app/index.html' : '/index.html',
         navigateFallbackDenylist: [/^\/~oauth/, /^\/pages\//, /^\/avizier\//],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
