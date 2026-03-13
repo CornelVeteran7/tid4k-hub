@@ -1,149 +1,177 @@
 
 
-# Plan: Sistem de Management Ateliere + Notificări Admin & Documentație
+# Analiza Gap: PHP (TID4K) vs React App + Plan de Implementare
 
-## Prezentare generală
-
-Acest plan adaugă un **sistem complet de management al Atelierelor** în Panoul de Administrare, permițând administratorilor să creeze, editeze și să publice ateliere către una sau toate unitățile școlare. Cardul modulului „ATELIERE" de pe dashboard va afișa previzualizarea atelierului lunii direct (fără deschidere), iar notificările push vor alerta profesorii despre atelierele noi.
-
----
-
-## Ce se construiește
-
-### 1. Modelul de date și API-ul pentru Ateliere
-
-**Fișier nou: `src/api/workshops.ts`**
-
-Tipuri și date mock pentru ateliere:
-
-```text
-Workshop {
-  id_atelier: number
-  titlu: string
-  descriere: string
-  luna: string (YYYY-MM)
-  imagine_url: string
-  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
-  materiale: string[]
-  instructor: string
-  durata_minute: number
-  scoli_target: string[] (['all'] sau ID-uri specifice de școli)
-  publicat: boolean
-  data_creare: string
-  data_publicare?: string
-}
-```
-
-Funcții API:
-- `getWorkshops(schoolId?, luna?)` -- obține atelierele, opțional filtrate
-- `getWorkshopOfMonth(schoolId?)` -- returnează atelierul activ publicat al lunii curente
-- `createWorkshop(data)` -- creare nou
-- `updateWorkshop(id, data)` -- editare
-- `deleteWorkshop(id)` -- ștergere
-- `publishWorkshop(id, scoli_target)` -- marchează ca publicat + trimite către unități
-- Date mock: 2-3 ateliere pentru luna curentă
-
-### 2. Panoul de administrare: Tab nou „Ateliere"
-
-**Fișier nou: `src/components/admin/WorkshopsTab.tsx`**
-
-Un tab nou în Panoul de Administrare (`/admin`) cu:
-
-- **Conștientizare selector școală**: respectă filtrul global „Toate unitatile" / școală specifică din partea de sus a paginii admin
-- **Lista atelierelor**: carduri care arată titlul, luna, insigna categoriei, starea publicării, școlile țintă
-- **Dialog creare/editare**: formular cu titlu, descriere, categorie, URL imagine, lista materiale, instructor, durată, școală țintă (una / toate)
-- **Buton publicare**: marchează atelierul ca publicat; când ținta este „toate", trimite către fiecare școală. Afișează confirmare cu numărul de școli.
-- **Indicatori de stare**: Ciornă (gri), Publicat (verde), arătând care școli l-au primit
-
-Modificări în `src/pages/AdminPanel.tsx`:
-- Adaugă `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` la TABS
-- Importă și randează `<WorkshopsTab>` în noul TabsContent
-- Tab-ul respectă `selectedSchoolId` (toate vs. specifică)
-
-### 3. Dashboard: Previzualizare atelier pe cardul modulului
-
-**Modificat: `src/components/dashboard/ModuleHub.tsx`**
-
-Cardul „ATELIERE" arată în prezent doar un titlu și un contor. Se va schimba la:
-- Obține `getWorkshopOfMonth()` la montare
-- Afișează titlul atelierului + descriere scurtă direct pe card (sub subtitlu), astfel încât profesorii să o vadă fără a apăsa
-- Adaugă o etichetă mică „Luna: Martie 2026" și insigna categoriei pe fața cardului
-- Cardul rămâne apăsabil pentru a deschide detaliul complet al atelierului
-
-**Modificat: `src/components/dashboard/ModuleCard.tsx`**
-
-Adaugă prop opțional `preview` (ReactNode) care se randează sub subtitlu atunci când este furnizat. Doar cardul „ateliere" va folosi acest prop.
-
-### 4. Sistemul de notificări: Notificări push pentru ateliere
-
-**Modificat: `src/contexts/NotificationContext.tsx`**
-
-- Importă `getWorkshopOfMonth` din API-ul de ateliere
-- Adaugă `'workshop'` ca tip nou de notificare în `NotificationItem`
-- În `refreshNotifications`, verifică dacă există un atelier publicat pentru luna curentă care nu a fost văzut (urmărit prin cheia localStorage `tid4k_seen_workshop_[id]`)
-- Generează notificare: „Atelier nou: [titlu]" cu link pentru a deschide modulul de ateliere
-
-**Modificat: `src/components/layout/AppLayout.tsx`**
-
-- Adaugă gestionarea iconiței `Paintbrush` pentru tipul de notificare `workshop` în renderul popover (culoare violet distinctă)
-
-### 5. Documentație
-
-**Fișier nou: `docs/WORKSHOPS.md`**
-
-Trei secțiuni:
-1. **Pentru administratori**: Cum se creează atelierele, cum se vizează școli specifice sau toate, fluxul de publicare, editarea după publicare
-2. **Pentru dezvoltatori/AI**: Tabel endpoint-uri API, interfețe TypeScript, arhitectura componentelor, integrarea notificărilor
-3. **Referință API**: Specificație completă a endpoint-urilor pentru implementarea backend
-
-```text
-POST /ateliere.php?action=create        -- Creare atelier
-POST /ateliere.php?action=update        -- Editare atelier
-POST /ateliere.php?action=publish       -- Publicare + trimitere către școli
-GET  /ateliere.php?action=list          -- Listare ateliere (filtre: school_id, luna)
-GET  /ateliere.php?action=current       -- Atelierul activ al lunii curente
-POST /ateliere.php?action=delete        -- Ștergere atelier
-POST /ateliere.php?action=notify        -- Declanșare notificări push
-```
+## Build Errors (Fix Imediat)
+Sunt 6 erori TypeScript in edge functions care trebuie rezolvate inainte de orice:
+- `error` is of type `unknown` in 4 functii — adaugam `(error as Error).message`
+- `.catch()` inexistent pe Supabase query in `seed-demo-data` — inlocuim cu try/catch
 
 ---
 
-## Detalii tehnice
+## Faza 1: Superadmin Cost Calculator (Tab Nou)
 
-### Rezumatul modificărilor de fișiere
+Portam calculatorul JSX uploadat ca tab **"Calculator"** in `SuperAdmin.tsx`.
 
-| Fișier | Acțiune | Ce face |
-|--------|---------|---------|
-| `src/api/workshops.ts` | NOU | Tipuri atelier, date mock, funcții API |
-| `src/components/admin/WorkshopsTab.tsx` | NOU | UI complet admin pentru CRUD ateliere + publicare |
-| `docs/WORKSHOPS.md` | NOU | Documentație pentru administratori și dezvoltatori |
-| `src/pages/AdminPanel.tsx` | EDITARE | Adaugă tab „Ateliere" (iconiță + TabsContent) |
-| `src/components/dashboard/ModuleCard.tsx` | EDITARE | Adaugă prop opțional `preview` |
-| `src/components/dashboard/ModuleHub.tsx` | EDITARE | Obține atelierul lunii, pasează preview către cardul ateliere |
-| `src/contexts/NotificationContext.tsx` | EDITARE | Adaugă tip notificare atelier |
-| `src/components/layout/AppLayout.tsx` | EDITARE | Randează iconiță notificare atelier în popover |
+**Ce construim:**
+- Component nou `SuperAdminCostCalculator.tsx` cu 5 sub-taburi: Client Nou, Flota, Venit Tinta, Research Sponsori, Hardware BOM
+- Adaptat la design system-ul existent (shadcn Card, Slider, Table, Tabs) in loc de inline styles
+- Toata logica de calcul portata 1:1 din JSX (formule identice)
+- Slidere cu +/- buttons si click-to-edit (ca in original)
+- Metric cards colorate, P&L detaliat, tabel scenarii flota
+- Responsive: 3 coloane desktop, stack pe mobile
+- Date salvate in `localStorage` pentru persistenta intre sesiuni
 
-### Tipare respectate
+**Estimare:** ~500 linii component, 0 modificari DB
 
-- Același model de comutare `USE_MOCK` ca în toate celelalte fișiere API
-- Același model UI admin cu carduri pliabile ca în SettingsTab/SchoolsTab
-- Același model de element notificare cu `type`, `icon`, `navigateTo`
-- Selectorul de școală `selectedSchoolId` pasat la fel ca în celelalte tab-uri admin
-- Animații `framer-motion` consistente cu cardurile de modul existente
+---
 
-### Randarea previzualizării cardului atelier
+## Faza 2: OMS Nutritie Completa
 
-Pe dashboard, cardul modulului ATELIERE va afișa:
+Sistemul PHP are un normator de alimente complet cu clasificare OMS/WHO. App-ul React are deja tabele (`menu_weeks`, `menu_meals`, `menu_dishes`, `menu_ingredients`) si validare partiala.
+
+**Ce lipseste si construim:**
+- **Baza de date alimente extinsa** — migratie cu 200+ alimente romanesti cu kcal/100g, proteine, lipide, glucide, categorie OMS
+- **Cautare in normator** (`cauta_in_normator_alimente`) — autocomplete in WeeklyMenu cand adaugi ingredient
+- **Clasificare OMS automata** — pe baza ingredientelor, meniul primeste badge: verde/galben/rosu
+- **Verificare calorii pe zi** vs target pe grupe de varsta (exista partial, completam)
+- **Lista alimente interzise** cu warning vizual (exista partial)
+- **Export PDF meniu** — generare PDF printabil (lipseste complet)
+
+**Estimare:** 1 migratie DB, 2-3 componente noi, update WeeklyMenu.tsx
+
+---
+
+## Faza 3: Text-to-Speech (ElevenLabs + fallback)
+
+Sistemul PHP foloseste OpenAI TTS + Google TTS fallback. App-ul React nu are TTS deloc.
+
+**Ce construim:**
+- **Edge function `elevenlabs-tts`** — proxy catre ElevenLabs API cu cache in Supabase Storage
+- **Fallback Google TTS** — pentru texte scurte / cand ElevenLabs e indisponibil
+- **Integrare in Stories** — buton "Ascultă" pe fiecare poveste, narare cu vocea personajului (Inky = voce X, Vixie = voce Y)
+- **Integrare in Announcements** — buton TTS pe anunturi
+- **Cache audio** — hash MD5 al textului, stocat in bucket Supabase, reutilizat
+- **Player audio** — component AudioPlayer cu progress bar, play/pause
+
+**Prerequisite:** ElevenLabs API key (connector sau secret)
+
+---
+
+## Faza 4: Raspberry Pi Device Management (Backend Real)
+
+`SuperAdminDisplayMonitor.tsx` exista dar cu date mock. Sistemul PHP are un lifecycle complet.
+
+**Ce construim:**
+- **Tabela `display_devices`** — uuid, organization_id, alias, raspberry_id, last_heartbeat, screenshot_url, status, created_at
+- **Tabela `device_reports`** — device_id, report_data (JSON), reported_at
+- **Edge function `device-heartbeat`** — endpoint public pentru Pi: primeste UUID, screenshot_url, actualizeaza last_heartbeat
+- **Edge function `device-screenshot-upload`** — upload screenshot in Storage bucket
+- **Status thresholds** (ca in PHP): ≤65min = verde, ≤125min = violet, >125min = gri, unreachable = rosu
+- **UI real** in SuperAdminDisplayMonitor — grid cu status color-coded, screenshot preview, alias edit, delete
+- **Live preview** — iframe cu `/display/:orgSlug` pentru fiecare device
+
+**Estimare:** 2 tabele, 2 edge functions, 1 storage bucket, update component
+
+---
+
+## Faza 5: WhatsApp Twilio Bidirectional
+
+**Ce construim:**
+- **Conectare Twilio** via connector gateway
+- **Edge function `whatsapp-send`** — trimite mesaj/imagine via Twilio WhatsApp API
+- **Edge function `whatsapp-webhook`** — primeste mesaje incoming, le salveaza in `messages`
+- **Tabela `whatsapp_group_mapping`** — organization_id, group_id, whatsapp_number
+- **Tabela `whatsapp_sync_log`** — tracking sync bidirectional
+- **UI** — update SocialMediaWhatsapp.tsx cu: mapping grupe, send test, sync status, rate limit display
+- **Auto-post** — cand teacher uploadeaza imagine, optiune de share pe WhatsApp
+
+**Prerequisite:** Twilio connector + WhatsApp Business number
+
+---
+
+## Faza 6: Facebook Auto-Post
+
+**Ce construim:**
+- **Edge function `facebook-post`** — post text+imagine pe pagina Facebook via Graph API
+- **Edge function `facebook-oauth-callback`** — handle OAuth flow, store tokens
+- **Tabela `facebook_config`** — organization_id, page_id, access_token, token_expires_at
+- **Token refresh** — cron job via pg_cron care reinnoieste tokens
+- **UI** — update SocialMediaFacebook.tsx cu: connect page, post preview, scheduled posts, token status
+- **Programare posturi** — calendar picker pentru publish later
+
+**Prerequisite:** Facebook App credentials (App ID + Secret)
+
+---
+
+## Faza 7: Web Push Notifications (VAPID)
+
+**Ce construim:**
+- **Tabela `push_subscriptions`** — user_id, endpoint, p256dh, auth, created_at
+- **Edge function `push-subscribe`** — salveaza subscription
+- **Edge function `push-send`** — trimite notificare la user/grup/organizatie
+- **VAPID key generation** — stocate in Supabase secrets
+- **Service Worker update** — subscribe la push in sw.js (PWA existent)
+- **UI** — toggle notificari in profil, bell icon in header cu badge, notification center
+- **Triggers** — push la mesaj nou, anunt nou, poveste noua
+
+**Prerequisite:** VAPID keypair generation
+
+---
+
+## Faza 8: Video Generation
+
+**Ce construim:**
+- **Edge function `generate-video`** — apel catre VPS-ul Contabo existent (sau Puppeteer cloud)
+- **Tabela `video_jobs`** — organization_id, status, video_url, type, created_at
+- **UI** — update VideoGeneration.tsx cu: select tip video, trigger generare, progress, download
+- **Integrare display** — video-urile generate disponibile in rotatie pe PublicDisplay
+
+**Prerequisite:** VPS Contabo endpoint accesibil
+
+---
+
+## Faza 9: Wizard Configurare Server Nou
+
+**Ce construim:**
+- Update `SuperAdminNewClient.tsx` cu wizard multi-step:
+  1. **Selectie vertical** + template (exista partial)
+  2. **Configurare grupe** — adauga N grupe cu nume custom
+  3. **Import utilizatori bulk** — CSV upload sau formular: director, profesori, parinti
+  4. **Configurare hardware** — cate displayuri, Inky devices
+  5. **Calcul pret automat** — integrat cu Cost Calculator din Faza 1
+  6. **Review & Create** — genereaza organizatia, grupele, userii, device-urile
+- **Edge function** pentru bulk user creation via admin API
+
+---
+
+## Faza 10: Sponsor Dashboard Dedicat
+
+**Ce construim:**
+- **Ruta noua `/sponsor-login`** — login separat pentru sponsori (telefon din tabela sponsors)
+- **Pagina `SponsorDashboard.tsx`** — dashboard dedicat cu:
+  - Statistici agregate cross-organizatii (copii, parinti, profesori, servere online)
+  - Formular broadcast anunt (text + imagine) catre toate organizatiile
+  - Preview display-uri live (iframe grid)
+  - Rapoarte vizualizare campanii
+- **Tabela `sponsor_sessions`** sau rol special in `user_roles`
+- **RLS** — sponsorii vad doar statistici agregate, nu date individuale
+
+---
+
+## Ordine Recomandata de Implementare
 
 ```text
-+------------------------------------------+
-| [Iconiță Paintbrush]  ATELIERE           |
-|                    Activitati creative     |
-|   ┌─────────────────────────────┐         |
-|   │ Pictură pe sticlă           │  [10]   |
-|   │ Artă · Martie 2026          │         |
-|   └─────────────────────────────┘         |
-+------------------------------------------+
+1. Fix build errors (5 min)
+2. Cost Calculator Superadmin (standalone, 0 dependente)
+3. Device Management (tabele + edge functions)
+4. Wizard Server Nou (foloseste Cost Calculator)
+5. OMS Nutritie (completare DB + UI)
+6. TTS (ElevenLabs connector)
+7. Web Push (VAPID + service worker)
+8. WhatsApp Twilio (connector + webhook)
+9. Facebook (OAuth + Graph API)
+10. Video Generation (VPS integration)
+11. Sponsor Dashboard (rol nou + pagina)
 ```
 
-Această previzualizare apare doar când există un atelier al lunii.
