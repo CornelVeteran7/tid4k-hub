@@ -7,7 +7,8 @@ import {
   getMenuWeek, ensureMenuWeek, getNutritionalReference, addDish, addIngredient,
   updateIngredient, deleteIngredient, deleteDish, updateDishName, publishMenu,
   unpublishMenu, updateAgeGroup, computeDayNutrition, getCalorieStatus,
-  checkBannedIngredients, AGE_GROUP_TARGETS,
+  checkBannedIngredients, AGE_GROUP_TARGETS, computeMacroBalance,
+  getWeeklyOmsClassification, getRefCategories, CATEGORY_LABELS,
   type MenuWeek, type NutritionalRef, type Meal, type Dish, type DishIngredient,
 } from '@/api/menuOms';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
