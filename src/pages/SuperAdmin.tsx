@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Building2, Grid3X3, BarChart3, Monitor, Activity, BookOpen,
   Users, PlusCircle, LayoutTemplate, Calculator, Menu, FolderOpen,
-  Eye, ChevronRight, Shield
+  Eye, ChevronRight, Shield, TrendingUp, Kanban, FileText, ListTodo
 } from 'lucide-react';
 import SuperAdminDocs from '@/components/superadmin/SuperAdminDocs';
 import SuperAdminClients from '@/components/superadmin/SuperAdminClients';
@@ -23,6 +23,10 @@ import SuperAdminActivityFeed from '@/components/superadmin/SuperAdminActivityFe
 import SuperAdminCostCalculator from '@/components/superadmin/SuperAdminCostCalculator';
 import SuperAdminContentManager from '@/components/superadmin/SuperAdminContentManager';
 import SuperAdminPreview from '@/components/superadmin/SuperAdminPreview';
+import CRMDashboard from '@/components/superadmin/crm/CRMDashboard';
+import CRMPipeline from '@/components/superadmin/crm/CRMPipeline';
+import CRMContracts from '@/components/superadmin/crm/CRMContracts';
+import CRMTasks from '@/components/superadmin/crm/CRMTasks';
 import { type VerticalType } from '@/config/verticalConfig';
 
 type NavSection = {
@@ -59,6 +63,15 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Previzualizare',
     items: [
       { key: 'preview', label: 'Preview Utilizator', icon: Eye, badge: 'Nou' },
+    ],
+  },
+  {
+    label: 'CRM',
+    items: [
+      { key: 'crm-dashboard', label: 'Dashboard CRM', icon: TrendingUp, badge: 'Nou' },
+      { key: 'crm-pipeline', label: 'Pipeline', icon: Kanban },
+      { key: 'crm-contracts', label: 'Contracte', icon: FileText },
+      { key: 'crm-tasks', label: 'Task-uri', icon: ListTodo },
     ],
   },
   {
@@ -161,6 +174,10 @@ export default function SuperAdmin() {
       case 'calculator': return <SuperAdminCostCalculator />;
       case 'content': return <SuperAdminContentManager />;
       case 'preview': return <SuperAdminPreview />;
+      case 'crm-dashboard': return <CRMDashboard />;
+      case 'crm-pipeline': return <CRMPipeline />;
+      case 'crm-contracts': return <CRMContracts />;
+      case 'crm-tasks': return <CRMTasks />;
       default: return <SuperAdminOrganizations />;
     }
   };

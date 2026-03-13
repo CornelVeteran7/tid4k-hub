@@ -927,6 +927,188 @@ export type Database = {
           },
         ]
       }
+      crm_clients: {
+        Row: {
+          churned_at: string | null
+          created_at: string
+          health_score: number | null
+          id: string
+          onboarding_completed_at: string | null
+          organization_id: string
+          owner_name: string | null
+          status: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          churned_at?: string | null
+          created_at?: string
+          health_score?: number | null
+          id?: string
+          onboarding_completed_at?: string | null
+          organization_id: string
+          owner_name?: string | null
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          churned_at?: string | null
+          created_at?: string
+          health_score?: number | null
+          id?: string
+          onboarding_completed_at?: string | null
+          organization_id?: string
+          owner_name?: string | null
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_clients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_contracts: {
+        Row: {
+          amount_ron: number
+          client_id: string
+          contract_type: string
+          created_at: string
+          currency: string
+          end_date: string | null
+          id: string
+          notes: string | null
+          renewal_date: string | null
+          start_date: string
+          status: string
+        }
+        Insert: {
+          amount_ron?: number
+          client_id: string
+          contract_type?: string
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          renewal_date?: string | null
+          start_date?: string
+          status?: string
+        }
+        Update: {
+          amount_ron?: number
+          client_id?: string
+          contract_type?: string
+          created_at?: string
+          currency?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          renewal_date?: string | null
+          start_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "crm_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_notes: {
+        Row: {
+          author_name: string | null
+          client_id: string
+          content: string
+          created_at: string
+          id: string
+          note_type: string
+        }
+        Insert: {
+          author_name?: string | null
+          client_id: string
+          content: string
+          created_at?: string
+          id?: string
+          note_type?: string
+        }
+        Update: {
+          author_name?: string | null
+          client_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          note_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "crm_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_tasks: {
+        Row: {
+          assigned_to: string | null
+          client_id: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          task_type: string
+          title: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          task_type?: string
+          title: string
+        }
+        Update: {
+          assigned_to?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          task_type?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "crm_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       culture_shows: {
         Row: {
           acts: number | null
