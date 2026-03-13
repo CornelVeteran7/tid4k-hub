@@ -71,6 +71,21 @@ function getRestoredSession(): UserSession | null {
       } catch {}
       return buildUserSession(config);
     }
+
+    // 2. In mediul Lovable/localhost, auto-initializeaza o sesiune demo (Parinte Kids)
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isDevPreview = host.includes('lovableproject.com') || host.includes('lovable.app') || host === 'localhost';
+    if (isDevPreview) {
+      const defaultConfig: DemoConfig = {
+        vertical: 'kids',
+        status: 'parinte',
+        orgName: 'Grădinița Floarea Soarelui',
+        groups: [{ id: 'fluturasi', nume: 'Grupa Mică', tip: 'gradinita' }],
+        userName: 'Maria Ionescu',
+      };
+      try { sessionStorage.setItem('demo_config', JSON.stringify(defaultConfig)); } catch {}
+      return buildUserSession(defaultConfig);
+    }
   } catch {}
   // Nicio sesiune salvata - utilizatorul trebuie sa se logheze
   return null;
