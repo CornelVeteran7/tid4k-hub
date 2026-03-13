@@ -10,8 +10,6 @@ import { Phone, Mail, UserPlus, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { tid4kApi } from '@/api/tid4kClient';
 import { toast } from 'sonner';
-import { DEMO_ENVIRONMENTS } from '@/config/demoEnvironments';
-import { applyBrandingColors, applyVerticalTheme } from '@/utils/branding';
 
 export default function Login() {
   const { login, signUp, loginWithGoogle, isLoading, setDemoUser } = useAuth();
@@ -263,30 +261,7 @@ export default function Login() {
                 Conectare cu Google
               </Button>
 
-              {window.location.hostname.includes('tid4kdemo') && <Button
-                variant="secondary"
-                className="w-full"
-                onClick={() => {
-                  const kidsEnv = DEMO_ENVIRONMENTS.find(e => e.key === 'kids');
-                  if (!kidsEnv) return;
-                  const parentAccount = kidsEnv.accounts.find(a => a.status === 'parinte') || kidsEnv.accounts[0];
-                  applyBrandingColors(kidsEnv.primaryColor, kidsEnv.secondaryColor);
-                  applyVerticalTheme(parentAccount.vertical);
-                  try {
-                    sessionStorage.setItem('demo_branding', JSON.stringify({ primary: kidsEnv.primaryColor, secondary: kidsEnv.secondaryColor }));
-                  } catch {}
-                  setDemoUser({
-                    vertical: parentAccount.vertical,
-                    status: parentAccount.status,
-                    orgName: parentAccount.orgName,
-                    groups: parentAccount.groups,
-                    userName: parentAccount.userName,
-                  });
-                  navigate('/');
-                }}
-              >
-                Intreaza in modul DEMO
-              </Button>}
+              {/* Demo-urile folosesc conturi reale cu telefon inregistrat in BD */}
             </div>
           </CardContent>
         </Card>

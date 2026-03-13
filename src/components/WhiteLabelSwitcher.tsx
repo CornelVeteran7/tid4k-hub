@@ -9,14 +9,17 @@ import { ArrowLeft, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function WhiteLabelSwitcher() {
-  // Disponibil pe tid4kdemo.ro și în development (Lovable preview)
-  const isDemoServer = typeof window !== 'undefined' && (
-    window.location.hostname.includes('tid4kdemo') ||
+  // Unealta interna — vizibila doar pentru superuserul Inky sau in development (Lovable)
+  const isDevEnvironment = typeof window !== 'undefined' && (
     window.location.hostname.includes('lovableproject.com') ||
     window.location.hostname.includes('lovable.app') ||
     window.location.hostname === 'localhost'
   );
   const { user, setDemoUser, isDemo } = useAuth();
+  const userIsInky = user?.nume_prenume?.toLowerCase().includes('inky') ||
+    user?.status?.includes('inky') ||
+    (user?.nume_prenume === 'Inky');
+  const isVisible = isDevEnvironment || userIsInky;
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [selectedEnv, setSelectedEnv] = useState<DemoEnvironment | null>(null);
@@ -73,9 +76,9 @@ export default function WhiteLabelSwitcher() {
     setTimeout(() => setTransition(null), 800);
   }, [setDemoUser, navigate]);
 
-  // Keyboard shortcuts (doar pe tid4kdemo.ro)
+  // Keyboard shortcuts (doar pentru Inky sau in development)
   useEffect(() => {
-    if (!isDemoServer) return;
+    if (!isVisible) return;
     const handler = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || !e.shiftKey) return;
 
@@ -98,9 +101,9 @@ export default function WhiteLabelSwitcher() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [switchTo, isDemoServer]);
+  }, [switchTo, isVisible]);
 
-  if (!isDemoServer) return null;
+  if (!isVisible) return null;
 
   return (
     <>
