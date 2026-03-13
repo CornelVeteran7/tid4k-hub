@@ -1,22 +1,24 @@
 # Pages Reference
 
-> Last updated: 2026-03-10
+> Last updated: 2026-03-13
 
 ## Public Routes (No Auth)
 
 ### `/login` — Login Page
-**File**: `src/pages/Login.tsx`  
-**Purpose**: Email/password login + Google OAuth + sign-up  
+**File**: `src/pages/Login.tsx`
+**Purpose**: Autentificare cu telefon (principal), email/parolă, Google OAuth, cont nou
 **Features**:
+- Tab principal: login cu **număr de telefon** (caută în BD TID4K via `api_gateway.php`)
+- Tab email/parolă (viitor)
+- Tab înregistrare cont nou (viitor)
+- Buton **"Intră în modul DEMO"** (vizibil doar pe `tid4kdemo.ro`) — logare ca Părinte demo
 - Org-branded login when accessed via `/login/:orgSlug`
-- Fetches org branding (logo, colors) from organizations table
 - Redirects to `/` on successful auth
+- Superuserul Inky se autentifică cu telefonul 1313131313
 
-### `/demo` — Demo Entry
-**File**: `src/pages/DemoEntry.tsx`  
-**Purpose**: Auto-creates a demo user session without Supabase auth  
-**Params**: `?vertical=kids&role=profesor` to pre-select vertical and role  
-**Behavior**: Sets demo user in AuthContext localStorage, redirects to dashboard
+### `/demo` — Demo Redirect
+**Route**: Redirects to `/` via `<Navigate to="/" replace />`
+**Note**: Funcționalitatea demo se accesează prin butonul de pe Login (doar tid4kdemo.ro) sau prin WhiteLabelSwitcher
 
 ### `/display/:orgSlug` — Public Display
 **File**: `src/pages/PublicDisplay.tsx` (1348 lines)  
@@ -49,7 +51,7 @@
 **Features**:
 - Shows current queue status + estimated wait time
 - Take-a-ticket button with service type selection
-- Realtime updates via Supabase channels
+- Realtime updates via polling
 - Doctor/service profiles for medicine vertical
 - Ticket history and status tracking
 
@@ -112,7 +114,7 @@
 **File**: `src/pages/Documents.tsx` (224 lines)  
 **Purpose**: File sharing per group  
 **Features**:
-- Upload to Supabase Storage
+- Upload via PHP backend (fetch_iframes/fetch_images endpoints)
 - Categories: Activități, Administrativ, Teme, Fotografii
 - Grid/list view toggle
 - Thumbnail previews for images
@@ -123,7 +125,7 @@
 **Purpose**: Real-time messaging between users  
 **Features**:
 - Conversation list with search
-- Real-time message delivery via Supabase channels
+- Message delivery via PHP backend
 - Read receipts (single/double check)
 - Mobile-responsive: conversation list ↔ chat toggle
 - Avatar colors based on name hash
@@ -149,7 +151,7 @@
 - QR code per class for quick sharing
 - Room-based QR codes
 - Print functionality
-- Save to Supabase
+- Save via PHP backend (salveaza_orar.php)
 
 ### `/orar-cancelarie` — Cancelarie Schedule
 **File**: `src/pages/ScheduleCancelarie.tsx`  

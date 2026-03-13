@@ -1,6 +1,6 @@
 # Hooks Reference
 
-> Last updated: 2026-03-10
+> Last updated: 2026-03-13
 
 ## Custom Hooks
 
@@ -21,7 +21,7 @@ Manages guest access sessions for QR portal.
 - Returns `{ guestSession, isGuest, isValidating, validateAndCreateSession(token), clearSession }`
 - Stores session in `localStorage` with `guestSessionStart` timestamp
 - Hard-expires at midnight (client-side check)
-- Validates token via `validate-guest-token` edge function
+- Validates token via backend API
 
 ### `useSponsorRotation(location)` — `src/hooks/useSponsorRotation.ts`
 Rotates through active sponsor promos for a display location.
@@ -54,10 +54,15 @@ Central auth context providing:
   loginWithGoogle(),
   logout(),
   setDemoUser(config?),
+  qrLogin(sessionId),
 }
 ```
-- On login, fetches profile + org data + applies branding/theme
-- Demo mode: creates mock user from `demoEnvironments.ts`
+- **Login principal**: cu număr de telefon via `tid4kApi.autentificareTelefon()` (în Login.tsx)
+- **Restaurare sesiune**: la mount, verifică `sessionStorage('demo_config')` și `localStorage('tid4k_session')`
+- Dacă `tid4k_session` există dar `demo_config` nu → verifică sesiunea pe server via `tid4kApi.verificaSesiune()`
+- **Superuser Inky**: detectat prin telefon 1313131313, primește acces complet
+- **Demo mode**: doar pe `tid4kdemo.ro`, creează mock user din `demoEnvironments.ts`
+- **Logout**: șterge `tid4k_session`, `demo_config`, `demo_branding`, `demo_mode`
 
 ### `useGroup()` — `src/contexts/GroupContext.tsx`
 Group/class selection:

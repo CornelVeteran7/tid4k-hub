@@ -1,6 +1,6 @@
 # Guest Access System
 
-> Last updated: 2026-03-10
+> Last updated: 2026-03-13
 
 ## Overview
 
@@ -10,7 +10,7 @@ Anonymous visitors can access public content via QR codes without authentication
 
 ```
 Display TV shows QR code → Visitor scans → /qr/:orgSlug?t=<token>
-  → Token validated via edge function → Guest session created in localStorage
+  → Token validated via PHP backend → Guest session created in localStorage
   → Public content displayed (announcements, schedule, menu, etc.)
 ```
 
@@ -18,15 +18,13 @@ Display TV shows QR code → Visitor scans → /qr/:orgSlug?t=<token>
 
 - **Table**: `guest_tokens (id, organization_id, token, valid_date, created_at)`
 - **Token format**: 12-character alphanumeric (62^12 combinations)
-- **Generation**: `get_or_create_daily_token` RPC — creates one token per org per day
-- **RLS**: Anonymous SELECT only where `valid_date = current_date`
+- **Generation**: PHP endpoint creates one token per org per day
 
 ## Token Validation
 
-**Edge Function**: `supabase/functions/validate-guest-token/index.ts`
+**Backend**: `api_gateway.php` → endpoint de validare token
 - Validates token exists and matches today's date
-- Rate limiting: 60 requests per IP per minute (in-memory counter)
-- Prepared for Cloudflare Turnstile verification (needs site key + secret key)
+- Rate limiting: per IP
 - Returns `{ valid: true, organization_id }` or `{ valid: false, error }`
 
 ## Guest Session Hook
