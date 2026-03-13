@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { DEMO_ENVIRONMENTS, INKY_ACCOUNT, type DemoAccount, type DemoEnvironment } from '@/config/demoEnvironments';
+import { DEMO_ENVIRONMENTS, type DemoAccount, type DemoEnvironment } from '@/config/demoEnvironments';
 import { applyBrandingColors, applyVerticalTheme } from '@/utils/branding';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -77,11 +77,7 @@ export default function WhiteLabelSwitcher() {
         return;
       }
 
-      if (e.key === '0') {
-        e.preventDefault();
-        switchTo(INKY_ACCOUNT);
-        return;
-      }
+      // Inky doar prin login real cu telefon
 
       const idx = parseInt(e.key) - 1;
       if (idx >= 0 && idx < DEMO_ENVIRONMENTS.length) {
@@ -113,18 +109,6 @@ export default function WhiteLabelSwitcher() {
             <div className="p-5">
               <h2 className="text-lg font-bold mb-1">White-Label Switcher</h2>
               <p className="text-xs text-muted-foreground mb-4">Comută între cele 8 medii demo</p>
-
-              {/* Inky superadmin */}
-              <button
-                onClick={() => switchTo(INKY_ACCOUNT)}
-                className="w-full flex items-center gap-3 rounded-lg border-2 border-dashed border-muted-foreground/30 p-3 mb-4 hover:bg-accent transition-colors text-left"
-              >
-                <span className="text-2xl">🔮</span>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold">INKY Superadmin</p>
-                  <p className="text-xs text-muted-foreground truncate">Acces la toate organizațiile</p>
-                </div>
-              </button>
 
               {/* Vertical grid */}
               <div className="grid grid-cols-2 gap-2.5">

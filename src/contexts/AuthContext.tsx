@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { UserSession, GroupInfo } from '@/types';
 import { toast } from 'sonner';
+import { tid4kApi } from '@/api/tid4kClient';
 
 export interface DemoConfig {
   vertical: string;
@@ -25,31 +26,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_SESSION: UserSession = {
-  id: 'demo-user-00000000',
-  nume_prenume: 'Admin Demo',
-  telefon: '',
-  email: 'demo@infodisplay.ro',
-  status: 'administrator,inky',
-  avatar_url: '',
-  grupa_clasa_copil: 'fluturasi',
-  numar_grupe_clase_utilizator: 2,
-  index_grupa_clasa_curenta: 0,
-  grupe_disponibile: [
-    { id: 'fluturasi', nume: 'Grupa Fluturași', tip: 'gradinita' },
-    { id: 'albinute', nume: 'Grupa Albinuțe', tip: 'gradinita' },
-  ],
-  organization_id: undefined,
-  vertical_type: 'kids',
-  org_name: 'Grădinița Demo',
-};
-
-function buildDemoSession(config: DemoConfig): UserSession {
+function buildUserSession(config: DemoConfig): UserSession {
   return {
-    id: 'demo-user-00000000',
+    id: 'tid4k-user',
     nume_prenume: config.userName,
     telefon: '',
-    email: 'demo@infodisplay.ro',
+    email: '',
     status: config.status,
     avatar_url: '',
     grupa_clasa_copil: config.groups[0]?.id || '',
@@ -62,80 +44,123 @@ function buildDemoSession(config: DemoConfig): UserSession {
   };
 }
 
-function getInitialDemoState(): { user: UserSession; isDemo: true } {
+/**
+ * Verifica daca exista o sesiune salvata (din login anterior).
+ * Returneaza UserSession daca da, null daca nu.
+ */
+function getRestoredSession(): UserSession | null {
   try {
+    // 1. Verificam daca exista config salvat in sessionStorage (de la login)
     const savedConfig = sessionStorage.getItem('demo_config');
-    // Re-apply branding colors + vertical theme on reload
-    try {
-      const brandingStr = sessionStorage.getItem('demo_branding');
-      if (brandingStr) {
-        const { primary, secondary } = JSON.parse(brandingStr);
-        if (primary && secondary) {
-          setTimeout(() => {
-            import('@/utils/branding').then(({ applyBrandingColors, applyVerticalTheme }) => {
-              applyBrandingColors(primary, secondary);
-              // Also restore vertical theme from demo_config
-              try {
-                const cfg = sessionStorage.getItem('demo_config');
-                if (cfg) {
-                  const parsed = JSON.parse(cfg);
-                  if (parsed.vertical) applyVerticalTheme(parsed.vertical);
-                }
-              } catch {}
-            });
-          }, 0);
-        }
-      }
-    } catch {}
     if (savedConfig) {
       const config: DemoConfig = JSON.parse(savedConfig);
-      return { user: buildDemoSession(config), isDemo: true };
+      // Restauram si branding-ul
+      try {
+        const brandingStr = sessionStorage.getItem('demo_branding');
+        if (brandingStr) {
+          const { primary, secondary } = JSON.parse(brandingStr);
+          if (primary && secondary) {
+            setTimeout(() => {
+              import('@/utils/branding').then(({ applyBrandingColors, applyVerticalTheme }) => {
+                applyBrandingColors(primary, secondary);
+                if (config.vertical) applyVerticalTheme(config.vertical);
+              });
+            }, 0);
+          }
+        }
+      } catch {}
+      return buildUserSession(config);
     }
   } catch {}
-  return { user: DEMO_SESSION, isDemo: true };
+  // Nicio sesiune salvata - utilizatorul trebuie sa se logheze
+  return null;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const initialDemo = getInitialDemoState();
-  const [user, setUser] = useState<UserSession | null>(initialDemo.user);
-  const [isLoading] = useState(false);
-  const [isDemo] = useState(true);
-  const isDemoRef = useRef(true);
+  const [user, setUser] = useState<UserSession | null>(getRestoredSession);
+  const [isLoading, setIsLoading] = useState(() => {
+    // Daca avem tid4k_session dar nu avem demo_config, trebuie sa verificam sesiunea
+    const hasTid4kSession = !!localStorage.getItem('tid4k_session');
+    const hasDemoConfig = !!sessionStorage.getItem('demo_config');
+    return hasTid4kSession && !hasDemoConfig;
+  });
+  const [isDemo] = useState(false);
+
+  // La mount: daca avem tid4k_session in localStorage dar nu avem demo_config,
+  // verificam sesiunea pe server si restauram userul
+  useEffect(() => {
+    const tid4kSession = localStorage.getItem('tid4k_session');
+    const hasDemoConfig = sessionStorage.getItem('demo_config');
+
+    if (tid4kSession && !hasDemoConfig) {
+      // Avem cookie de sesiune dar nu avem datele userului - verificam pe server
+      tid4kApi.verificaSesiune().then((sesiune) => {
+        if (sesiune) {
+          const grupe = (sesiune.toate_grupele_clase || [sesiune.grupa_clasa_copil]).map((g) => ({
+            id: g,
+            nume: g.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+            tip: 'gradinita' as const,
+          }));
+
+          const esteInky = sesiune.telefon && sesiune.telefon.replace(/\D/g, '').includes('1313131313');
+          const numeAfisat = esteInky ? 'Inky' : sesiune.nume_prenume;
+
+          const config: DemoConfig = {
+            vertical: 'kids',
+            status: sesiune.status,
+            orgName: '',
+            groups: grupe,
+            userName: numeAfisat,
+          };
+
+          setUser(buildUserSession(config));
+          try { sessionStorage.setItem('demo_config', JSON.stringify(config)); } catch {}
+        } else {
+          // Sesiunea e invalida - stergem
+          localStorage.removeItem('tid4k_session');
+        }
+        setIsLoading(false);
+      }).catch(() => {
+        setIsLoading(false);
+      });
+    }
+  }, []);
 
   const setDemoUser = useCallback((config?: DemoConfig) => {
     if (config) {
-      const session = buildDemoSession(config);
+      const session = buildUserSession(config);
       setUser(session);
       try { sessionStorage.setItem('demo_config', JSON.stringify(config)); } catch {}
     } else {
-      setUser(DEMO_SESSION);
+      setUser(null);
       try { sessionStorage.removeItem('demo_config'); } catch {}
     }
-    try { sessionStorage.setItem('demo_mode', '1'); } catch {}
   }, []);
 
-  // No-op auth functions — demo mode only for now
-  // TID4K real auth will be activated when backend endpoints are tested
   const login = useCallback(async (_email: string, _password: string) => {
-    toast.info('Funcție disponibilă în producție');
+    toast.info('Folosește autentificarea prin număr de telefon');
   }, []);
 
   const signUp = useCallback(async (_email: string, _password: string, _fullName: string) => {
-    toast.info('Funcție disponibilă în producție');
+    toast.info('Înregistrare disponibilă în curând');
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
-    toast.info('Funcție disponibilă în producție');
+    toast.info('Google login disponibil în curând');
   }, []);
 
   const qrLogin = useCallback(async (_sessionId: string) => {
-    console.warn('QR login — demo mode');
+    console.warn('QR login — de implementat');
   }, []);
 
   const logoutFn = useCallback(async () => {
-    // In demo-only mode, reset to default demo session
-    setUser(DEMO_SESSION);
-    try { sessionStorage.removeItem('demo_config'); } catch {}
+    setUser(null);
+    localStorage.removeItem('tid4k_session');
+    try {
+      sessionStorage.removeItem('demo_config');
+      sessionStorage.removeItem('demo_branding');
+      sessionStorage.removeItem('demo_mode');
+    } catch {}
   }, []);
 
   return (

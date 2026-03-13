@@ -37,10 +37,7 @@ export const DEMO_ENVIRONMENTS: DemoEnvironment[] = [
     accounts: [
       { label: 'Părinte', description: 'Vede copilul, meniul, prezența', status: 'parinte', redirect: '/', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică')], userName: 'Maria Ionescu' },
       { label: 'Educatoare', description: 'Gestionează grupa, postează', status: 'profesor', redirect: '/', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică'), g('albinute', 'Grupa Mijlocie')], userName: 'Elena Popescu' },
-      { label: 'Director', description: 'Vede toate grupele, rapoarte', status: 'director', redirect: '/', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică'), g('albinute', 'Grupa Mijlocie'), g('buburuze', 'Grupa Mare')], userName: 'Ana Dumitrescu' },
-      { label: 'Secretară', description: 'Contribuții, export, rapoarte', status: 'secretara', redirect: '/', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică'), g('albinute', 'Grupa Mijlocie'), g('buburuze', 'Grupa Mare')], userName: 'Ioana Marinescu' },
-      { label: 'Administrator', description: 'Setări complete, utilizatori', status: 'administrator', redirect: '/admin', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică'), g('albinute', 'Grupa Mijlocie'), g('buburuze', 'Grupa Mare')], userName: 'Admin Floarea Soarelui' },
-      { label: 'Vizitator', description: 'Acces public, fără cont', status: 'guest', redirect: '/qr/demo-kids', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică')], userName: 'Vizitator' },
+      { label: 'Director', description: 'Vede toate grupele, rapoarte, setări', status: 'director,administrator', redirect: '/', orgName: 'Grădinița Floarea Soarelui', vertical: 'kids', groups: [g('fluturasi', 'Grupa Mică'), g('albinute', 'Grupa Mijlocie'), g('buburuze', 'Grupa Mare')], userName: 'Ana Dumitrescu' },
     ],
   },
   {

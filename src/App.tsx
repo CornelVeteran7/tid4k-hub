@@ -59,8 +59,18 @@ import Contributions from "./pages/Contributions";
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } });
 
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const verticalType = (user?.vertical_type || 'kids') as import('@/config/verticalConfig').VerticalType;
+
+  // Asteapta verificarea sesiunii inainte de redirect
+  if (isLoading) {
+    return null;
+  }
+
+  // Daca nu e autentificat, redirect la login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <GroupProvider>
