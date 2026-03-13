@@ -12,6 +12,7 @@ import SuperAdminModuleMatrix from '@/components/superadmin/SuperAdminModuleMatr
 import SuperAdminBI from '@/components/superadmin/SuperAdminBI';
 import SuperAdminDisplayMonitor from '@/components/superadmin/SuperAdminDisplayMonitor';
 import SuperAdminActivityFeed from '@/components/superadmin/SuperAdminActivityFeed';
+import SuperAdminCostCalculator from '@/components/superadmin/SuperAdminCostCalculator';
 import { type VerticalType } from '@/config/verticalConfig';
 
 export default function SuperAdmin() {
