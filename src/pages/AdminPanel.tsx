@@ -56,6 +56,7 @@ export default function AdminPanel() {
     { value: 'branding', label: 'Branding', icon: Palette, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'bi', label: 'BI', icon: BarChart3, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'teme', label: 'Teme', icon: SwatchBook, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'personaje', label: 'Personaje', icon: Drama, verticals: ['kids'] },
   ];
   const visibleTabs = TABS.filter(t => t.verticals.includes(verticalType));
 
