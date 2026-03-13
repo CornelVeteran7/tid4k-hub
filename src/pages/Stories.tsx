@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
 import { getStories, createStory } from '@/api/stories';
-import { storyCharacters, type StoryCharacter } from '@/data/storyCharacters';
+import { storyCharacters as fallbackCharacters, type StoryCharacter } from '@/data/storyCharacters';
+import { useStoryCharacters } from '@/hooks/useStoryCharacters';
 import type { Story } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -110,6 +111,7 @@ async function fetchElevenLabsTTS(text: string, characterId: string, speed: numb
 
 export default function Stories({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
+  const { characters: storyCharacters } = useStoryCharacters();
   const [stories, setStories] = useState<Story[]>([]);
   const [category, setCategory] = useState('all');
   const [mediaMode, setMediaMode] = useState<MediaMode>('all');

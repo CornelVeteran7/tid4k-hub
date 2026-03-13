@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette, HelpCircle, BarChart3, Monitor, Shield, Globe, SlidersHorizontal, Award, SwatchBook } from 'lucide-react';
+import { School, Users, Calendar, UtensilsCrossed, Settings, Paintbrush, BookOpen, Palette, HelpCircle, BarChart3, Monitor, Shield, Globe, SlidersHorizontal, Award, SwatchBook, Drama } from 'lucide-react';
 import { getSchools } from '@/api/schools';
 import type { School as SchoolType } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +24,7 @@ import DisplayPreviewTab from '@/components/admin/DisplayPreviewTab';
 import WebsiteTab from '@/components/admin/WebsiteTab';
 import ModuleTogglesTab from '@/components/admin/ModuleTogglesTab';
 import ThemeEditorTab from '@/components/admin/ThemeEditorTab';
+import CharactersTab from '@/components/admin/CharactersTab';
 
 export default function AdminPanel() {
   const { user } = useAuth();
@@ -55,6 +56,7 @@ export default function AdminPanel() {
     { value: 'branding', label: 'Branding', icon: Palette, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'bi', label: 'BI', icon: BarChart3, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
     { value: 'teme', label: 'Teme', icon: SwatchBook, verticals: ['kids', 'schools', 'medicine', 'living', 'culture', 'students', 'construction', 'workshops'] },
+    { value: 'personaje', label: 'Personaje', icon: Drama, verticals: ['kids'] },
   ];
   const visibleTabs = TABS.filter(t => t.verticals.includes(verticalType));
 
@@ -112,6 +114,7 @@ export default function AdminPanel() {
           <TabsContent value="branding"><BrandingTab /></TabsContent>
           <TabsContent value="bi"><BusinessIntelligenceTab /></TabsContent>
           <TabsContent value="teme"><ThemeEditorTab /></TabsContent>
+          <TabsContent value="personaje"><CharactersTab /></TabsContent>
         </div>
       </Tabs>
     </div>

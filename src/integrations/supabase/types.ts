@@ -3575,6 +3575,84 @@ export type Database = {
           },
         ]
       }
+      story_characters: {
+        Row: {
+          animal: string
+          backstory: string | null
+          bg_color: string
+          bio: string | null
+          color: string
+          description: string
+          emoji: string
+          focus_areas: string[] | null
+          gender: string | null
+          greeting: string | null
+          id: string
+          micro_intro: string | null
+          motto: string | null
+          name: string
+          role_title: string | null
+          sort_order: number
+          team_role: string | null
+          updated_at: string
+          vibe_style: string | null
+          voice_description: string | null
+          voice_id: string | null
+          voice_provider: string
+          voice_settings: Json
+        }
+        Insert: {
+          animal: string
+          backstory?: string | null
+          bg_color?: string
+          bio?: string | null
+          color?: string
+          description?: string
+          emoji?: string
+          focus_areas?: string[] | null
+          gender?: string | null
+          greeting?: string | null
+          id: string
+          micro_intro?: string | null
+          motto?: string | null
+          name: string
+          role_title?: string | null
+          sort_order?: number
+          team_role?: string | null
+          updated_at?: string
+          vibe_style?: string | null
+          voice_description?: string | null
+          voice_id?: string | null
+          voice_provider?: string
+          voice_settings?: Json
+        }
+        Update: {
+          animal?: string
+          backstory?: string | null
+          bg_color?: string
+          bio?: string | null
+          color?: string
+          description?: string
+          emoji?: string
+          focus_areas?: string[] | null
+          gender?: string | null
+          greeting?: string | null
+          id?: string
+          micro_intro?: string | null
+          motto?: string | null
+          name?: string
+          role_title?: string | null
+          sort_order?: number
+          team_role?: string | null
+          updated_at?: string
+          vibe_style?: string | null
+          voice_description?: string | null
+          voice_id?: string | null
+          voice_provider?: string
+          voice_settings?: Json
+        }
+        Relationships: []
+      }
       story_favorites: {
         Row: {
           id: string
