@@ -1,149 +1,169 @@
 
 
-# Plan: Sistem de Management Ateliere + Notificări Admin & Documentație
+# CRM Engine for SuperAdmin Panel — Multi-Phase Plan
 
-## Prezentare generală
+## Overview
 
-Acest plan adaugă un **sistem complet de management al Atelierelor** în Panoul de Administrare, permițând administratorilor să creeze, editeze și să publice ateliere către una sau toate unitățile școlare. Cardul modulului „ATELIERE" de pe dashboard va afișa previzualizarea atelierului lunii direct (fără deschidere), iar notificările push vor alerta profesorii despre atelierele noi.
-
----
-
-## Ce se construiește
-
-### 1. Modelul de date și API-ul pentru Ateliere
-
-**Fișier nou: `src/api/workshops.ts`**
-
-Tipuri și date mock pentru ateliere:
-
-```text
-Workshop {
-  id_atelier: number
-  titlu: string
-  descriere: string
-  luna: string (YYYY-MM)
-  imagine_url: string
-  categorie: 'arta' | 'stiinta' | 'muzica' | 'sport' | 'natura'
-  materiale: string[]
-  instructor: string
-  durata_minute: number
-  scoli_target: string[] (['all'] sau ID-uri specifice de școli)
-  publicat: boolean
-  data_creare: string
-  data_publicare?: string
-}
-```
-
-Funcții API:
-- `getWorkshops(schoolId?, luna?)` -- obține atelierele, opțional filtrate
-- `getWorkshopOfMonth(schoolId?)` -- returnează atelierul activ publicat al lunii curente
-- `createWorkshop(data)` -- creare nou
-- `updateWorkshop(id, data)` -- editare
-- `deleteWorkshop(id)` -- ștergere
-- `publishWorkshop(id, scoli_target)` -- marchează ca publicat + trimite către unități
-- Date mock: 2-3 ateliere pentru luna curentă
-
-### 2. Panoul de administrare: Tab nou „Ateliere"
-
-**Fișier nou: `src/components/admin/WorkshopsTab.tsx`**
-
-Un tab nou în Panoul de Administrare (`/admin`) cu:
-
-- **Conștientizare selector școală**: respectă filtrul global „Toate unitatile" / școală specifică din partea de sus a paginii admin
-- **Lista atelierelor**: carduri care arată titlul, luna, insigna categoriei, starea publicării, școlile țintă
-- **Dialog creare/editare**: formular cu titlu, descriere, categorie, URL imagine, lista materiale, instructor, durată, școală țintă (una / toate)
-- **Buton publicare**: marchează atelierul ca publicat; când ținta este „toate", trimite către fiecare școală. Afișează confirmare cu numărul de școli.
-- **Indicatori de stare**: Ciornă (gri), Publicat (verde), arătând care școli l-au primit
-
-Modificări în `src/pages/AdminPanel.tsx`:
-- Adaugă `{ value: 'ateliere', label: 'Ateliere', icon: Paintbrush }` la TABS
-- Importă și randează `<WorkshopsTab>` în noul TabsContent
-- Tab-ul respectă `selectedSchoolId` (toate vs. specifică)
-
-### 3. Dashboard: Previzualizare atelier pe cardul modulului
-
-**Modificat: `src/components/dashboard/ModuleHub.tsx`**
-
-Cardul „ATELIERE" arată în prezent doar un titlu și un contor. Se va schimba la:
-- Obține `getWorkshopOfMonth()` la montare
-- Afișează titlul atelierului + descriere scurtă direct pe card (sub subtitlu), astfel încât profesorii să o vadă fără a apăsa
-- Adaugă o etichetă mică „Luna: Martie 2026" și insigna categoriei pe fața cardului
-- Cardul rămâne apăsabil pentru a deschide detaliul complet al atelierului
-
-**Modificat: `src/components/dashboard/ModuleCard.tsx`**
-
-Adaugă prop opțional `preview` (ReactNode) care se randează sub subtitlu atunci când este furnizat. Doar cardul „ateliere" va folosi acest prop.
-
-### 4. Sistemul de notificări: Notificări push pentru ateliere
-
-**Modificat: `src/contexts/NotificationContext.tsx`**
-
-- Importă `getWorkshopOfMonth` din API-ul de ateliere
-- Adaugă `'workshop'` ca tip nou de notificare în `NotificationItem`
-- În `refreshNotifications`, verifică dacă există un atelier publicat pentru luna curentă care nu a fost văzut (urmărit prin cheia localStorage `tid4k_seen_workshop_[id]`)
-- Generează notificare: „Atelier nou: [titlu]" cu link pentru a deschide modulul de ateliere
-
-**Modificat: `src/components/layout/AppLayout.tsx`**
-
-- Adaugă gestionarea iconiței `Paintbrush` pentru tipul de notificare `workshop` în renderul popover (culoare violet distinctă)
-
-### 5. Documentație
-
-**Fișier nou: `docs/WORKSHOPS.md`**
-
-Trei secțiuni:
-1. **Pentru administratori**: Cum se creează atelierele, cum se vizează școli specifice sau toate, fluxul de publicare, editarea după publicare
-2. **Pentru dezvoltatori/AI**: Tabel endpoint-uri API, interfețe TypeScript, arhitectura componentelor, integrarea notificărilor
-3. **Referință API**: Specificație completă a endpoint-urilor pentru implementarea backend
-
-```text
-POST /ateliere.php?action=create        -- Creare atelier
-POST /ateliere.php?action=update        -- Editare atelier
-POST /ateliere.php?action=publish       -- Publicare + trimitere către școli
-GET  /ateliere.php?action=list          -- Listare ateliere (filtre: school_id, luna)
-GET  /ateliere.php?action=current       -- Atelierul activ al lunii curente
-POST /ateliere.php?action=delete        -- Ștergere atelier
-POST /ateliere.php?action=notify        -- Declanșare notificări push
-```
+Build a full CRM system inside the existing SuperAdmin sidebar with new Supabase tables for persistent tracking of clients, contracts, revenue, tasks, and activity notes. Three phases: database foundation, core CRM UI, and automation/intelligence layer.
 
 ---
 
-## Detalii tehnice
+## Phase 1: Database Schema (Migration)
 
-### Rezumatul modificărilor de fișiere
+Create 4 new tables with RLS policies allowing only `inky` role access via the existing `has_role()` function.
 
-| Fișier | Acțiune | Ce face |
-|--------|---------|---------|
-| `src/api/workshops.ts` | NOU | Tipuri atelier, date mock, funcții API |
-| `src/components/admin/WorkshopsTab.tsx` | NOU | UI complet admin pentru CRUD ateliere + publicare |
-| `docs/WORKSHOPS.md` | NOU | Documentație pentru administratori și dezvoltatori |
-| `src/pages/AdminPanel.tsx` | EDITARE | Adaugă tab „Ateliere" (iconiță + TabsContent) |
-| `src/components/dashboard/ModuleCard.tsx` | EDITARE | Adaugă prop opțional `preview` |
-| `src/components/dashboard/ModuleHub.tsx` | EDITARE | Obține atelierul lunii, pasează preview către cardul ateliere |
-| `src/contexts/NotificationContext.tsx` | EDITARE | Adaugă tip notificare atelier |
-| `src/components/layout/AppLayout.tsx` | EDITARE | Randează iconiță notificare atelier în popover |
+### Tables
 
-### Tipare respectate
+**`crm_clients`** — Extends organizations with CRM-specific metadata
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | |
+| organization_id | uuid FK → organizations | unique, 1:1 |
+| status | text | `lead`, `onboarding`, `active`, `at_risk`, `churned` |
+| health_score | int | 0-100, auto-calculated |
+| owner_name | text | Account manager name |
+| onboarding_completed_at | timestamptz | |
+| churned_at | timestamptz | |
+| tags | text[] | Custom tags |
+| created_at / updated_at | timestamptz | |
 
-- Același model de comutare `USE_MOCK` ca în toate celelalte fișiere API
-- Același model UI admin cu carduri pliabile ca în SettingsTab/SchoolsTab
-- Același model de element notificare cu `type`, `icon`, `navigateTo`
-- Selectorul de școală `selectedSchoolId` pasat la fel ca în celelalte tab-uri admin
-- Animații `framer-motion` consistente cu cardurile de modul existente
+**`crm_contracts`** — Subscription and revenue tracking
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | |
+| client_id | uuid FK → crm_clients | |
+| contract_type | text | `subscription`, `hardware`, `one_time` |
+| amount_ron | numeric | Monthly or total |
+| currency | text | default `RON` |
+| start_date | date | |
+| end_date | date | nullable |
+| renewal_date | date | nullable, for alerts |
+| status | text | `active`, `expired`, `cancelled` |
+| notes | text | |
+| created_at | timestamptz | |
 
-### Randarea previzualizării cardului atelier
+**`crm_notes`** — Activity log / notes per client
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | |
+| client_id | uuid FK → crm_clients | |
+| author_name | text | |
+| content | text | |
+| note_type | text | `call`, `email`, `meeting`, `internal`, `system` |
+| created_at | timestamptz | |
 
-Pe dashboard, cardul modulului ATELIERE va afișa:
+**`crm_tasks`** — Follow-ups, onboarding steps, reminders
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid PK | |
+| client_id | uuid FK → crm_clients | nullable (global tasks) |
+| title | text | |
+| description | text | |
+| due_date | date | |
+| priority | text | `low`, `medium`, `high`, `urgent` |
+| status | text | `todo`, `in_progress`, `done`, `cancelled` |
+| assigned_to | text | |
+| task_type | text | `follow_up`, `onboarding`, `nps`, `renewal`, `custom` |
+| created_at / completed_at | timestamptz | |
 
-```text
-+------------------------------------------+
-| [Iconiță Paintbrush]  ATELIERE           |
-|                    Activitati creative     |
-|   ┌─────────────────────────────┐         |
-|   │ Pictură pe sticlă           │  [10]   |
-|   │ Artă · Martie 2026          │         |
-|   └─────────────────────────────┘         |
-+------------------------------------------+
-```
+### RLS Policies
+All 4 tables: `SELECT/INSERT/UPDATE/DELETE` for authenticated users with `has_role(auth.uid(), 'inky')`. This restricts CRM access to superadmins only.
 
-Această previzualizare apare doar când există un atelier al lunii.
+---
+
+## Phase 2: CRM UI Components (Inside SuperAdmin Sidebar)
+
+Add 3 new nav sections to the existing `NAV_SECTIONS` in `SuperAdmin.tsx`:
+
+### 2a. **CRM Dashboard** (nav key: `crm-dashboard`)
+- KPI cards: Total clients, MRR, Active contracts, Overdue tasks, At-risk clients
+- Mini pipeline funnel chart (lead → onboarding → active → churned)
+- Revenue trend line chart (last 12 months from contracts)
+- Upcoming renewals list (next 30 days)
+- Overdue tasks alert list
+
+### 2b. **Client Pipeline** (nav key: `crm-pipeline`)
+- Kanban board with columns: Lead → Onboarding → Active → At Risk → Churned
+- Each card shows: org name, vertical badge, health score bar, MRR, days since last activity
+- Drag-and-drop to change status (or click to update)
+- Click card → slide-out detail panel with:
+  - Contract history
+  - Notes timeline
+  - Tasks list
+  - Quick actions (add note, create task, change status)
+- Bulk actions: select multiple → change status, assign owner
+
+### 2c. **Tasks & Follow-ups** (nav key: `crm-tasks`)
+- Filtered task list: by status, priority, due date, client
+- Quick-create task form with client selector
+- Overdue highlighting
+- Calendar-style view toggle (list vs. week grid)
+
+### 2d. **Contracts & Revenue** (nav key: `crm-contracts`)
+- Table view of all contracts across clients
+- Filters: status, type, amount range, renewal window
+- MRR/ARR summary cards
+- Add/edit contract dialog
+- Renewal alerts (contracts expiring in 7/30/60 days)
+
+### New files:
+- `src/components/superadmin/crm/CRMDashboard.tsx`
+- `src/components/superadmin/crm/CRMPipeline.tsx`
+- `src/components/superadmin/crm/CRMTasks.tsx`
+- `src/components/superadmin/crm/CRMContracts.tsx`
+- `src/components/superadmin/crm/CRMClientDetail.tsx` (slide-out panel)
+
+### Modified files:
+- `src/pages/SuperAdmin.tsx` — Add CRM nav group + render cases
+
+---
+
+## Phase 3: Intelligence & Automation
+
+### Auto Health Score
+A utility function that computes `health_score` based on:
+- Days since last document upload (from `documents` table)
+- Days since last announcement
+- Number of active display devices online
+- Contract renewal proximity
+- Task completion rate
+
+Runs on-demand when viewing client detail, updates `crm_clients.health_score`.
+
+### System Notes
+Auto-generate `crm_notes` entries (note_type=`system`) when:
+- A new organization is created via the wizard → auto-create `crm_clients` row + system note
+- Display goes offline for >24h → system note on that client
+- Contract approaches renewal → system note
+
+### Onboarding Checklist Templates
+Pre-built task sets per vertical that auto-create when a client enters `onboarding` status:
+- Kids: "Upload logo", "Configure groups", "Test display", "Train director", "First parent message"
+- Each vertical gets ~5 default onboarding tasks
+
+---
+
+## Implementation Order
+
+1. **Database migration** — Create 4 tables + RLS (single migration)
+2. **SuperAdmin nav update** — Add CRM group to sidebar
+3. **CRM Dashboard** — KPIs + charts from new tables
+4. **CRM Pipeline** — Kanban with client cards + detail panel
+5. **CRM Contracts** — Revenue tracking table + dialogs
+6. **CRM Tasks** — Task management with filters
+7. **Health score calculator** — Auto-compute from cross-table data
+8. **System auto-notes** — Hook into existing creation flows
+
+Phases 1-6 are the core deliverable. Phases 7-8 are enhancements that build on top.
+
+---
+
+## Technical Notes
+
+- All CRM queries use `supabase` client with `@tanstack/react-query` for caching
+- Kanban drag uses existing framer-motion (already installed) for animations, with onClick fallback
+- Client detail panel uses `Sheet` component (already in UI library)
+- Charts use `recharts` (already installed)
+- No edge functions needed — all logic is client-side with RLS-protected tables
+- The `crm_clients.organization_id` FK creates a clean bridge between existing org data and CRM metadata
+
