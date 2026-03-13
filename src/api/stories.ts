@@ -72,7 +72,21 @@ export async function createStory(story: Partial<Story>): Promise<Story> {
   }
 }
 
-export async function generateTTS(id: string): Promise<{ audio_url: string }> {
-  // TTS - de implementat cu endpoint dedicat
-  return { audio_url: '' };
+export async function generateTTS(text: string, characterId: string = 'inky'): Promise<string> {
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ text, characterId }),
+    }
+  );
+
+  if (!response.ok) throw new Error(`TTS failed: ${response.status}`);
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 }
