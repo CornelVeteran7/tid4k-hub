@@ -23,6 +23,10 @@ import SuperAdminActivityFeed from '@/components/superadmin/SuperAdminActivityFe
 import SuperAdminCostCalculator from '@/components/superadmin/SuperAdminCostCalculator';
 import SuperAdminContentManager from '@/components/superadmin/SuperAdminContentManager';
 import SuperAdminPreview from '@/components/superadmin/SuperAdminPreview';
+import CRMDashboard from '@/components/superadmin/crm/CRMDashboard';
+import CRMPipeline from '@/components/superadmin/crm/CRMPipeline';
+import CRMContracts from '@/components/superadmin/crm/CRMContracts';
+import CRMTasks from '@/components/superadmin/crm/CRMTasks';
 import { type VerticalType } from '@/config/verticalConfig';
 
 type NavSection = {
