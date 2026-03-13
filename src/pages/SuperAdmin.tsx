@@ -87,6 +87,7 @@ export default function SuperAdmin() {
         <TabsContent value="templates">
           <SuperAdminTemplates onUseTemplate={handleUseTemplate} />
         </TabsContent>
+        <TabsContent value="calculator"><SuperAdminCostCalculator /></TabsContent>
       </Tabs>
     </div>
   );
