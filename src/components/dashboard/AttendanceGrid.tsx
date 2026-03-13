@@ -4,7 +4,7 @@ import { X, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { getAttendance, saveAttendance } from '@/api/attendance';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import type { AttendanceRecord } from '@/types';
 
 const PASTEL_COLORS = [
