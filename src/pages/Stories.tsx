@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BookOpen, Plus, Heart, Play, Pause, Volume2, ArrowLeft, Square, Headphones, Video } from 'lucide-react';
+import { BookOpen, Plus, Heart, Play, Pause, Volume2, ArrowLeft, Square, Headphones, Video, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CATEGORIES = [
@@ -77,8 +77,36 @@ const DEMO_VIDEO_STORIES: Story[] = [
   },
 ];
 
-// TTS cache
-const ttsCache = new Map<string, SpeechSynthesisUtterance>();
+// ElevenLabs TTS audio cache (storyId:characterId → blob URL)
+const elevenLabsCache = new Map<string, string>();
+
+async function fetchElevenLabsTTS(text: string, characterId: string, speed: number): Promise<string> {
+  const cacheKey = `${characterId}:${text.slice(0, 50)}:${speed}`;
+  if (elevenLabsCache.has(cacheKey)) return elevenLabsCache.get(cacheKey)!;
+
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ text, characterId, speed }),
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || `TTS failed: ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  elevenLabsCache.set(cacheKey, url);
+  return url;
+}
 
 export default function Stories({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
@@ -87,12 +115,13 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
   const [mediaMode, setMediaMode] = useState<MediaMode>('all');
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingTTS, setIsLoadingTTS] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [progress, setProgress] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [newStory, setNewStory] = useState({ titlu: '', continut: '', categorie: 'educative', varsta: '3-4' });
   const [selectedCharacter, setSelectedCharacter] = useState<StoryCharacter>(storyCharacters[0]);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressIntervalRef = useRef<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -100,26 +129,27 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
 
   useEffect(() => {
     getStories().then(data => {
-      // Merge with demo video stories (avoid duplicates)
       const dbIds = new Set(data.map(s => s.id));
       const demoToAdd = DEMO_VIDEO_STORIES.filter(d => !dbIds.has(d.id));
       setStories([...data, ...demoToAdd]);
     });
   }, []);
 
-  // Cleanup TTS on unmount
+  // Cleanup audio on unmount
   useEffect(() => {
     return () => {
-      window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
   }, []);
 
-  // Filter by category and media mode
   const filtered = stories.filter(s => {
     if (category !== 'all' && s.categorie !== category) return false;
     if (mediaMode === 'read') return s.media_type !== 'video';
-    if (mediaMode === 'audio') return s.media_type === 'audio' || s.media_type === 'text'; // all text stories can be TTS'd
+    if (mediaMode === 'audio') return s.media_type === 'audio' || s.media_type === 'text';
     if (mediaMode === 'video') return s.media_type === 'video';
     return true;
   });
@@ -136,78 +166,113 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
     setStories(prev => prev.map(s => s.id === id ? { ...s, favorit: !s.favorit } : s));
   };
 
-  // TTS Functions
-  const handlePlayTTS = useCallback(() => {
+  // ElevenLabs TTS Functions
+  const handlePlayTTS = useCallback(async () => {
     if (!selectedStory) return;
-    if (isPlaying) {
-      window.speechSynthesis.pause();
-      setIsPlaying(false);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      return;
-    }
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-      setIsPlaying(true);
-      startProgressTracker(selectedStory.continut.length);
-      return;
-    }
-    window.speechSynthesis.cancel();
-    let utterance: SpeechSynthesisUtterance;
-    if (ttsCache.has(selectedStory.id)) {
-      utterance = ttsCache.get(selectedStory.id)!;
-    } else {
-      utterance = new SpeechSynthesisUtterance(selectedStory.continut);
-      utterance.lang = 'ro-RO';
-      const voices = window.speechSynthesis.getVoices();
-      const roVoice = voices.find(v => v.lang.startsWith('ro'));
-      if (roVoice) utterance.voice = roVoice;
-      ttsCache.set(selectedStory.id, utterance);
-    }
-    utterance.rate = playbackSpeed;
-    utterance.onend = () => {
-      setIsPlaying(false);
-      setProgress(100);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    };
-    utterance.onerror = () => {
-      setIsPlaying(false);
-      setProgress(0);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      toast.error('TTS nu este disponibil în acest browser');
-    };
-    utteranceRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
-    setIsPlaying(true);
-    setProgress(0);
-    startProgressTracker(selectedStory.continut.length);
-  }, [selectedStory, isPlaying, playbackSpeed]);
 
-  const startProgressTracker = (totalChars: number) => {
-    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    const estimatedDuration = (totalChars / 15) * 1000 / playbackSpeed;
-    const startTime = Date.now();
-    progressIntervalRef.current = window.setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const pct = Math.min((elapsed / estimatedDuration) * 100, 99);
-      setProgress(pct);
-      if (pct >= 99) {
+    // If currently playing, pause
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      return;
+    }
+
+    // If paused with existing audio, resume
+    if (audioRef.current && audioRef.current.paused && audioRef.current.currentTime > 0) {
+      audioRef.current.play();
+      setIsPlaying(true);
+      startProgressFromAudio();
+      return;
+    }
+
+    // Generate new TTS
+    setIsLoadingTTS(true);
+    try {
+      const audioUrl = await fetchElevenLabsTTS(
+        selectedStory.continut,
+        selectedCharacter.id,
+        playbackSpeed
+      );
+      const audio = new Audio(audioUrl);
+      audio.playbackRate = 1; // Speed is baked into the ElevenLabs request
+      
+      audio.onended = () => {
+        setIsPlaying(false);
+        setProgress(100);
         if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      };
+      
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setProgress(0);
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        toast.error('Eroare la redarea audio');
+      };
+
+      audioRef.current = audio;
+      await audio.play();
+      setIsPlaying(true);
+      setProgress(0);
+      startProgressFromAudio();
+    } catch (err) {
+      console.error('TTS error:', err);
+      // Fallback to browser SpeechSynthesis
+      toast.info('Se folosește vocea browser-ului ca alternativă...');
+      fallbackBrowserTTS();
+    } finally {
+      setIsLoadingTTS(false);
+    }
+  }, [selectedStory, isPlaying, playbackSpeed, selectedCharacter]);
+
+  const startProgressFromAudio = () => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    progressIntervalRef.current = window.setInterval(() => {
+      if (audioRef.current && audioRef.current.duration) {
+        const pct = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+        setProgress(pct);
+        if (pct >= 100) {
+          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        }
       }
     }, 200);
   };
 
+  const fallbackBrowserTTS = () => {
+    if (!selectedStory) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(selectedStory.continut);
+    utterance.lang = 'ro-RO';
+    utterance.rate = playbackSpeed;
+    const voices = window.speechSynthesis.getVoices();
+    const roVoice = voices.find(v => v.lang.startsWith('ro'));
+    if (roVoice) utterance.voice = roVoice;
+    utterance.onend = () => { setIsPlaying(false); setProgress(100); };
+    utterance.onerror = () => { setIsPlaying(false); setProgress(0); toast.error('TTS indisponibil'); };
+    window.speechSynthesis.speak(utterance);
+    setIsPlaying(true);
+    setProgress(0);
+    // Estimate progress for browser TTS
+    const estimatedDuration = (selectedStory.continut.length / 15) * 1000 / playbackSpeed;
+    const startTime = Date.now();
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    progressIntervalRef.current = window.setInterval(() => {
+      const pct = Math.min(((Date.now() - startTime) / estimatedDuration) * 100, 99);
+      setProgress(pct);
+    }, 200);
+  };
+
   const handleStopTTS = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
     window.speechSynthesis.cancel();
     setIsPlaying(false);
     setProgress(0);
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
   };
-
-  useEffect(() => {
-    if (utteranceRef.current) {
-      utteranceRef.current.rate = playbackSpeed;
-    }
-  }, [playbackSpeed]);
 
   // Get media badge for story cards
   const getMediaBadge = (story: Story) => {
@@ -317,14 +382,14 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
           </CardContent>
         </Card>
 
-        {/* Audio Player — TTS */}
+        {/* Audio Player — ElevenLabs TTS */}
         <Card className="glass-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Button size="icon" variant="outline" onClick={handlePlayTTS} className="shrink-0">
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              <Button size="icon" variant="outline" onClick={handlePlayTTS} disabled={isLoadingTTS} className="shrink-0">
+                {isLoadingTTS ? <Loader2 className="h-4 w-4 animate-spin" /> : isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </Button>
-              {isPlaying && (
+              {(isPlaying || progress > 0) && (
                 <Button size="icon" variant="ghost" onClick={handleStopTTS} className="shrink-0">
                   <Square className="h-4 w-4" />
                 </Button>
@@ -339,20 +404,26 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
               <Select value={String(playbackSpeed)} onValueChange={v => setPlaybackSpeed(Number(v))}>
                 <SelectTrigger className="w-16 h-9 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0.5">0.5x</SelectItem>
-                  <SelectItem value="0.75">0.75x</SelectItem>
+                  <SelectItem value="0.8">0.8x</SelectItem>
+                  <SelectItem value="0.9">0.9x</SelectItem>
                   <SelectItem value="1">1x</SelectItem>
-                  <SelectItem value="1.25">1.25x</SelectItem>
-                  <SelectItem value="1.5">1.5x</SelectItem>
-                  <SelectItem value="2">2x</SelectItem>
+                  <SelectItem value="1.1">1.1x</SelectItem>
+                  <SelectItem value="1.2">1.2x</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="mt-3">
-              <Button variant="outline" className="gap-2 w-full" size="sm" onClick={handlePlayTTS}>
-                <Volume2 className="h-4 w-4" /> {isPlaying ? 'Pauză' : 'Citește Povestea (TTS)'}
+              <Button variant="outline" className="gap-2 w-full" size="sm" onClick={handlePlayTTS} disabled={isLoadingTTS}>
+                {isLoadingTTS ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Se generează vocea...</>
+                ) : (
+                  <><Volume2 className="h-4 w-4" /> {isPlaying ? 'Pauză' : `${selectedCharacter.name} citește povestea`}</>
+                )}
               </Button>
             </div>
+            <p className="text-[10px] text-muted-foreground text-center mt-2">
+              Voce generată de ElevenLabs • Personaj: {selectedCharacter.name}
+            </p>
           </CardContent>
         </Card>
       </div>
