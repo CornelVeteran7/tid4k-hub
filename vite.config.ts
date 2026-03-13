@@ -6,7 +6,7 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: '/',
+  base: '/app/',
   server: {
     host: "::",
     port: 8080,
@@ -20,7 +20,8 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: "autoUpdate",
       workbox: {
-        navigateFallbackDenylist: [/^\/~oauth/],
+        navigateFallback: '/app/index.html',
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/pages\//, /^\/avizier\//],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },

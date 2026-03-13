@@ -119,7 +119,7 @@ const App = () => (
       <ExternalLinkProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter basename="/app">
           <AuthProvider>
             <Routes>
               {/* Login page */}
