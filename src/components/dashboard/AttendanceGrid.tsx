@@ -71,9 +71,9 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
     } catch { /* silent */ }
     const p = records.filter(r => r.prezent).length;
     const a = records.length - p;
-    toast({
-      title: '✅ Prezența confirmată!',
+    toast.success('✅ Prezența confirmată!', {
       description: `Prezenți: ${p} · Absenți: ${a}`,
+      duration: 3000,
     });
     onClose();
   }, [groupId, today, records, onClose]);
