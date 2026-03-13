@@ -66,6 +66,15 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    label: 'CRM',
+    items: [
+      { key: 'crm-dashboard', label: 'Dashboard CRM', icon: TrendingUp, badge: 'Nou' },
+      { key: 'crm-pipeline', label: 'Pipeline', icon: Kanban },
+      { key: 'crm-contracts', label: 'Contracte', icon: FileText },
+      { key: 'crm-tasks', label: 'Task-uri', icon: ListTodo },
+    ],
+  },
+  {
     label: 'Instrumente',
     items: [
       { key: 'calculator', label: 'Calculator Costuri', icon: Calculator },
