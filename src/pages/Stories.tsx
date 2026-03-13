@@ -77,8 +77,36 @@ const DEMO_VIDEO_STORIES: Story[] = [
   },
 ];
 
-// TTS cache
-const ttsCache = new Map<string, SpeechSynthesisUtterance>();
+// ElevenLabs TTS audio cache (storyId:characterId → blob URL)
+const elevenLabsCache = new Map<string, string>();
+
+async function fetchElevenLabsTTS(text: string, characterId: string, speed: number): Promise<string> {
+  const cacheKey = `${characterId}:${text.slice(0, 50)}:${speed}`;
+  if (elevenLabsCache.has(cacheKey)) return elevenLabsCache.get(cacheKey)!;
+
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ text, characterId, speed }),
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || `TTS failed: ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  elevenLabsCache.set(cacheKey, url);
+  return url;
+}
 
 export default function Stories({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
@@ -87,12 +115,13 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
   const [mediaMode, setMediaMode] = useState<MediaMode>('all');
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingTTS, setIsLoadingTTS] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [progress, setProgress] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [newStory, setNewStory] = useState({ titlu: '', continut: '', categorie: 'educative', varsta: '3-4' });
   const [selectedCharacter, setSelectedCharacter] = useState<StoryCharacter>(storyCharacters[0]);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressIntervalRef = useRef<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -100,26 +129,27 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
 
   useEffect(() => {
     getStories().then(data => {
-      // Merge with demo video stories (avoid duplicates)
       const dbIds = new Set(data.map(s => s.id));
       const demoToAdd = DEMO_VIDEO_STORIES.filter(d => !dbIds.has(d.id));
       setStories([...data, ...demoToAdd]);
     });
   }, []);
 
-  // Cleanup TTS on unmount
+  // Cleanup audio on unmount
   useEffect(() => {
     return () => {
-      window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
   }, []);
 
-  // Filter by category and media mode
   const filtered = stories.filter(s => {
     if (category !== 'all' && s.categorie !== category) return false;
     if (mediaMode === 'read') return s.media_type !== 'video';
-    if (mediaMode === 'audio') return s.media_type === 'audio' || s.media_type === 'text'; // all text stories can be TTS'd
+    if (mediaMode === 'audio') return s.media_type === 'audio' || s.media_type === 'text';
     if (mediaMode === 'video') return s.media_type === 'video';
     return true;
   });
@@ -136,78 +166,113 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
     setStories(prev => prev.map(s => s.id === id ? { ...s, favorit: !s.favorit } : s));
   };
 
-  // TTS Functions
-  const handlePlayTTS = useCallback(() => {
+  // ElevenLabs TTS Functions
+  const handlePlayTTS = useCallback(async () => {
     if (!selectedStory) return;
-    if (isPlaying) {
-      window.speechSynthesis.pause();
-      setIsPlaying(false);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      return;
-    }
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-      setIsPlaying(true);
-      startProgressTracker(selectedStory.continut.length);
-      return;
-    }
-    window.speechSynthesis.cancel();
-    let utterance: SpeechSynthesisUtterance;
-    if (ttsCache.has(selectedStory.id)) {
-      utterance = ttsCache.get(selectedStory.id)!;
-    } else {
-      utterance = new SpeechSynthesisUtterance(selectedStory.continut);
-      utterance.lang = 'ro-RO';
-      const voices = window.speechSynthesis.getVoices();
-      const roVoice = voices.find(v => v.lang.startsWith('ro'));
-      if (roVoice) utterance.voice = roVoice;
-      ttsCache.set(selectedStory.id, utterance);
-    }
-    utterance.rate = playbackSpeed;
-    utterance.onend = () => {
-      setIsPlaying(false);
-      setProgress(100);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    };
-    utterance.onerror = () => {
-      setIsPlaying(false);
-      setProgress(0);
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      toast.error('TTS nu este disponibil în acest browser');
-    };
-    utteranceRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
-    setIsPlaying(true);
-    setProgress(0);
-    startProgressTracker(selectedStory.continut.length);
-  }, [selectedStory, isPlaying, playbackSpeed]);
 
-  const startProgressTracker = (totalChars: number) => {
-    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    const estimatedDuration = (totalChars / 15) * 1000 / playbackSpeed;
-    const startTime = Date.now();
-    progressIntervalRef.current = window.setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const pct = Math.min((elapsed / estimatedDuration) * 100, 99);
-      setProgress(pct);
-      if (pct >= 99) {
+    // If currently playing, pause
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      return;
+    }
+
+    // If paused with existing audio, resume
+    if (audioRef.current && audioRef.current.paused && audioRef.current.currentTime > 0) {
+      audioRef.current.play();
+      setIsPlaying(true);
+      startProgressFromAudio();
+      return;
+    }
+
+    // Generate new TTS
+    setIsLoadingTTS(true);
+    try {
+      const audioUrl = await fetchElevenLabsTTS(
+        selectedStory.continut,
+        selectedCharacter.id,
+        playbackSpeed
+      );
+      const audio = new Audio(audioUrl);
+      audio.playbackRate = 1; // Speed is baked into the ElevenLabs request
+      
+      audio.onended = () => {
+        setIsPlaying(false);
+        setProgress(100);
         if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      };
+      
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setProgress(0);
+        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        toast.error('Eroare la redarea audio');
+      };
+
+      audioRef.current = audio;
+      await audio.play();
+      setIsPlaying(true);
+      setProgress(0);
+      startProgressFromAudio();
+    } catch (err) {
+      console.error('TTS error:', err);
+      // Fallback to browser SpeechSynthesis
+      toast.info('Se folosește vocea browser-ului ca alternativă...');
+      fallbackBrowserTTS();
+    } finally {
+      setIsLoadingTTS(false);
+    }
+  }, [selectedStory, isPlaying, playbackSpeed, selectedCharacter]);
+
+  const startProgressFromAudio = () => {
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    progressIntervalRef.current = window.setInterval(() => {
+      if (audioRef.current && audioRef.current.duration) {
+        const pct = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+        setProgress(pct);
+        if (pct >= 100) {
+          if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+        }
       }
     }, 200);
   };
 
+  const fallbackBrowserTTS = () => {
+    if (!selectedStory) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(selectedStory.continut);
+    utterance.lang = 'ro-RO';
+    utterance.rate = playbackSpeed;
+    const voices = window.speechSynthesis.getVoices();
+    const roVoice = voices.find(v => v.lang.startsWith('ro'));
+    if (roVoice) utterance.voice = roVoice;
+    utterance.onend = () => { setIsPlaying(false); setProgress(100); };
+    utterance.onerror = () => { setIsPlaying(false); setProgress(0); toast.error('TTS indisponibil'); };
+    window.speechSynthesis.speak(utterance);
+    setIsPlaying(true);
+    setProgress(0);
+    // Estimate progress for browser TTS
+    const estimatedDuration = (selectedStory.continut.length / 15) * 1000 / playbackSpeed;
+    const startTime = Date.now();
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    progressIntervalRef.current = window.setInterval(() => {
+      const pct = Math.min(((Date.now() - startTime) / estimatedDuration) * 100, 99);
+      setProgress(pct);
+    }, 200);
+  };
+
   const handleStopTTS = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
     window.speechSynthesis.cancel();
     setIsPlaying(false);
     setProgress(0);
     if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
   };
-
-  useEffect(() => {
-    if (utteranceRef.current) {
-      utteranceRef.current.rate = playbackSpeed;
-    }
-  }, [playbackSpeed]);
 
   // Get media badge for story cards
   const getMediaBadge = (story: Story) => {
