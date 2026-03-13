@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Building2, Grid3X3, BarChart3, Monitor, Activity, BookOpen,
   Users, PlusCircle, LayoutTemplate, Calculator, Menu, FolderOpen,
-  Eye, ChevronRight, Shield
+  Eye, ChevronRight, Shield, TrendingUp, Kanban, FileText, ListTodo
 } from 'lucide-react';
 import SuperAdminDocs from '@/components/superadmin/SuperAdminDocs';
 import SuperAdminClients from '@/components/superadmin/SuperAdminClients';
