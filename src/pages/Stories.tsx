@@ -111,6 +111,7 @@ async function fetchElevenLabsTTS(text: string, characterId: string, speed: numb
 
 export default function Stories({ embedded }: { embedded?: boolean }) {
   const { user } = useAuth();
+  const { characters: storyCharacters } = useStoryCharacters();
   const [stories, setStories] = useState<Story[]>([]);
   const [category, setCategory] = useState('all');
   const [mediaMode, setMediaMode] = useState<MediaMode>('all');
