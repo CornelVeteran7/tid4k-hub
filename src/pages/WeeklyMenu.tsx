@@ -7,7 +7,8 @@ import {
   getMenuWeek, ensureMenuWeek, getNutritionalReference, addDish, addIngredient,
   updateIngredient, deleteIngredient, deleteDish, updateDishName, publishMenu,
   unpublishMenu, updateAgeGroup, computeDayNutrition, getCalorieStatus,
-  checkBannedIngredients, AGE_GROUP_TARGETS,
+  checkBannedIngredients, AGE_GROUP_TARGETS, computeMacroBalance,
+  getWeeklyOmsClassification, getRefCategories, CATEGORY_LABELS,
   type MenuWeek, type NutritionalRef, type Meal, type Dish, type DishIngredient,
 } from '@/api/menuOms';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +24,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Save, Printer, ChevronLeft, ChevronRight, CalendarIcon, Plus, Trash2, AlertTriangle,
-  Check, Eye, EyeOff, Send, Undo2, ChefHat, Scale, ShieldAlert,
+  Check, Eye, EyeOff, Send, Undo2, ChefHat, Scale, ShieldAlert, FileText, Award,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -278,6 +279,21 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
   const ageGroup = menuWeek?.age_group || '4-5';
   const target = AGE_GROUP_TARGETS[ageGroup];
   const bannedWarnings = checkBannedIngredients(meals, refMap);
+  const omsClassification = menuWeek ? getWeeklyOmsClassification(meals, ageGroup, refMap) : null;
+
+  const OMS_BADGE_STYLES: Record<string, string> = {
+    verde: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40',
+    galben: 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40',
+    rosu: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/40',
+    gol: 'bg-muted text-muted-foreground border-border',
+  };
+
+  const OMS_BADGE_LABELS: Record<string, string> = {
+    verde: '✅ Conform OMS',
+    galben: '⚠️ Atenție OMS',
+    rosu: '❌ Neconform OMS',
+    gol: '📋 Incomplet',
+  };
 
   // Get meals for a specific cell
   const getMealDishes = (day: number, mealType: string): Dish[] => {
@@ -358,6 +374,17 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
             <Badge variant={menuWeek.status === 'published' ? 'default' : 'secondary'}>
               {menuWeek.status === 'published' ? '✅ Publicat' : '📝 Draft'}
             </Badge>
+          )}
+          {omsClassification && omsClassification.classification !== 'gol' && (
+            <Badge variant="outline" className={cn('gap-1 text-xs', OMS_BADGE_STYLES[omsClassification.classification])}>
+              <Award className="h-3 w-3" />
+              {OMS_BADGE_LABELS[omsClassification.classification]}
+            </Badge>
+          )}
+          {menuWeek && (
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => window.print()}>
+              <Printer className="h-4 w-4" /> Print
+            </Button>
           )}
         </div>
       </div>
@@ -493,24 +520,27 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
                       const status = getCalorieStatus(nut.kcal, ageGroup);
                       return (
                         <td key={day.num} className={cn('border p-2.5 text-center text-xs')}>
-                          {nut.kcal > 0 ? (
-                            <div className="space-y-1">
-                              <div className={cn('font-bold font-mono text-sm rounded px-2 py-1 inline-block border', STATUS_COLORS[status])}>
-                                {nut.kcal} kcal
-                              </div>
-                              <div className="text-muted-foreground text-[10px] space-x-2">
-                                <span>P:{nut.protein}g</span>
-                                <span>G:{nut.fat}g</span>
-                                <span>C:{nut.carbs}g</span>
-                              </div>
-                              {status === 'red' && target && (
-                                <div className="text-destructive text-[10px] flex items-center justify-center gap-1">
-                                  <AlertTriangle className="h-3 w-3" />
-                                  {nut.kcal < target.min ? `Sub limita de ${target.min}` : `Peste limita de ${target.max}`}
+                          {nut.kcal > 0 ? (() => {
+                            const macro = computeMacroBalance(nut);
+                            return (
+                              <div className="space-y-1">
+                                <div className={cn('font-bold font-mono text-sm rounded px-2 py-1 inline-block border', STATUS_COLORS[status])}>
+                                  {nut.kcal} kcal
                                 </div>
-                              )}
-                            </div>
-                          ) : (
+                                <div className="text-muted-foreground text-[10px] space-x-2">
+                                  <span className={cn(macro.protein_status === 'red' && 'text-destructive font-bold')}>P:{nut.protein}g ({macro.protein_pct}%)</span>
+                                  <span className={cn(macro.fat_status === 'red' && 'text-destructive font-bold')}>L:{nut.fat}g ({macro.fat_pct}%)</span>
+                                  <span className={cn(macro.carbs_status === 'red' && 'text-destructive font-bold')}>G:{nut.carbs}g ({macro.carbs_pct}%)</span>
+                                </div>
+                                {status === 'red' && target && (
+                                  <div className="text-destructive text-[10px] flex items-center justify-center gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {nut.kcal < target.min ? `Sub limita de ${target.min}` : `Peste limita de ${target.max}`}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })() : (
                             <span className="text-muted-foreground">—</span>
                           )}
                         </td>
@@ -524,23 +554,38 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
         </Card>
       )}
 
-      {/* Target reference */}
+      {/* OMS Classification & Target reference */}
       {menuWeek && target && (
         <Card className="glass-card">
-          <CardContent className="p-4 flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className={cn('w-3 h-3 rounded-full', 'bg-emerald-500')} />
-              <span>OK: {target.min}–{target.max} kcal/zi ({target.label})</span>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span>OK: {target.min}–{target.max} kcal/zi ({target.label})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-500" />
+                <span>Aproape de limită</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <span>Depășire / sub limită</span>
+              </div>
+              <span className="text-muted-foreground ml-auto text-xs">Conform OMS 541/2025</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className={cn('w-3 h-3 rounded-full', 'bg-amber-500')} />
-              <span>Aproape de limită</span>
+            <div className="text-xs text-muted-foreground">
+              <span className="font-medium">Macro OMS: </span>
+              Proteine 10-15% · Lipide 25-35% · Glucide 50-60% din kcal total
             </div>
-            <div className="flex items-center gap-2">
-              <div className={cn('w-3 h-3 rounded-full', 'bg-red-500')} />
-              <span>Depășire / sub limită</span>
-            </div>
-            <span className="text-muted-foreground ml-auto text-xs">Conform OMS 541/2025</span>
+            {omsClassification && omsClassification.reasons.length > 0 && omsClassification.classification !== 'verde' && (
+              <div className="text-xs space-y-0.5">
+                {omsClassification.reasons.map((r, i) => (
+                  <p key={i} className={cn(
+                    omsClassification.classification === 'rosu' ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'
+                  )}>• {r}</p>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -587,36 +632,40 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
                 />
                 <CommandList>
                   <CommandEmpty>Nu s-a găsit. Verifică ortografia.</CommandEmpty>
-                  <CommandGroup>
-                    <ScrollArea className="h-[200px]">
-                      {nutRef
-                        .filter(r => r.ingredient_name.toLowerCase().includes(ingSearch.toLowerCase()))
-                        .slice(0, 30)
-                        .map(r => (
-                          <CommandItem
-                            key={r.id}
-                            value={r.ingredient_name}
-                            onSelect={() => setSelectedIngRef(r)}
-                            className={cn(
-                              'cursor-pointer',
-                              r.is_banned && 'text-destructive line-through opacity-60',
-                              selectedIngRef?.id === r.id && 'bg-primary/10'
-                            )}
-                          >
-                            <div className="flex items-center justify-between w-full">
-                              <span>
-                                {selectedIngRef?.id === r.id && <Check className="h-3 w-3 inline mr-1" />}
-                                {r.ingredient_name}
-                                {r.is_banned && ' ⛔'}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground font-mono">
-                                {r.calories_per_100g}kcal/100g
-                              </span>
-                            </div>
-                          </CommandItem>
-                        ))}
-                    </ScrollArea>
-                  </CommandGroup>
+                  <ScrollArea className="h-[250px]">
+                    {getRefCategories(nutRef).map(cat => {
+                      const items = nutRef
+                        .filter(r => r.category === cat && r.ingredient_name.toLowerCase().includes(ingSearch.toLowerCase()));
+                      if (items.length === 0) return null;
+                      return (
+                        <CommandGroup key={cat} heading={CATEGORY_LABELS[cat] || cat}>
+                          {items.slice(0, 15).map(r => (
+                            <CommandItem
+                              key={r.id}
+                              value={r.ingredient_name}
+                              onSelect={() => setSelectedIngRef(r)}
+                              className={cn(
+                                'cursor-pointer',
+                                r.is_banned && 'text-destructive line-through opacity-60',
+                                selectedIngRef?.id === r.id && 'bg-primary/10'
+                              )}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span>
+                                  {selectedIngRef?.id === r.id && <Check className="h-3 w-3 inline mr-1" />}
+                                  {r.ingredient_name}
+                                  {r.is_banned && ' ⛔'}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground font-mono">
+                                  {r.calories_per_100g}kcal/100g
+                                </span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      );
+                    })}
+                  </ScrollArea>
                 </CommandList>
               </Command>
             </div>

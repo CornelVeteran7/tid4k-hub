@@ -341,3 +341,110 @@ export function checkBannedIngredients(meals: Meal[], refMap: Map<string, Nutrit
   }
   return warnings;
 }
+
+// ── OMS macro balance targets (% of daily kcal) ──
+// OMS 541/2025: Proteine 10-15%, Lipide 25-35%, Glucide 50-60%
+export const OMS_MACRO_TARGETS = {
+  protein_pct: { min: 10, max: 15, label: 'Proteine' },
+  fat_pct: { min: 25, max: 35, label: 'Lipide' },
+  carbs_pct: { min: 50, max: 60, label: 'Glucide' },
+};
+
+export interface MacroBalance {
+  protein_pct: number;
+  fat_pct: number;
+  carbs_pct: number;
+  protein_status: 'green' | 'yellow' | 'red';
+  fat_status: 'green' | 'yellow' | 'red';
+  carbs_status: 'green' | 'yellow' | 'red';
+}
+
+export function computeMacroBalance(nut: DayNutrition): MacroBalance {
+  const totalKcal = nut.kcal || 1;
+  // 1g protein = 4 kcal, 1g fat = 9 kcal, 1g carbs = 4 kcal
+  const protein_pct = ((nut.protein * 4) / totalKcal) * 100;
+  const fat_pct = ((nut.fat * 9) / totalKcal) * 100;
+  const carbs_pct = ((nut.carbs * 4) / totalKcal) * 100;
+
+  const getStatus = (val: number, min: number, max: number): 'green' | 'yellow' | 'red' => {
+    if (val >= min && val <= max) return 'green';
+    const margin = (max - min) * 0.2;
+    if (val >= min - margin && val <= max + margin) return 'yellow';
+    return 'red';
+  };
+
+  return {
+    protein_pct: Math.round(protein_pct),
+    fat_pct: Math.round(fat_pct),
+    carbs_pct: Math.round(carbs_pct),
+    protein_status: getStatus(protein_pct, OMS_MACRO_TARGETS.protein_pct.min, OMS_MACRO_TARGETS.protein_pct.max),
+    fat_status: getStatus(fat_pct, OMS_MACRO_TARGETS.fat_pct.min, OMS_MACRO_TARGETS.fat_pct.max),
+    carbs_status: getStatus(carbs_pct, OMS_MACRO_TARGETS.carbs_pct.min, OMS_MACRO_TARGETS.carbs_pct.max),
+  };
+}
+
+// ── Weekly OMS classification ──
+export type OmsClassification = 'verde' | 'galben' | 'rosu' | 'gol';
+
+export function getWeeklyOmsClassification(
+  meals: Meal[],
+  ageGroup: string,
+  refMap: Map<string, NutritionalRef>
+): { classification: OmsClassification; reasons: string[] } {
+  const reasons: string[] = [];
+  let hasRed = false;
+  let hasYellow = false;
+
+  // Check banned ingredients
+  const banned = checkBannedIngredients(meals, refMap);
+  if (banned.length > 0) {
+    hasRed = true;
+    reasons.push(`${banned.length} ingredient(e) interzis(e) OMS`);
+  }
+
+  // Check daily calories
+  let daysWithData = 0;
+  for (let day = 1; day <= 5; day++) {
+    const nut = computeDayNutrition(meals, day);
+    if (nut.kcal === 0) continue;
+    daysWithData++;
+    const status = getCalorieStatus(nut.kcal, ageGroup);
+    if (status === 'red') { hasRed = true; reasons.push(`Ziua ${day}: calorii în afara limitelor`); }
+    else if (status === 'yellow') { hasYellow = true; }
+
+    // Check macro balance
+    const macro = computeMacroBalance(nut);
+    if (macro.protein_status === 'red' || macro.fat_status === 'red' || macro.carbs_status === 'red') {
+      hasYellow = true;
+      reasons.push(`Ziua ${day}: macronutrienți dezechilibrați`);
+    }
+  }
+
+  if (daysWithData === 0) return { classification: 'gol', reasons: [] };
+  if (hasRed) return { classification: 'rosu', reasons };
+  if (hasYellow) return { classification: 'galben', reasons };
+  return { classification: 'verde', reasons: ['Meniu conform OMS 541/2025'] };
+}
+
+// ── Get unique categories from ref list ──
+export function getRefCategories(refs: NutritionalRef[]): string[] {
+  return [...new Set(refs.map(r => r.category))].sort();
+}
+
+// ── Category labels in Romanian ──
+export const CATEGORY_LABELS: Record<string, string> = {
+  bauturi: '🥤 Băuturi',
+  carne: '🥩 Carne',
+  cereale: '🌾 Cereale',
+  condimente: '🧂 Condimente',
+  dulciuri: '🍰 Dulciuri',
+  fructe: '🍎 Fructe',
+  grasimi: '🫒 Grăsimi & Semințe',
+  lactate: '🥛 Lactate',
+  legume: '🥦 Legume',
+  leguminoase: '🫘 Leguminoase',
+  oua: '🥚 Ouă',
+  peste: '🐟 Pește',
+  snacks: '🚫 Snacks (interzis)',
+  zahar: '🍬 Zahăr',
+};
