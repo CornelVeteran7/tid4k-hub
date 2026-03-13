@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Users, PlusCircle, LayoutTemplate, Building2, Grid3X3, BarChart3, Monitor, Activity } from 'lucide-react';
+import { BookOpen, Users, PlusCircle, LayoutTemplate, Building2, Grid3X3, BarChart3, Monitor, Activity, Calculator } from 'lucide-react';
 import SuperAdminDocs from '@/components/superadmin/SuperAdminDocs';
 import SuperAdminClients from '@/components/superadmin/SuperAdminClients';
 import SuperAdminNewClient from '@/components/superadmin/SuperAdminNewClient';
