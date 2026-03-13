@@ -86,6 +86,11 @@ export default function WhiteLabelSwitcher() {
       }
 
       const idx = parseInt(e.key) - 1;
+      if (e.key === '0') {
+        e.preventDefault();
+        switchTo(INKY_ACCOUNT);
+        return;
+      }
       if (idx >= 0 && idx < DEMO_ENVIRONMENTS.length) {
         e.preventDefault();
         switchTo(DEMO_ENVIRONMENTS[idx].accounts[0]);
