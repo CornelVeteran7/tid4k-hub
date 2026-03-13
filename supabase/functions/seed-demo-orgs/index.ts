@@ -306,7 +306,7 @@ async function createAdminUser(
     });
 
     return `admin ${email} created (${userId})`;
-  } catch (e) {
-    return `admin error: ${e.message}`;
+  } catch (e: unknown) {
+    return `admin error: ${(e as Error).message}`;
   }
 }
