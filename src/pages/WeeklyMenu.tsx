@@ -279,6 +279,21 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
   const ageGroup = menuWeek?.age_group || '4-5';
   const target = AGE_GROUP_TARGETS[ageGroup];
   const bannedWarnings = checkBannedIngredients(meals, refMap);
+  const omsClassification = menuWeek ? getWeeklyOmsClassification(meals, ageGroup, refMap) : null;
+
+  const OMS_BADGE_STYLES: Record<string, string> = {
+    verde: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40',
+    galben: 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40',
+    rosu: 'bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/40',
+    gol: 'bg-muted text-muted-foreground border-border',
+  };
+
+  const OMS_BADGE_LABELS: Record<string, string> = {
+    verde: '✅ Conform OMS',
+    galben: '⚠️ Atenție OMS',
+    rosu: '❌ Neconform OMS',
+    gol: '📋 Incomplet',
+  };
 
   // Get meals for a specific cell
   const getMealDishes = (day: number, mealType: string): Dish[] => {
