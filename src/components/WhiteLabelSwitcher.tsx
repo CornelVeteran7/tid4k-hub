@@ -7,16 +7,16 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isDevelopment } from '@/utils/deployTarget';
 
 export default function WhiteLabelSwitcher() {
-  // Disponibil pe tid4kdemo.ro și în development (Lovable preview)
-  const isDemoServer = typeof window !== 'undefined' && (
-    window.location.hostname.includes('tid4kdemo') ||
-    window.location.hostname.includes('lovableproject.com') ||
-    window.location.hostname.includes('lovable.app') ||
-    window.location.hostname === 'localhost'
-  );
+  // In development (Lovable): vizibil pentru toti
+  // In production (tid4kdemo.ro): vizibil doar pentru superuserul Inky
   const { user, setDemoUser, isDemo } = useAuth();
+  const userIsInky = user?.nume_prenume?.toLowerCase().includes('inky') ||
+    user?.status?.includes('inky') ||
+    (user?.nume_prenume === 'Inky');
+  const isVisible = isDevelopment || userIsInky;
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [selectedEnv, setSelectedEnv] = useState<DemoEnvironment | null>(null);
@@ -75,7 +75,7 @@ export default function WhiteLabelSwitcher() {
 
   // Keyboard shortcuts (doar pe tid4kdemo.ro)
   useEffect(() => {
-    if (!isDemoServer) return;
+    if (!isVisible) return;
     const handler = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || !e.shiftKey) return;
 
@@ -98,9 +98,9 @@ export default function WhiteLabelSwitcher() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [switchTo, isDemoServer]);
+  }, [switchTo, isVisible]);
 
-  if (!isDemoServer) return null;
+  if (!isVisible) return null;
 
   return (
     <>

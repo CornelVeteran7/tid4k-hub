@@ -10,6 +10,7 @@ import { Phone, Mail, UserPlus, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { tid4kApi } from '@/api/tid4kClient';
 import { toast } from 'sonner';
+import { isDevelopment } from '@/utils/deployTarget';
 import { DEMO_ENVIRONMENTS } from '@/config/demoEnvironments';
 import { applyBrandingColors, applyVerticalTheme } from '@/utils/branding';
 
@@ -263,7 +264,8 @@ export default function Login() {
                 Conectare cu Google
               </Button>
 
-              {window.location.hostname.includes('tid4kdemo') && <Button
+              {/* In development (Lovable): buton demo rapid. In productie: doar login real */}
+              {isDevelopment && <Button
                 variant="secondary"
                 className="w-full"
                 onClick={() => {
@@ -285,7 +287,7 @@ export default function Login() {
                   navigate('/');
                 }}
               >
-                Intreaza in modul DEMO
+                Modul DEMO
               </Button>}
             </div>
           </CardContent>
