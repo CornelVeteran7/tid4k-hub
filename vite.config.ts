@@ -5,9 +5,10 @@ import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
-const isLovable = process.env.SANDPACK === '1' || process.env.LOVABLE === '1' || !process.env.NODE_ENV || mode === 'development';
-export default defineConfig(({ mode }) => ({
-  base: isLovable ? '/' : '/app/',
+export default defineConfig(({ mode }) => {
+  const isProduction = mode === 'production';
+  return {
+  base: isProduction ? '/app/' : '/',
   server: {
     host: "::",
     port: 8080,
