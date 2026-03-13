@@ -238,7 +238,7 @@ export default function SuperAdminNewClient({ preFilledVertical, onPreFillConsum
       await supabase.from('org_config').insert({
         organization_id: org.id,
         config_key: 'vertical_config',
-        config_value: tmpl.vertical_config,
+        config_value: tmpl.vertical_config as Record<string, string | number | boolean>,
       });
 
       // 4. Display settings
