@@ -520,24 +520,27 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
                       const status = getCalorieStatus(nut.kcal, ageGroup);
                       return (
                         <td key={day.num} className={cn('border p-2.5 text-center text-xs')}>
-                          {nut.kcal > 0 ? (
-                            <div className="space-y-1">
-                              <div className={cn('font-bold font-mono text-sm rounded px-2 py-1 inline-block border', STATUS_COLORS[status])}>
-                                {nut.kcal} kcal
-                              </div>
-                              <div className="text-muted-foreground text-[10px] space-x-2">
-                                <span>P:{nut.protein}g</span>
-                                <span>G:{nut.fat}g</span>
-                                <span>C:{nut.carbs}g</span>
-                              </div>
-                              {status === 'red' && target && (
-                                <div className="text-destructive text-[10px] flex items-center justify-center gap-1">
-                                  <AlertTriangle className="h-3 w-3" />
-                                  {nut.kcal < target.min ? `Sub limita de ${target.min}` : `Peste limita de ${target.max}`}
+                          {nut.kcal > 0 ? (() => {
+                            const macro = computeMacroBalance(nut);
+                            return (
+                              <div className="space-y-1">
+                                <div className={cn('font-bold font-mono text-sm rounded px-2 py-1 inline-block border', STATUS_COLORS[status])}>
+                                  {nut.kcal} kcal
                                 </div>
-                              )}
-                            </div>
-                          ) : (
+                                <div className="text-muted-foreground text-[10px] space-x-2">
+                                  <span className={cn(macro.protein_status === 'red' && 'text-destructive font-bold')}>P:{nut.protein}g ({macro.protein_pct}%)</span>
+                                  <span className={cn(macro.fat_status === 'red' && 'text-destructive font-bold')}>L:{nut.fat}g ({macro.fat_pct}%)</span>
+                                  <span className={cn(macro.carbs_status === 'red' && 'text-destructive font-bold')}>G:{nut.carbs}g ({macro.carbs_pct}%)</span>
+                                </div>
+                                {status === 'red' && target && (
+                                  <div className="text-destructive text-[10px] flex items-center justify-center gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {nut.kcal < target.min ? `Sub limita de ${target.min}` : `Peste limita de ${target.max}`}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })() : (
                             <span className="text-muted-foreground">—</span>
                           )}
                         </td>
