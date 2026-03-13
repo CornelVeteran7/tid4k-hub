@@ -65,6 +65,9 @@ export default function SuperAdmin() {
             <TabsTrigger value="templates" className="gap-1.5 text-xs">
               <LayoutTemplate className="h-3.5 w-3.5" /> Șabloane
             </TabsTrigger>
+            <TabsTrigger value="calculator" className="gap-1.5 text-xs">
+              <Calculator className="h-3.5 w-3.5" /> Calculator
+            </TabsTrigger>
           </TabsList>
         </div>
 
