@@ -255,11 +255,13 @@ serve(async (req) => {
               if (insertedOptions && parentIds.length > 0) {
                 for (let v = 0; v < Math.min(parentIds.length, 4); v++) {
                   const optIdx = v % insertedOptions.length;
-                  await sb.from("poll_votes").insert({
-                    poll_id: inserted.id,
-                    user_id: parentIds[v],
-                    option_id: insertedOptions[optIdx].id,
-                  }).catch(() => {});
+                  try {
+                    await sb.from("poll_votes").insert({
+                      poll_id: inserted.id,
+                      user_id: parentIds[v],
+                      option_id: insertedOptions[optIdx].id,
+                    });
+                  } catch { /* ignore duplicate votes */ }
                 }
               }
             }

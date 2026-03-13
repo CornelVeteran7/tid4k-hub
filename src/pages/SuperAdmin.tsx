@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Users, PlusCircle, LayoutTemplate, Building2, Grid3X3, BarChart3, Monitor, Activity } from 'lucide-react';
+import { BookOpen, Users, PlusCircle, LayoutTemplate, Building2, Grid3X3, BarChart3, Monitor, Activity, Calculator } from 'lucide-react';
 import SuperAdminDocs from '@/components/superadmin/SuperAdminDocs';
 import SuperAdminClients from '@/components/superadmin/SuperAdminClients';
 import SuperAdminNewClient from '@/components/superadmin/SuperAdminNewClient';
@@ -12,6 +12,7 @@ import SuperAdminModuleMatrix from '@/components/superadmin/SuperAdminModuleMatr
 import SuperAdminBI from '@/components/superadmin/SuperAdminBI';
 import SuperAdminDisplayMonitor from '@/components/superadmin/SuperAdminDisplayMonitor';
 import SuperAdminActivityFeed from '@/components/superadmin/SuperAdminActivityFeed';
+import SuperAdminCostCalculator from '@/components/superadmin/SuperAdminCostCalculator';
 import { type VerticalType } from '@/config/verticalConfig';
 
 export default function SuperAdmin() {
@@ -64,6 +65,9 @@ export default function SuperAdmin() {
             <TabsTrigger value="templates" className="gap-1.5 text-xs">
               <LayoutTemplate className="h-3.5 w-3.5" /> Șabloane
             </TabsTrigger>
+            <TabsTrigger value="calculator" className="gap-1.5 text-xs">
+              <Calculator className="h-3.5 w-3.5" /> Calculator
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -83,6 +87,7 @@ export default function SuperAdmin() {
         <TabsContent value="templates">
           <SuperAdminTemplates onUseTemplate={handleUseTemplate} />
         </TabsContent>
+        <TabsContent value="calculator"><SuperAdminCostCalculator /></TabsContent>
       </Tabs>
     </div>
   );
