@@ -4,7 +4,7 @@ import { X, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { getAttendance, saveAttendance } from '@/api/attendance';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import type { AttendanceRecord } from '@/types';
 
 const PASTEL_COLORS = [
@@ -71,9 +71,9 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
     } catch { /* silent */ }
     const p = records.filter(r => r.prezent).length;
     const a = records.length - p;
-    toast({
-      title: '✅ Prezența confirmată!',
+    toast.success('✅ Prezența confirmată!', {
       description: `Prezenți: ${p} · Absenți: ${a}`,
+      duration: 3000,
     });
     onClose();
   }, [groupId, today, records, onClose]);
@@ -136,8 +136,9 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
                   Se încarcă...
                 </div>
               ) : records.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-                  Nu sunt copii înregistrați în această grupă.
+                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-sm gap-2">
+                  <span>Nu sunt copii înregistrați în această grupă.</span>
+                  <span className="text-xs text-muted-foreground/60">Verifică autentificarea pe serverul TID4K.</span>
                 </div>
               ) : (
                 <div className={`grid ${gridCols} gap-3`}>
