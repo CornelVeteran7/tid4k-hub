@@ -9,8 +9,13 @@ import { ArrowLeft, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function WhiteLabelSwitcher() {
-  // Disponibil doar pe tid4kdemo.ro
-  const isDemoServer = typeof window !== 'undefined' && window.location.hostname.includes('tid4kdemo');
+  // Disponibil pe tid4kdemo.ro și în development (Lovable preview)
+  const isDemoServer = typeof window !== 'undefined' && (
+    window.location.hostname.includes('tid4kdemo') ||
+    window.location.hostname.includes('lovableproject.com') ||
+    window.location.hostname.includes('lovable.app') ||
+    window.location.hostname === 'localhost'
+  );
   const { user, setDemoUser, isDemo } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
