@@ -632,36 +632,40 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
                 />
                 <CommandList>
                   <CommandEmpty>Nu s-a găsit. Verifică ortografia.</CommandEmpty>
-                  <CommandGroup>
-                    <ScrollArea className="h-[200px]">
-                      {nutRef
-                        .filter(r => r.ingredient_name.toLowerCase().includes(ingSearch.toLowerCase()))
-                        .slice(0, 30)
-                        .map(r => (
-                          <CommandItem
-                            key={r.id}
-                            value={r.ingredient_name}
-                            onSelect={() => setSelectedIngRef(r)}
-                            className={cn(
-                              'cursor-pointer',
-                              r.is_banned && 'text-destructive line-through opacity-60',
-                              selectedIngRef?.id === r.id && 'bg-primary/10'
-                            )}
-                          >
-                            <div className="flex items-center justify-between w-full">
-                              <span>
-                                {selectedIngRef?.id === r.id && <Check className="h-3 w-3 inline mr-1" />}
-                                {r.ingredient_name}
-                                {r.is_banned && ' ⛔'}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground font-mono">
-                                {r.calories_per_100g}kcal/100g
-                              </span>
-                            </div>
-                          </CommandItem>
-                        ))}
-                    </ScrollArea>
-                  </CommandGroup>
+                  <ScrollArea className="h-[250px]">
+                    {getRefCategories(nutRef).map(cat => {
+                      const items = nutRef
+                        .filter(r => r.category === cat && r.ingredient_name.toLowerCase().includes(ingSearch.toLowerCase()));
+                      if (items.length === 0) return null;
+                      return (
+                        <CommandGroup key={cat} heading={CATEGORY_LABELS[cat] || cat}>
+                          {items.slice(0, 15).map(r => (
+                            <CommandItem
+                              key={r.id}
+                              value={r.ingredient_name}
+                              onSelect={() => setSelectedIngRef(r)}
+                              className={cn(
+                                'cursor-pointer',
+                                r.is_banned && 'text-destructive line-through opacity-60',
+                                selectedIngRef?.id === r.id && 'bg-primary/10'
+                              )}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span>
+                                  {selectedIngRef?.id === r.id && <Check className="h-3 w-3 inline mr-1" />}
+                                  {r.ingredient_name}
+                                  {r.is_banned && ' ⛔'}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground font-mono">
+                                  {r.calories_per_100g}kcal/100g
+                                </span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      );
+                    })}
+                  </ScrollArea>
                 </CommandList>
               </Command>
             </div>
