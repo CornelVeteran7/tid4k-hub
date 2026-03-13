@@ -139,8 +139,43 @@ export default function WhiteLabelSwitcher() {
                 ))}
               </div>
 
+              {/* Special accounts: Superadmin + Sponsor */}
+              <div className="mt-4 space-y-2">
+                <button
+                  onClick={() => switchTo(INKY_ACCOUNT)}
+                  className="w-full flex items-center gap-3 rounded-xl border-2 border-dashed border-amber-400 p-3 text-left hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all"
+                >
+                  <span className="text-2xl">🐙</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-amber-700 dark:text-amber-400">INKY — Superadmin</p>
+                    <p className="text-[11px] text-muted-foreground">Acces la toate organizațiile și modulele</p>
+                  </div>
+                  <span className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold">SA</span>
+                </button>
+                <button
+                  onClick={() => switchTo({
+                    label: 'Sponsor Manager',
+                    description: 'Dashboard sponsori & campanii',
+                    status: 'administrator,sponsor',
+                    redirect: '/sponsori',
+                    orgName: 'InfoDisplay Platform',
+                    vertical: 'kids',
+                    groups: [{ id: 'fluturasi', nume: 'Grupa Fluturași', tip: 'gradinita' }],
+                    userName: 'Manager Sponsori',
+                  })}
+                  className="w-full flex items-center gap-3 rounded-xl border-2 border-dashed border-emerald-400 p-3 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all"
+                >
+                  <span className="text-2xl">💰</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Sponsor Manager</p>
+                    <p className="text-[11px] text-muted-foreground">Dashboard sponsori & campanii</p>
+                  </div>
+                  <span className="text-xs bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">SP</span>
+                </button>
+              </div>
+
               <p className="text-[10px] text-muted-foreground mt-4 text-center">
-                Ctrl+Shift+D comutare • Ctrl+Shift+1-8 acces rapid
+                Ctrl+Shift+D comutare • Ctrl+Shift+1-8 acces rapid • Ctrl+Shift+0 Inky
               </p>
             </div>
           ) : (
