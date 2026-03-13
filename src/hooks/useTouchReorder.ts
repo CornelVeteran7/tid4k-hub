@@ -16,6 +16,9 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
   const itemsRef = useRef(items);
   itemsRef.current = items;
 
+  // Track whether document-level touch listeners are currently attached
+  const touchListenersAttached = useRef(false);
+
   const cardRefs = useRef<Map<number, HTMLElement>>(new Map());
 
   const registerRef = useCallback((idx: number, el: HTMLElement | null) => {
@@ -47,12 +50,14 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
     setOverIdx(null);
   }, [onReorder]);
 
-  // Global touch listeners — attached to document only during active drag
-  useEffect(() => {
-    if (dragIdx === null) return;
+  // Stable refs for the document-level handlers so we can add/remove the same function
+  const handleTouchMoveRef = useRef<((e: TouchEvent) => void) | null>(null);
+  const handleTouchEndRef = useRef<(() => void) | null>(null);
 
-    const handleTouchMove = (e: TouchEvent) => {
-      e.preventDefault(); // blocks scroll — works because { passive: false }
+  // Initialize stable handler refs once
+  useEffect(() => {
+    handleTouchMoveRef.current = (e: TouchEvent) => {
+      e.preventDefault(); // blocks scroll
       const touch = e.touches[0];
       const hitIdx = getIdxAtPoint(touch.clientX, touch.clientY);
       if (hitIdx !== null && hitIdx !== overIdxRef.current) {
@@ -61,31 +66,59 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
       }
     };
 
-    const handleTouchEndOrCancel = () => {
+    handleTouchEndRef.current = () => {
+      removeTouchListeners();
       finalizeDrag();
-    };
-
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEndOrCancel);
-    document.addEventListener('touchcancel', handleTouchEndOrCancel);
-
-    // Add body class to prevent text selection globally during drag
-    document.body.classList.add('reorder-dragging');
-
-    return () => {
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEndOrCancel);
-      document.removeEventListener('touchcancel', handleTouchEndOrCancel);
       document.body.classList.remove('reorder-dragging');
     };
-  }, [dragIdx, getIdxAtPoint, finalizeDrag]);
+  }, [getIdxAtPoint, finalizeDrag]);
 
-  const handleTouchStart = useCallback((idx: number) => (_e: React.TouchEvent) => {
+  const addTouchListeners = useCallback(() => {
+    if (touchListenersAttached.current) return;
+    touchListenersAttached.current = true;
+    if (handleTouchMoveRef.current) {
+      document.addEventListener('touchmove', handleTouchMoveRef.current, { passive: false });
+    }
+    if (handleTouchEndRef.current) {
+      document.addEventListener('touchend', handleTouchEndRef.current);
+      document.addEventListener('touchcancel', handleTouchEndRef.current);
+    }
+    document.body.classList.add('reorder-dragging');
+  }, []);
+
+  const removeTouchListeners = useCallback(() => {
+    if (!touchListenersAttached.current) return;
+    touchListenersAttached.current = false;
+    if (handleTouchMoveRef.current) {
+      document.removeEventListener('touchmove', handleTouchMoveRef.current);
+    }
+    if (handleTouchEndRef.current) {
+      document.removeEventListener('touchend', handleTouchEndRef.current);
+      document.removeEventListener('touchcancel', handleTouchEndRef.current);
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      removeTouchListeners();
+      document.body.classList.remove('reorder-dragging');
+    };
+  }, [removeTouchListeners]);
+
+  // CRITICAL: Attach document listeners SYNCHRONOUSLY during touchstart,
+  // not in a useEffect (which would be async and miss the first touchmove).
+  const handleTouchStart = useCallback((idx: number) => (e: React.TouchEvent) => {
+    e.preventDefault(); // prevent browser from initiating scroll
+    e.stopPropagation();
     dragIdxRef.current = idx;
     overIdxRef.current = null;
     setDragIdx(idx);
     setOverIdx(null);
-  }, []);
+
+    // Attach listeners synchronously so the very first touchmove is caught
+    addTouchListeners();
+  }, [addTouchListeners]);
 
   const makeDragProps = useCallback((idx: number) => ({
     // HTML5 drag (desktop only — breaks touch on mobile)
@@ -118,7 +151,7 @@ export function useTouchReorder({ items, onReorder }: UseTouchReorderOptions) {
       dragIdxRef.current = null;
       setDragIdx(null);
     },
-    // Touch drag (mobile) — only start via React; move/end are global
+    // Touch drag (mobile) — start via React; move/end are global (attached synchronously)
     onTouchStart: handleTouchStart(idx),
     ref: (el: HTMLElement | null) => registerRef(idx, el),
   }), [onReorder, handleTouchStart, registerRef]);
