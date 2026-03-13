@@ -382,14 +382,14 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
           </CardContent>
         </Card>
 
-        {/* Audio Player — TTS */}
+        {/* Audio Player — ElevenLabs TTS */}
         <Card className="glass-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Button size="icon" variant="outline" onClick={handlePlayTTS} className="shrink-0">
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              <Button size="icon" variant="outline" onClick={handlePlayTTS} disabled={isLoadingTTS} className="shrink-0">
+                {isLoadingTTS ? <Loader2 className="h-4 w-4 animate-spin" /> : isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </Button>
-              {isPlaying && (
+              {(isPlaying || progress > 0) && (
                 <Button size="icon" variant="ghost" onClick={handleStopTTS} className="shrink-0">
                   <Square className="h-4 w-4" />
                 </Button>
@@ -404,20 +404,26 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
               <Select value={String(playbackSpeed)} onValueChange={v => setPlaybackSpeed(Number(v))}>
                 <SelectTrigger className="w-16 h-9 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0.5">0.5x</SelectItem>
-                  <SelectItem value="0.75">0.75x</SelectItem>
+                  <SelectItem value="0.8">0.8x</SelectItem>
+                  <SelectItem value="0.9">0.9x</SelectItem>
                   <SelectItem value="1">1x</SelectItem>
-                  <SelectItem value="1.25">1.25x</SelectItem>
-                  <SelectItem value="1.5">1.5x</SelectItem>
-                  <SelectItem value="2">2x</SelectItem>
+                  <SelectItem value="1.1">1.1x</SelectItem>
+                  <SelectItem value="1.2">1.2x</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="mt-3">
-              <Button variant="outline" className="gap-2 w-full" size="sm" onClick={handlePlayTTS}>
-                <Volume2 className="h-4 w-4" /> {isPlaying ? 'Pauză' : 'Citește Povestea (TTS)'}
+              <Button variant="outline" className="gap-2 w-full" size="sm" onClick={handlePlayTTS} disabled={isLoadingTTS}>
+                {isLoadingTTS ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Se generează vocea...</>
+                ) : (
+                  <><Volume2 className="h-4 w-4" /> {isPlaying ? 'Pauză' : `${selectedCharacter.name} citește povestea`}</>
+                )}
               </Button>
             </div>
+            <p className="text-[10px] text-muted-foreground text-center mt-2">
+              Voce generată de ElevenLabs • Personaj: {selectedCharacter.name}
+            </p>
           </CardContent>
         </Card>
       </div>
