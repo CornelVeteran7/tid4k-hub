@@ -263,7 +263,7 @@ export default function Login() {
                 Conectare cu Google
               </Button>
 
-              <Button
+              {window.location.hostname.includes('tid4kdemo') && <Button
                 variant="secondary"
                 className="w-full"
                 onClick={() => {
@@ -286,7 +286,7 @@ export default function Login() {
                 }}
               >
                 Intreaza in modul DEMO
-              </Button>
+              </Button>}
             </div>
           </CardContent>
         </Card>

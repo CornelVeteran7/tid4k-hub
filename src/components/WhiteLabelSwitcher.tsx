@@ -9,6 +9,8 @@ import { ArrowLeft, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function WhiteLabelSwitcher() {
+  // Disponibil doar pe tid4kdemo.ro
+  const isDemoServer = typeof window !== 'undefined' && window.location.hostname.includes('tid4kdemo');
   const { user, setDemoUser, isDemo } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -66,8 +68,9 @@ export default function WhiteLabelSwitcher() {
     setTimeout(() => setTransition(null), 800);
   }, [setDemoUser, navigate]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts (doar pe tid4kdemo.ro)
   useEffect(() => {
+    if (!isDemoServer) return;
     const handler = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || !e.shiftKey) return;
 
@@ -77,8 +80,6 @@ export default function WhiteLabelSwitcher() {
         return;
       }
 
-      // Inky doar prin login real cu telefon
-
       const idx = parseInt(e.key) - 1;
       if (idx >= 0 && idx < DEMO_ENVIRONMENTS.length) {
         e.preventDefault();
@@ -87,7 +88,9 @@ export default function WhiteLabelSwitcher() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [switchTo]);
+  }, [switchTo, isDemoServer]);
+
+  if (!isDemoServer) return null;
 
   return (
     <>
