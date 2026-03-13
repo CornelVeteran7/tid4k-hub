@@ -554,23 +554,38 @@ function WeeklyMenuOMS({ embedded }: { embedded?: boolean }) {
         </Card>
       )}
 
-      {/* Target reference */}
+      {/* OMS Classification & Target reference */}
       {menuWeek && target && (
         <Card className="glass-card">
-          <CardContent className="p-4 flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className={cn('w-3 h-3 rounded-full', 'bg-emerald-500')} />
-              <span>OK: {target.min}–{target.max} kcal/zi ({target.label})</span>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span>OK: {target.min}–{target.max} kcal/zi ({target.label})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-500" />
+                <span>Aproape de limită</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <span>Depășire / sub limită</span>
+              </div>
+              <span className="text-muted-foreground ml-auto text-xs">Conform OMS 541/2025</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className={cn('w-3 h-3 rounded-full', 'bg-amber-500')} />
-              <span>Aproape de limită</span>
+            <div className="text-xs text-muted-foreground">
+              <span className="font-medium">Macro OMS: </span>
+              Proteine 10-15% · Lipide 25-35% · Glucide 50-60% din kcal total
             </div>
-            <div className="flex items-center gap-2">
-              <div className={cn('w-3 h-3 rounded-full', 'bg-red-500')} />
-              <span>Depășire / sub limită</span>
-            </div>
-            <span className="text-muted-foreground ml-auto text-xs">Conform OMS 541/2025</span>
+            {omsClassification && omsClassification.reasons.length > 0 && omsClassification.classification !== 'verde' && (
+              <div className="text-xs space-y-0.5">
+                {omsClassification.reasons.map((r, i) => (
+                  <p key={i} className={cn(
+                    omsClassification.classification === 'rosu' ? 'text-destructive' : 'text-amber-600 dark:text-amber-400'
+                  )}>• {r}</p>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
