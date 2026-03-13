@@ -24,6 +24,7 @@ import DisplayPreviewTab from '@/components/admin/DisplayPreviewTab';
 import WebsiteTab from '@/components/admin/WebsiteTab';
 import ModuleTogglesTab from '@/components/admin/ModuleTogglesTab';
 import ThemeEditorTab from '@/components/admin/ThemeEditorTab';
+import CharactersTab from '@/components/admin/CharactersTab';
 
 export default function AdminPanel() {
   const { user } = useAuth();
