@@ -1036,6 +1036,88 @@ export type Database = {
           },
         ]
       }
+      device_reports: {
+        Row: {
+          device_id: string
+          id: string
+          report_data: Json
+          reported_at: string
+        }
+        Insert: {
+          device_id: string
+          id?: string
+          report_data?: Json
+          reported_at?: string
+        }
+        Update: {
+          device_id?: string
+          id?: string
+          report_data?: Json
+          reported_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_reports_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "display_devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      display_devices: {
+        Row: {
+          alias: string
+          app_version: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          last_heartbeat: string | null
+          organization_id: string
+          os_info: string | null
+          raspberry_id: string | null
+          screenshot_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          alias?: string
+          app_version?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          last_heartbeat?: string | null
+          organization_id: string
+          os_info?: string | null
+          raspberry_id?: string | null
+          screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          alias?: string
+          app_version?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          last_heartbeat?: string | null
+          organization_id?: string
+          os_info?: string | null
+          raspberry_id?: string | null
+          screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_devices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_profiles: {
         Row: {
           activ: boolean | null
