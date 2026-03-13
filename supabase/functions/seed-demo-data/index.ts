@@ -720,8 +720,8 @@ serve(async (req) => {
         ]);
       }
 
-    } catch (err) {
-      results.push(`❌ ${org.name}: ${err.message}`);
+    } catch (err: unknown) {
+      results.push(`❌ ${org.name}: ${(err as Error).message}`);
     }
   }
 
