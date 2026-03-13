@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.seed-demo-data]
 verify_jwt = false
+
+[functions.device-heartbeat]
+verify_jwt = false
