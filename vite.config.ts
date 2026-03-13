@@ -5,8 +5,9 @@ import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
+const isLovable = process.env.SANDPACK === '1' || process.env.LOVABLE === '1' || !process.env.NODE_ENV || mode === 'development';
 export default defineConfig(({ mode }) => ({
-  base: '/app/',
+  base: isLovable ? '/' : '/app/',
   server: {
     host: "::",
     port: 8080,

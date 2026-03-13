@@ -129,7 +129,7 @@ const App = () => (
       <ExternalLinkProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter basename="/app">
+        <BrowserRouter basename={import.meta.env.DEV ? '/' : '/app'}>
           <AuthProvider>
             <Routes>
               {/* Login page */}
