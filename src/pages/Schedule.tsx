@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { getSchedule, saveSchedule } from '@/api/schedule';
+import { getScheduleWithAvatars, saveSchedule } from '@/api/schedule';
+import type { ScheduleData } from '@/api/schedule';
 import { areRol, isInky } from '@/utils/roles';
-import type { ScheduleCell } from '@/types';
+import type { ScheduleCell, ScheduleEntry } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Calendar, Printer, Save, Edit2, QrCode, X, DoorOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
+import { API_BASE_URL } from '@/api/config';
 
 const DAYS = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri'];
 const HOURS = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
@@ -24,16 +26,24 @@ export default function Schedule() {
   const [cells, setCells] = useState<ScheduleCell[]>([]);
   const [editing, setEditing] = useState(false);
   const [editCell, setEditCell] = useState<{ zi: string; ora: string } | null>(null);
-  const [editForm, setEditForm] = useState({ materie: '', profesor: '', sala: '', culoare: '#E3F2FD' });
+  const [editEntries, setEditEntries] = useState<ScheduleEntry[]>([{ materie: '', profesor: '', sala: '', clasa: '' }]);
+  const [editCuloare, setEditCuloare] = useState('#E3F2FD');
   const [showQR, setShowQR] = useState<string | null>(null);
   const [showRoomQR, setShowRoomQR] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [profesorAvatars, setProfesorAvatars] = useState<Record<string, string>>({});
+  const [profesorQrcodes, setProfesorQrcodes] = useState<Record<string, string>>({});
 
-  const canEdit = user && (areRol(user.status, 'profesor') || areRol(user.status, 'director') || areRol(user.status, 'administrator') || isInky(user.status, user.nume_prenume));
+  // Doar secretara si Inky pot edita orarul (unic per unitate scolara)
+  const canEdit = user && (areRol(user.status, 'secretara') || isInky(user.status, user.nume_prenume));
 
   useEffect(() => {
-    if (currentGroup) getSchedule(currentGroup.id).then(setCells);
-  }, [currentGroup]);
+    getScheduleWithAvatars().then((data) => {
+      setCells(data.cells);
+      setProfesorAvatars(data.profesorAvatars);
+      setProfesorQrcodes(data.profesorQrcodes);
+    });
+  }, []);
 
   const getCell = (zi: string, ora: string) => cells.find(c => c.zi === zi && c.ora === ora);
 
@@ -41,26 +51,39 @@ export default function Schedule() {
     if (!editing) return;
     const existing = getCell(zi, ora);
     setEditCell({ zi, ora });
-    setEditForm({
-      materie: existing?.materie || '',
-      profesor: existing?.profesor || '',
-      sala: existing?.sala || '',
-      culoare: existing?.culoare || COLORS[Math.floor(Math.random() * COLORS.length)],
-    });
+    if (existing?.entries && existing.entries.length > 0) {
+      setEditEntries(existing.entries.map(e => ({ ...e })));
+    } else if (existing) {
+      setEditEntries([{ materie: existing.materie, profesor: existing.profesor, sala: existing.sala || '', clasa: existing.clasa || '' }]);
+    } else {
+      setEditEntries([{ materie: '', profesor: '', sala: '', clasa: '' }]);
+    }
+    setEditCuloare(existing?.culoare || COLORS[Math.floor(Math.random() * COLORS.length)]);
   };
 
   const handleSaveCell = () => {
     if (!editCell) return;
     const { zi, ora } = editCell;
-    if (!editForm.materie) {
+    // Filtram entries goale
+    const validEntries = editEntries.filter(e => e.materie.trim());
+    if (validEntries.length === 0) {
       setCells(prev => prev.filter(c => !(c.zi === zi && c.ora === ora)));
     } else {
       setCells(prev => {
-        const existing = prev.findIndex(c => c.zi === zi && c.ora === ora);
-        const newCell: ScheduleCell = { zi, ora, materie: editForm.materie, profesor: editForm.profesor, sala: editForm.sala, culoare: editForm.culoare };
-        if (existing >= 0) {
+        const existingIdx = prev.findIndex(c => c.zi === zi && c.ora === ora);
+        const first = validEntries[0];
+        const newCell: ScheduleCell = {
+          zi, ora,
+          materie: first.materie,
+          profesor: first.profesor,
+          sala: first.sala,
+          clasa: first.clasa,
+          culoare: editCuloare,
+          entries: validEntries.length > 1 ? validEntries : undefined,
+        };
+        if (existingIdx >= 0) {
           const updated = [...prev];
-          updated[existing] = newCell;
+          updated[existingIdx] = newCell;
           return updated;
         }
         return [...prev, newCell];
@@ -70,18 +93,38 @@ export default function Schedule() {
     setDirty(true);
   };
 
-  // Auto-propagation: rename professor across all cells
+  const updateEntry = (index: number, field: keyof ScheduleEntry, value: string) => {
+    setEditEntries(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e));
+  };
+
+  const addEntry = () => {
+    setEditEntries(prev => [...prev, { materie: '', profesor: '', sala: '', clasa: '' }]);
+  };
+
+  const removeEntry = (index: number) => {
+    setEditEntries(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Auto-propagation: rename professor across all cells (including entries)
   const handlePropagateProfesor = (oldName: string, newName: string) => {
     if (!oldName || oldName === newName) return;
-    setCells(prev => prev.map(c => c.profesor === oldName ? { ...c, profesor: newName } : c));
+    setCells(prev => prev.map(c => {
+      let changed = false;
+      let newCell = { ...c };
+      if (c.profesor === oldName) { newCell.profesor = newName; changed = true; }
+      if (c.entries) {
+        const newEntries = c.entries.map(e => e.profesor === oldName ? { ...e, profesor: newName } : e);
+        if (newEntries.some((e, i) => e !== c.entries![i])) { newCell.entries = newEntries; changed = true; }
+      }
+      return changed ? newCell : c;
+    }));
     setDirty(true);
     toast.success(`"${oldName}" → "${newName}" în toate celulele`);
   };
 
   const handleSaveAll = async () => {
-    if (!currentGroup) return;
     try {
-      await saveSchedule(currentGroup.id, cells);
+      await saveSchedule(cells);
       toast.success('Orar salvat!');
       setDirty(false);
     } catch (e: any) {
@@ -89,15 +132,24 @@ export default function Schedule() {
     }
   };
 
-  // Get unique teachers and rooms for QR generation
-  const uniqueTeachers = [...new Set(cells.map(c => c.profesor).filter(Boolean))];
-  const uniqueRooms = [...new Set(cells.map(c => c.sala).filter(Boolean))];
+  // Get unique values for QR generation and autocomplete (include entries)
+  const allEntries = cells.flatMap(c => c.entries || [{ materie: c.materie, profesor: c.profesor, sala: c.sala || '', clasa: c.clasa || '' }]);
+  const uniqueTeachers = [...new Set(allEntries.map(e => e.profesor).filter(Boolean))];
+  const uniqueRooms = [...new Set(allEntries.map(e => e.sala).filter(Boolean))];
+  const uniqueSubjects = [...new Set(allEntries.map(e => e.materie).filter(Boolean))];
+  const uniqueClasses = [...new Set(allEntries.map(e => e.clasa).filter(Boolean))];
 
   // Get teacher/room schedule for QR view
   const getTeacherSchedule = (profesor: string) => cells.filter(c => c.profesor === profesor);
   const getRoomSchedule = (sala: string) => cells.filter(c => c.sala === sala);
 
-  const baseUrl = window.location.origin;
+  // URL-ul pentru QR-urile profesorilor - scriptul original de pe serverul TID4K
+  const buildTeacherQRUrl = (profesor: string) => {
+    const teacherCells = getTeacherSchedule(profesor);
+    const materie = teacherCells[0]?.materie || '';
+    const params = new URLSearchParams({ profesor, materie });
+    return `${API_BASE_URL}/pages/genereaza_qr_code_profesor.php?${params.toString()}`;
+  };
 
   return (
     <div className="space-y-5 min-w-0">
@@ -113,7 +165,19 @@ export default function Schedule() {
                 variant={editing ? 'default' : 'outline'}
                 size="sm"
                 className="gap-2"
-                onClick={() => setEditing(!editing)}
+                onClick={async () => {
+                  if (editing && dirty) {
+                    try {
+                      await saveSchedule(cells);
+                      toast.success('Orar salvat!');
+                      setDirty(false);
+                    } catch (e: any) {
+                      toast.error(e.message);
+                      return;
+                    }
+                  }
+                  setEditing(!editing);
+                }}
               >
                 {editing ? <X className="h-4 w-4" /> : <Edit2 className="h-4 w-4" />}
                 {editing ? 'Oprește editarea' : 'Editează'}
@@ -201,10 +265,22 @@ export default function Schedule() {
                           onClick={() => handleCellClick(zi, hora)}
                         >
                           {cell ? (
-                            <div>
-                              <p className="font-medium text-xs">{cell.materie}</p>
-                              <p className="text-[10px] text-muted-foreground">{cell.profesor}</p>
-                              {cell.sala && <p className="text-[9px] text-muted-foreground/70">📍 {cell.sala}</p>}
+                            <div className="space-y-1">
+                              {(cell.entries || [{ materie: cell.materie, profesor: cell.profesor, sala: cell.sala, clasa: cell.clasa }]).map((entry, idx) => {
+                                const profKey = (entry.profesor || '').replace(/^prof\.\s*/i, '');
+                                const avatarUrl = profesorAvatars[profKey] || profesorAvatars[entry.profesor || ''];
+                                return (
+                                  <div key={idx} className={cell.entries && cell.entries.length > 1 && idx > 0 ? 'border-t border-dashed border-muted-foreground/30 pt-1' : ''}>
+                                    <p className="font-medium text-xs">{entry.materie}</p>
+                                    <div className="flex items-center justify-center gap-1">
+                                      {avatarUrl && <img src={avatarUrl} alt="" className="h-4 w-4 rounded-full object-cover shrink-0" />}
+                                      <p className="text-[10px] text-muted-foreground truncate">{entry.profesor}</p>
+                                    </div>
+                                    {entry.clasa && <p className="text-[9px] text-muted-foreground/80">{entry.clasa}</p>}
+                                    {entry.sala && <p className="text-[9px] text-muted-foreground/70">📍 {entry.sala}</p>}
+                                  </div>
+                                );
+                              })}
                             </div>
                           ) : editing ? (
                             <span className="text-[10px] text-muted-foreground/50">+</span>
@@ -222,68 +298,88 @@ export default function Schedule() {
 
       {/* Edit cell dialog */}
       <Dialog open={!!editCell} onOpenChange={() => setEditCell(null)}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base">
               {editCell?.zi} — {editCell?.ora}
             </DialogTitle>
+            <DialogDescription>Editează detaliile orei</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div>
-              <Label>Materie</Label>
-              <Input
-                value={editForm.materie}
-                onChange={e => setEditForm(p => ({ ...p, materie: e.target.value }))}
-                placeholder="Ex: Matematica"
-              />
-            </div>
-            <div>
-              <Label>Profesor</Label>
-              <Input
-                value={editForm.profesor}
-                onChange={e => setEditForm(p => ({ ...p, profesor: e.target.value }))}
-                placeholder="Ex: Prof. Ionescu"
-              />
-              {/* Auto-propagation hint */}
-              {editCell && (() => {
-                const existing = getCell(editCell.zi, editCell.ora);
-                if (existing?.profesor && editForm.profesor && existing.profesor !== editForm.profesor) {
-                  const count = cells.filter(c => c.profesor === existing.profesor).length;
-                  if (count > 1) {
-                    return (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="text-xs px-0 h-auto mt-1"
-                        onClick={() => {
-                          handlePropagateProfesor(existing.profesor, editForm.profesor);
-                        }}
-                      >
-                        🔄 Schimbă "{existing.profesor}" → "{editForm.profesor}" în toate {count} celulele
-                      </Button>
-                    );
-                  }
-                }
-                return null;
-              })()}
-            </div>
-            <div>
-              <Label>Sală / Cabinet</Label>
-              <Input
-                value={editForm.sala}
-                onChange={e => setEditForm(p => ({ ...p, sala: e.target.value }))}
-                placeholder="Ex: Sala 101, Cabinet B"
-              />
-            </div>
+            {editEntries.map((entry, idx) => (
+              <div key={idx} className={`space-y-2 ${idx > 0 ? 'border-t pt-3' : ''}`}>
+                {editEntries.length > 1 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Materia {idx + 1}</span>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeEntry(idx)}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                <div>
+                  <Label>Materie</Label>
+                  <Input
+                    list="materii-autocomplete"
+                    value={entry.materie}
+                    onChange={e => updateEntry(idx, 'materie', e.target.value)}
+                    placeholder="Ex: Matematica"
+                  />
+                </div>
+                <div>
+                  <Label>Profesor</Label>
+                  <Input
+                    list="profesori-autocomplete"
+                    value={entry.profesor}
+                    onChange={e => updateEntry(idx, 'profesor', e.target.value)}
+                    placeholder="Ex: Prof. Ionescu"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Clasă</Label>
+                    <Input
+                      list="clase-autocomplete"
+                      value={entry.clasa || ''}
+                      onChange={e => updateEntry(idx, 'clasa', e.target.value)}
+                      placeholder="VII-C"
+                    />
+                  </div>
+                  <div>
+                    <Label>Sală</Label>
+                    <Input
+                      list="sali-autocomplete"
+                      value={entry.sala || ''}
+                      onChange={e => updateEntry(idx, 'sala', e.target.value)}
+                      placeholder="Sala 101"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <datalist id="materii-autocomplete">
+              {uniqueSubjects.map(s => <option key={s} value={s} />)}
+            </datalist>
+            <datalist id="profesori-autocomplete">
+              {uniqueTeachers.map(t => <option key={t} value={t} />)}
+            </datalist>
+            <datalist id="clase-autocomplete">
+              {uniqueClasses.map(c => <option key={c} value={c} />)}
+            </datalist>
+            <datalist id="sali-autocomplete">
+              {uniqueRooms.map(r => <option key={r} value={r} />)}
+            </datalist>
+            <Button variant="outline" size="sm" className="w-full text-xs" onClick={addEntry}>
+              + Adaugă materie
+            </Button>
             <div>
               <Label>Culoare</Label>
               <div className="flex gap-2 flex-wrap mt-1">
                 {COLORS.map(c => (
                   <button
                     key={c}
-                    className={`h-7 w-7 rounded-md border-2 transition-all ${editForm.culoare === c ? 'border-primary scale-110' : 'border-transparent'}`}
+                    className={`h-7 w-7 rounded-md border-2 transition-all ${editCuloare === c ? 'border-primary scale-110' : 'border-transparent'}`}
                     style={{ backgroundColor: c }}
-                    onClick={() => setEditForm(p => ({ ...p, culoare: c }))}
+                    onClick={() => setEditCuloare(c)}
                   />
                 ))}
               </div>
@@ -294,7 +390,7 @@ export default function Schedule() {
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    setEditForm(p => ({ ...p, materie: '' }));
+                    setEditEntries([{ materie: '', profesor: '', sala: '', clasa: '' }]);
                     handleSaveCell();
                   }}
                 >
@@ -310,20 +406,14 @@ export default function Schedule() {
       <Dialog open={!!showQR} onOpenChange={() => setShowQR(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-base">Orar — {showQR}</DialogTitle>
+            <DialogTitle className="text-base">QR Profesor — {showQR}</DialogTitle>
+            <DialogDescription>Scanează codul pentru a vedea orarul profesorului</DialogDescription>
           </DialogHeader>
           {showQR && (
             <div className="space-y-4">
               <div className="flex justify-center">
                 <QRCodeSVG
-                  value={JSON.stringify({
-                    type: 'teacher_schedule',
-                    teacher: showQR,
-                    group: currentGroup?.nume,
-                    schedule: getTeacherSchedule(showQR).map(c => ({
-                      zi: c.zi, ora: c.ora, materie: c.materie, sala: c.sala
-                    }))
-                  })}
+                  value={buildTeacherQRUrl(showQR)}
                   size={180}
                 />
               </div>
@@ -355,22 +445,13 @@ export default function Schedule() {
             <DialogTitle className="text-base flex items-center gap-2">
               <DoorOpen className="h-5 w-5" /> Orar sală — {showRoomQR}
             </DialogTitle>
+            <DialogDescription>Scanează codul pentru a vedea programul sălii</DialogDescription>
           </DialogHeader>
           {showRoomQR && (
             <div className="space-y-4">
-              <p className="text-xs text-muted-foreground text-center">
-                Scanează QR-ul de pe ușa sălii pentru a vedea programul
-              </p>
               <div className="flex justify-center">
                 <QRCodeSVG
-                  value={JSON.stringify({
-                    type: 'room_schedule',
-                    room: showRoomQR,
-                    group: currentGroup?.nume,
-                    schedule: getRoomSchedule(showRoomQR).map(c => ({
-                      zi: c.zi, ora: c.ora, materie: c.materie, profesor: c.profesor
-                    }))
-                  })}
+                  value={`${API_BASE_URL}/pages/genereaza_qr_code_profesor.php?sala=${encodeURIComponent(showRoomQR)}`}
                   size={180}
                 />
               </div>

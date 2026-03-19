@@ -2,10 +2,15 @@
  * API Prezenta - conectat la TID4K backend
  *
  * Endpoint-uri: fetch_prezenta_saptamana, salveaza_prezenta_saptamana
+ *
+ * IMPORTANT: PHP-ul foloseste format cu zile romanesti:
+ *   copii: [{ id_copil, nume_copil, prezenta: { luni: true, marti: null, ... } }]
+ *   zile: { luni: "2026-03-09", marti: "2026-03-10", ... }
  */
 
 import { tid4kApi } from './tid4kClient';
 import { USE_TID4K_BACKEND } from './config';
+import { emitAttendanceUpdated } from '@/utils/attendanceSync';
 import type {
   AttendanceRecord,
   AttendanceDay,
@@ -14,34 +19,53 @@ import type {
   WeeklyAttendanceRecord,
 } from '@/types';
 
+// Mapare zile romanesti -> index (0=luni, 4=vineri)
+const ZILE_RO = ['luni', 'marti', 'miercuri', 'joi', 'vineri'] as const;
+
+/**
+ * Determina numele zilei romanesti dintr-o data ISO (yyyy-MM-dd)
+ */
+function getZiRo(dateStr: string): string | null {
+  const d = new Date(dateStr + 'T12:00:00'); // evitam probleme timezone
+  const dayOfWeek = d.getDay(); // 0=duminica, 1=luni, ...
+  if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+    return ZILE_RO[dayOfWeek - 1];
+  }
+  return null;
+}
+
+/**
+ * Incarca prezenta pentru o singura zi.
+ * PHP-ul returneaza saptamana intreaga - noi extragem doar ziua ceruta.
+ */
 export async function getAttendance(grupa: string, data: string): Promise<AttendanceDay> {
   if (!USE_TID4K_BACKEND) return { data, records: [] };
 
   try {
     const result = await tid4kApi.call<any>('fetch_prezenta_saptamana', {
       grupa,
-      data,
     });
 
-    // Handle auth errors from backend
     if (result?.error === 'Neautentificat' || result?.error) {
       console.warn('[Prezenta] Backend-ul a returnat eroare:', result.error);
       return { data, records: [] };
     }
 
-    const rawRecords = result?.copii || result?.records || [];
-    
-    if (!Array.isArray(rawRecords) || rawRecords.length === 0) {
+    const rawCopii = result?.copii || [];
+    if (!Array.isArray(rawCopii) || rawCopii.length === 0) {
       return { data, records: [] };
     }
 
-    const records: AttendanceRecord[] = rawRecords.map((c: any) => ({
+    // Determina ce zi romaneasca corespunde datei cerute
+    const ziRo = getZiRo(data);
+
+    const records: AttendanceRecord[] = rawCopii.map((c: any) => ({
       child_id: String(c.id_copil || c.child_id || c.id),
-      nume_prenume_copil: c.nume_prenume_copil || c.nume_copil || c.nume || '',
-      prezent: c.prezent ?? false,
-      observatii: c.observatii || '',
-      marked_at: c.marked_at || undefined,
-      scanned_by_parent: c.scanned_by_parent || false,
+      nume_prenume_copil: c.nume_copil || c.nume_prenume_copil || c.nume || '',
+      prezent: ziRo && c.prezenta ? (c.prezenta[ziRo] === true) : false,
+      observatii: '',
+      marked_at: undefined,
+      scanned_by_parent: false,
     }));
 
     return { data, records };
@@ -51,19 +75,36 @@ export async function getAttendance(grupa: string, data: string): Promise<Attend
   }
 }
 
+/**
+ * Salveaza prezenta pentru o singura zi.
+ * Construieste formatul asteptat de salveaza_prezenta_saptamana.php:
+ *   { copii: [{id_copil, prezenta: {luni: true}}], zile: {luni: "2026-03-09"} }
+ */
 export async function saveAttendance(grupa: string, data: string, records: AttendanceRecord[]): Promise<void> {
   if (!USE_TID4K_BACKEND) return;
+
+  const ziRo = getZiRo(data);
+  if (!ziRo) {
+    console.warn('[Prezenta] Data nu e in zilele lucratoare:', data);
+    return;
+  }
+
+  // Construim formatul PHP: copii cu prezenta pe zile romanesti
+  const copii = records.map(r => ({
+    id_copil: parseInt(r.child_id, 10) || r.child_id,
+    prezenta: { [ziRo]: r.prezent },
+  }));
+
+  // Zile: doar ziua curenta
+  const zile: Record<string, string> = { [ziRo]: data };
 
   try {
     await tid4kApi.call('salveaza_prezenta_saptamana', {
       grupa,
-      data,
-      records: records.map(r => ({
-        child_id: r.child_id,
-        prezent: r.prezent,
-        observatii: r.observatii,
-      })),
+      copii,
+      zile,
     });
+    emitAttendanceUpdated(grupa, data);
   } catch (err) {
     console.error('[Prezenta] Eroare la salvarea prezentei:', err);
     throw err;
@@ -102,16 +143,23 @@ export async function getAttendanceStats(grupa: string, luna: number, an: number
   }
 }
 
+/**
+ * Incarca prezenta saptamanala.
+ * PHP returneaza prezenta: { luni: true/false/null, ... } si zile: { luni: "2026-03-09", ... }
+ * React are nevoie de zile: { "2026-03-09": true, ... }
+ */
 export async function getWeeklyAttendance(grupa: string, mondayDate: string): Promise<WeeklyAttendanceData> {
   if (!USE_TID4K_BACKEND) {
     return { saptamana_start: mondayDate, saptamana_end: mondayDate, records: [] };
   }
 
   try {
-    const data = await tid4kApi.call<any>('fetch_prezenta_saptamana', {
+    const result = await tid4kApi.call<any>('fetch_prezenta_saptamana', {
       grupa,
-      saptamana_start: mondayDate,
     });
+
+    // PHP returneaza zile: { luni: "2026-03-09", ... }
+    const zilePHP = result?.zile || {};
 
     const monday = new Date(mondayDate);
     const weekDates = Array.from({ length: 5 }, (_, i) => {
@@ -120,12 +168,31 @@ export async function getWeeklyAttendance(grupa: string, mondayDate: string): Pr
       return d.toISOString().split('T')[0];
     });
 
-    const records: WeeklyAttendanceRecord[] = (data?.copii || data?.records || []).map((c: any) => ({
-      id_copil: String(c.id_copil || c.child_id || c.id),
-      nume_prenume_copil: c.nume_prenume_copil || c.nume_copil || c.nume || '',
-      zile: c.zile || Object.fromEntries(weekDates.map(d => [d, false])),
-      observatii_zile: c.observatii_zile || {},
-    }));
+    const rawCopii = result?.copii || [];
+
+    const records: WeeklyAttendanceRecord[] = rawCopii.map((c: any) => {
+      // Convertim prezenta din format { luni: true } la { "2026-03-09": true }
+      const zileConverted: Record<string, boolean> = {};
+      for (const zi of ZILE_RO) {
+        const dateForZi = zilePHP[zi];
+        if (dateForZi) {
+          zileConverted[dateForZi] = c.prezenta?.[zi] === true;
+        }
+      }
+      // Asiguram ca toate zilele saptamanii sunt prezente
+      for (const d of weekDates) {
+        if (!(d in zileConverted)) {
+          zileConverted[d] = false;
+        }
+      }
+
+      return {
+        id_copil: String(c.id_copil || c.child_id || c.id),
+        nume_prenume_copil: c.nume_copil || c.nume_prenume_copil || c.nume || '',
+        zile: zileConverted,
+        observatii_zile: c.observatii_zile || {},
+      };
+    });
 
     return {
       saptamana_start: mondayDate,
@@ -138,19 +205,52 @@ export async function getWeeklyAttendance(grupa: string, mondayDate: string): Pr
   }
 }
 
+/**
+ * Salveaza prezenta saptamanala.
+ * Converteste din formatul React { zile: { "2026-03-09": true } }
+ * in formatul PHP { copii: [{ id_copil, prezenta: { luni: true } }], zile: { luni: "2026-03-09" } }
+ */
 export async function saveWeeklyAttendance(grupa: string, data: WeeklyAttendanceData): Promise<void> {
   if (!USE_TID4K_BACKEND) return;
+
+  // Construim maparea inversa: data ISO -> zi romaneasca
+  const dateToZiRo: Record<string, string> = {};
+  const zilePHP: Record<string, string> = {};
+
+  // Calculam zilele saptamanii
+  const monday = new Date(data.saptamana_start);
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const dateStr = d.toISOString().split('T')[0];
+    const zi = ZILE_RO[i];
+    dateToZiRo[dateStr] = zi;
+    zilePHP[zi] = dateStr;
+  }
+
+  const copii = data.records.map(r => {
+    const prezenta: Record<string, boolean> = {};
+    for (const [dateStr, val] of Object.entries(r.zile)) {
+      const zi = dateToZiRo[dateStr];
+      if (zi) {
+        prezenta[zi] = val;
+      }
+    }
+    return {
+      id_copil: parseInt(r.id_copil, 10) || r.id_copil,
+      prezenta,
+    };
+  });
 
   try {
     await tid4kApi.call('salveaza_prezenta_saptamana', {
       grupa,
-      saptamana_start: data.saptamana_start,
-      records: data.records.map(r => ({
-        child_id: r.id_copil,
-        zile: r.zile,
-        observatii_zile: r.observatii_zile,
-      })),
+      copii,
+      zile: zilePHP,
     });
+    // Emit pentru fiecare zi din saptamana - permite sync instant
+    const today = new Date().toISOString().split('T')[0];
+    emitAttendanceUpdated(grupa, today);
   } catch (err) {
     console.error('[Prezenta] Eroare la salvarea prezentei:', err);
     throw err;
@@ -158,7 +258,6 @@ export async function saveWeeklyAttendance(grupa: string, data: WeeklyAttendance
 }
 
 export async function getParentChildAttendance(parentId: string, mondayDate: string): Promise<WeeklyAttendanceData> {
-  // Foloseste acelasi endpoint, filtrat pe parinte
   return getWeeklyAttendance('', mondayDate);
 }
 

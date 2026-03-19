@@ -4,6 +4,7 @@ import { X, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { getAttendance, saveAttendance } from '@/api/attendance';
+import { onAttendanceUpdated } from '@/utils/attendanceSync';
 import { toast } from 'sonner';
 import type { AttendanceRecord } from '@/types';
 
@@ -45,6 +46,16 @@ export default function AttendanceGrid({ open, onClose, groupId, groupName }: At
   useEffect(() => {
     if (open) loadData();
   }, [open, loadData]);
+
+  // Sync instant: reincarc cand alta componenta salveaza prezenta
+  useEffect(() => {
+    if (!open) return;
+    return onAttendanceUpdated((grupa, data) => {
+      if (grupa === groupId && data === today) {
+        loadData();
+      }
+    });
+  }, [open, groupId, today, loadData]);
 
   const present = records.filter(r => r.prezent).length;
   const total = records.length;

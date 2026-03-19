@@ -127,6 +127,13 @@ export interface DocumentItem {
 }
 
 // ===== Schedule =====
+export interface ScheduleEntry {
+  materie: string;
+  profesor: string;
+  sala?: string;
+  clasa?: string;
+}
+
 export interface ScheduleCell {
   id?: string;
   zi: string;
@@ -134,7 +141,9 @@ export interface ScheduleCell {
   materie: string;
   profesor: string;
   sala?: string;
+  clasa?: string;
   culoare: string;
+  entries?: ScheduleEntry[];
 }
 
 export interface CancelarieTeacher {

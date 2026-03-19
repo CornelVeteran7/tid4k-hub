@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
 import { getAttendance, saveAttendance } from '@/api/attendance';
+import { onAttendanceUpdated } from '@/utils/attendanceSync';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Users } from 'lucide-react';
 import { format } from 'date-fns';
@@ -32,6 +33,15 @@ export default function AttendanceQuickCard() {
   }, [currentGroup, today]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Sync instant: reincarc cand alta componenta salveaza prezenta
+  useEffect(() => {
+    return onAttendanceUpdated((grupa, data) => {
+      if (currentGroup && grupa === currentGroup.id && data === today) {
+        loadData();
+      }
+    });
+  }, [currentGroup, today, loadData]);
 
   const total = records.length;
   const present = records.filter(r => r.prezent).length;

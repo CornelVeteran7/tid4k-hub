@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getCancelarieTeachers } from '@/api/schedule';
 import type { CancelarieTeacher } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { QRCodeSVG } from 'qrcode.react';
 import { Calendar, User } from 'lucide-react';
 
 export default function ScheduleCancelarie() {
@@ -26,10 +25,16 @@ export default function ScheduleCancelarie() {
             <CardContent className="p-5">
               <div className="flex items-start gap-4">
                 <div className="relative h-16 w-16 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                  <User className="h-8 w-8 text-muted-foreground group-hover:opacity-0 transition-opacity" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <QRCodeSVG value={teacher.qr_data} size={56} />
-                  </div>
+                  {teacher.avatar_url ? (
+                    <img src={teacher.avatar_url} alt={teacher.nume} className="h-full w-full object-cover group-hover:opacity-0 transition-opacity" />
+                  ) : (
+                    <User className="h-8 w-8 text-muted-foreground group-hover:opacity-0 transition-opacity" />
+                  )}
+                  {teacher.qr_data && (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white">
+                      <img src={teacher.qr_data} alt={`QR ${teacher.nume}`} className="h-14 w-14 object-contain" />
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold">{teacher.nume}</h3>

@@ -6,6 +6,7 @@ import {
   getContributions, getParentContributions, getContributionConfig, saveContributionConfig,
   saveMonthlyContributions, getMonthlyContributions, updateContributionPayment,
 } from '@/api/attendance';
+import { onAttendanceUpdated } from '@/utils/attendanceSync';
 import {
   getParentChildren, getChildMonthlyCalendar, type ParentChild, type CalendarDay,
 } from '@/api/contributions';
@@ -627,6 +628,17 @@ export default function Attendance({ embedded }: { embedded?: boolean }) {
       });
     }
   }, [currentGroup, monday, isParent, user]);
+
+  // Sync instant: reincarc cand QuickCard/Grid salveaza prezenta
+  useEffect(() => {
+    if (!currentGroup) return;
+    const mondayStr = format(monday, 'yyyy-MM-dd');
+    return onAttendanceUpdated((grupa, _data) => {
+      if (grupa === currentGroup.id) {
+        getWeeklyAttendance(currentGroup.id, mondayStr).then((d) => setData(d));
+      }
+    });
+  }, [currentGroup, monday]);
 
   useEffect(() => {
     if (activeTab !== 'stats' || !currentGroup) return;

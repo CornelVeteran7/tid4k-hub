@@ -29,6 +29,7 @@ import TutorialOverlay from '@/components/TutorialOverlay';
 import QuickUpload from '@/components/QuickUpload';
 import WhiteLabelSwitcher from '@/components/WhiteLabelSwitcher';
 import AttendanceQuickCard from '@/components/dashboard/AttendanceQuickCard';
+import { useGroupAttendance } from '@/hooks/useGroupAttendance';
 
 /* Decorative SVG background for sidebar — contour lines + vertical-specific themed elements */
 function SidebarDecorationComponent({ vertical }: { vertical: string }) {
@@ -153,6 +154,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
   const verticalType = (user?.vertical_type || 'kids') as VerticalType;
   const verticalDef = VERTICAL_DEFINITIONS[verticalType];
   const { activeModules } = useActiveModules(user.organization_id, verticalType);
+  const groupAttendance = useGroupAttendance();
 
   const isSuperAdmin = location.pathname === '/superadmin';
 
@@ -207,14 +209,14 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
               </SelectTrigger>
               <SelectContent>
                 {availableGroups.map((g) => {
-                  const hash = g.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-                  const total = 15 + (hash % 20);
-                  const present = Math.max(5, total - (hash % 8));
+                  const att = groupAttendance[g.id];
                   return (
                     <SelectItem key={g.id} value={g.id}>
                       <div className="flex flex-col items-start">
                         <span>{g.nume}</span>
-                        <span className="text-[10px] text-muted-foreground">{present}/{total} prezenți azi</span>
+                        {att && att.total > 0 && (
+                          <span className="text-[10px] text-muted-foreground">{att.prezenti}/{att.total} prezenți azi</span>
+                        )}
                       </div>
                     </SelectItem>
                   );
@@ -320,9 +322,9 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
 
       {/* ===== MOBILE BOTTOM SHEET MENU ===== */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-72 bg-accent/90 text-accent-foreground p-0 overflow-hidden">
+        <SheetContent side="left" className="w-72 bg-accent/90 text-accent-foreground p-0 overflow-hidden flex flex-col h-full">
           <SidebarDecorationComponent vertical={verticalType} />
-          <SheetHeader className="px-4 pt-5 pb-4 border-b border-white/15">
+          <SheetHeader className="px-4 pt-5 pb-4 border-b border-white/15 shrink-0">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold text-white shrink-0">
                 {user.nume_prenume.split(' ').map((n) => n[0]).join('')}
@@ -436,7 +438,7 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
           </div>
 
           {/* Logout */}
-          <div className="border-t border-white/15 p-3">
+          <div className="border-t border-white/15 p-3 shrink-0">
             <button
               onClick={() => {logout();setMobileMenuOpen(false);}}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">
@@ -517,14 +519,14 @@ export function AppLayout({ children }: {children: React.ReactNode;}) {
                 </SelectTrigger>
                 <SelectContent>
                   {availableGroups.map((g) => {
-                    const hash = g.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-                    const total = 15 + (hash % 20);
-                    const present = Math.max(5, total - (hash % 8));
+                    const att = groupAttendance[g.id];
                     return (
                       <SelectItem key={g.id} value={g.id}>
                         <div className="flex flex-col items-start">
                           <span>{g.nume}</span>
-                          <span className="text-[10px] text-muted-foreground">{present}/{total} prezenți azi</span>
+                          {att && att.total > 0 && (
+                            <span className="text-[10px] text-muted-foreground">{att.prezenti}/{att.total} prezenți azi</span>
+                          )}
                         </div>
                       </SelectItem>
                     );

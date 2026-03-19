@@ -11,12 +11,14 @@ import { motion } from 'framer-motion';
 import { useModuleConfig, type ModuleConfig } from '@/config/moduleConfig';
 import { getMenu } from '@/api/menu';
 import { getAttendance } from '@/api/attendance';
+import { onAttendanceUpdated } from '@/utils/attendanceSync';
 import { format } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import ChildrenScroller from '@/components/dashboard/ChildrenScroller';
 import ModuleHub, { DEFAULT_VISIBILITY, type ModuleVisibility, loadModuleOrder, saveModuleOrder } from '@/components/dashboard/ModuleHub';
 import AnnouncementsTicker from '@/components/dashboard/AnnouncementsTicker';
 import AttendanceGrid from '@/components/dashboard/AttendanceGrid';
+import { useModuleCounts } from '@/hooks/useModuleCounts';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 import type { MenuItem } from '@/types';
@@ -93,10 +95,11 @@ function useCurrentMeal() {
 /* ── Quick Stats Row (extracted for meal integration) ── */
 function QuickStatsRow({ config, onPrezentaClick, attendanceLabel }: { config: ModuleConfig; onPrezentaClick: () => void; attendanceLabel: string }) {
   const { meal, isWeekend } = useCurrentMeal();
+  const moduleCounts = useModuleCounts();
 
   return (
     <div className="grid grid-cols-2 gap-2 mt-3">
-      {QUICK_STATS_BASE.map(stat => (
+      {QUICK_STATS_KEYS.map(stat => (
         <button
           key={stat.moduleKey}
           onClick={() => {
@@ -112,7 +115,7 @@ function QuickStatsRow({ config, onPrezentaClick, attendanceLabel }: { config: M
           <stat.icon className="h-3.5 w-3.5" />
           <span>{config[stat.moduleKey].title}</span>
           <span className="opacity-80">·</span>
-          <span>{stat.moduleKey === 'prezenta' ? attendanceLabel : stat.value}</span>
+          <span>{stat.moduleKey === 'prezenta' ? attendanceLabel : moduleCounts[stat.moduleKey]}</span>
         </button>
       ))}
       {/* 4th button: current meal */}
@@ -366,10 +369,10 @@ function loadVisibility(): ModuleVisibility {
   return { ...DEFAULT_VISIBILITY };
 }
 
-const QUICK_STATS_BASE = [
-  { icon: Users, value: '4/5', moduleKey: 'prezenta' as const },
-  { icon: Camera, value: '12', moduleKey: 'imagini' as const },
-  { icon: FileText, value: '3', moduleKey: 'documente' as const },
+const QUICK_STATS_KEYS = [
+  { icon: Users, moduleKey: 'prezenta' as const },
+  { icon: Camera, moduleKey: 'imagini' as const },
+  { icon: FileText, moduleKey: 'documente' as const },
 ];
 
 export default function Dashboard() {
@@ -412,6 +415,20 @@ export default function Dashboard() {
       const p = day.records.filter(r => r.prezent).length;
       setAttendanceCount({ present: p, total: day.records.length });
     }).catch(() => {});
+  }, [currentGroup]);
+
+  // Sync instant: reincarc cand o componenta salveaza prezenta
+  useEffect(() => {
+    if (!currentGroup) return;
+    const today = format(new Date(), 'yyyy-MM-dd');
+    return onAttendanceUpdated((grupa, data) => {
+      if (grupa === currentGroup.id && data === today) {
+        getAttendance(currentGroup.id, today).then(day => {
+          const p = day.records.filter(r => r.prezent).length;
+          setAttendanceCount({ present: p, total: day.records.length });
+        }).catch(() => {});
+      }
+    });
   }, [currentGroup]);
 
   if (!user) return null;

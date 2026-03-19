@@ -11,6 +11,7 @@ import ShareDialog from './ShareDialog';
 import { getCurrentMonthWorkshop, getCurrentMonthName } from '@/api/externalWorkshops';
 import type { ExternalWorkshop } from '@/api/externalWorkshops';
 import { useTouchReorder } from '@/hooks/useTouchReorder';
+import { useModuleCounts } from '@/hooks/useModuleCounts';
 
 const Attendance = lazy(() => import('@/pages/Attendance'));
 const Documents = lazy(() => import('@/pages/Documents'));
@@ -49,16 +50,8 @@ const MODULES_STRUCTURAL = [
   { key: 'mesaje' as ModuleKey, icon: MessageSquare, countLabel: 'mesaje', showShare: false, wide: false },
 ] as const;
 
-// Mock counts
-const MOCK_COUNTS: Record<string, number> = {
-  prezenta: 0,
-  imagini: 1,
-  documente: 0,
-  povesti: 3,
-  ateliere: 10,
-  meniu: 18,
-  mesaje: 0,
-};
+// Ateliere nu are endpoint de count - placeholder
+const ATELIERE_COUNT_PLACEHOLDER = 0;
 
 const MODULE_COMPONENTS: Record<string, React.LazyExoticComponent<React.ComponentType<{ embedded?: boolean }>>> = {
   prezenta: Attendance,
@@ -106,8 +99,8 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<ExternalWorkshop | null>(null);
-  // dragIdx state kept only for non-edit mode (not used but harmless)
   const { config } = useModuleConfig();
+  const moduleCounts = useModuleCounts();
 
   // Merge structural data with config
   const MODULES = useMemo(() =>
@@ -195,7 +188,7 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                     subtitle={mod.subtitle}
                     color={mod.color}
                     textColor={mod.textColor}
-                    count={MOCK_COUNTS[mod.key]}
+                    count={moduleCounts[mod.key as keyof typeof moduleCounts] ?? 0}
                     countLabel={mod.countLabel}
                     showShare={mod.showShare}
                     onShare={() => setShareModule(mod.key)}

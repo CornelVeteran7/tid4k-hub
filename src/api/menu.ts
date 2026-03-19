@@ -89,6 +89,44 @@ export async function getMeniuriTID4K(): Promise<TID4KMenuEntry[]> {
   }
 }
 
+/**
+ * Meniu structurat din PHP (parsat din HTML)
+ * Folosit de interfata Lovable pentru afisare tabelara
+ */
+export interface MeniuStructurat {
+  success: boolean;
+  saptamana: string;
+  data_expirare: string;
+  denumire_meniu: string | null;
+  id_info: number;
+  total_meniuri: number;
+  index_curent: number;
+  mese: Array<{
+    masa: string;
+    label: string;
+    ora: string;
+    zile: Record<string, string>;
+  }>;
+  alergeni: Record<string, string[]>;
+  alergeni_unici: string[];
+  semnaturi: Record<string, string>;
+  nutrienti_medie: Record<string, { valoare: number; unitate: string }>;
+  calorii_per_zi: Record<string, number>;
+}
+
+export async function getMeniuStructurat(index: number = 0): Promise<MeniuStructurat | null> {
+  if (!USE_TID4K_BACKEND) return null;
+
+  try {
+    const data = await tid4kApi.call<any>('fetch_meniu_structurat', { index });
+    if (data?.success === false) return null;
+    return data as MeniuStructurat;
+  } catch (err) {
+    console.error('[Menu] Eroare la incarcarea meniului structurat:', err);
+    return null;
+  }
+}
+
 export async function saveMenu(menu: WeeklyMenu): Promise<void> {
   if (!USE_TID4K_BACKEND) return;
 

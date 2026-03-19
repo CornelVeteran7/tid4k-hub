@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
 import { USE_TID4K_BACKEND } from '@/api/config';
-import { getMeniuriTID4K, type TID4KMenuEntry } from '@/api/menu';
+import { getMeniuStructurat, type MeniuStructurat } from '@/api/menu';
 import {
   getMenuWeek, ensureMenuWeek, getNutritionalReference, addDish, addIngredient,
   updateIngredient, deleteIngredient, deleteDish, updateDishName, publishMenu,
@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
 import {
   Save, Printer, ChevronLeft, ChevronRight, CalendarIcon, Plus, Trash2, AlertTriangle,
   Check, Eye, EyeOff, Send, Undo2, ChefHat, Scale, ShieldAlert, FileText, Award,
@@ -64,19 +65,69 @@ const STATUS_COLORS = {
 };
 
 // ============================================================================
-// VIEWER TID4K - afiseaza meniurile HTML din baza de date TID4K
+// VIEWER TID4K - afiseaza meniul structurat (parsat din HTML pe server)
+// Replica interfata Lovable: tabel mese x zile, alergeni, semnaturi
 // ============================================================================
+
+const ZILE_LABEL: Record<string, string> = {
+  luni: 'Luni', marti: 'Marți', miercuri: 'Miercuri', joi: 'Joi', vineri: 'Vineri',
+};
+const ZILE_ORDINE = ['luni', 'marti', 'miercuri', 'joi', 'vineri'];
+
+// Culorile zilelor din editorul vechi (identice cu tabel_meniu_afisat.php)
+const ZILE_CULORI: Record<string, string> = {
+  luni: '#FF00FF', marti: '#32CD32', miercuri: '#FFA500', joi: '#1E90FF', vineri: '#FF69B4',
+};
+
+// Lunile în română pentru date calendaristice
+const LUNI_RO = ['ianuarie','februarie','martie','aprilie','mai','iunie',
+  'iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+
+/**
+ * Calculează datele calendaristice Luni-Vineri din data_expirare (care e vineri)
+ * Returnează: { luni: "09 martie", marti: "10 martie", ... }
+ */
+function calculeazaDateZile(dataExpirare: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  if (!dataExpirare) return result;
+  // data_expirare poate fi "2026-03-13" sau "2026-03-13 23:59:59"
+  const vineri = new Date(dataExpirare.split(' ')[0] + 'T12:00:00');
+  if (isNaN(vineri.getTime())) return result;
+  // Luni = Vineri - 4 zile, Marți = Vineri - 3, etc.
+  const offset: Record<string, number> = { luni: -4, marti: -3, miercuri: -2, joi: -1, vineri: 0 };
+  for (const [zi, diff] of Object.entries(offset)) {
+    const d = new Date(vineri);
+    d.setDate(vineri.getDate() + diff);
+    result[zi] = `${d.getDate()} ${LUNI_RO[d.getMonth()]}`;
+  }
+  return result;
+}
+
+// Alergeni care se evidentiaza (prezenti in meniu)
+const ALERGENI_TOTI = [
+  'Gluten', 'Lapte', 'Ouă', 'Pește', 'Soia', 'Arahide',
+  'Fructe cu coajă', 'Țelină', 'Muștar', 'Susan', 'Sulfați', 'Lupin', 'Moluște', 'Crustacee',
+];
+
 function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
-  const [meniuri, setMeniuri] = useState<TID4KMenuEntry[]>([]);
+  const [meniu, setMeniu] = useState<MeniuStructurat | null>(null);
   const [indexCurent, setIndexCurent] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showEmoji, setShowEmoji] = useState(true);
+  const [showNutrienti, setShowNutrienti] = useState(false);
+  const [showKcal, setShowKcal] = useState(false);
+
+  const loadMeniu = useCallback(async (idx: number) => {
+    setLoading(true);
+    const data = await getMeniuStructurat(idx);
+    setMeniu(data);
+    setIndexCurent(idx);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    getMeniuriTID4K().then(data => {
-      setMeniuri(data);
-      setLoading(false);
-    });
-  }, []);
+    loadMeniu(0);
+  }, [loadMeniu]);
 
   if (loading) {
     return (
@@ -86,7 +137,7 @@ function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
     );
   }
 
-  if (meniuri.length === 0) {
+  if (!meniu) {
     return (
       <Card>
         <CardContent className="py-12 text-center text-muted-foreground">
@@ -96,58 +147,226 @@ function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
     );
   }
 
-  const meniu = meniuri[indexCurent];
-  const dataExp = meniu.data_expirare ? new Date(meniu.data_expirare) : null;
+  const totalMeniuri = meniu.total_meniuri || 1;
 
-  // Calculeaza lunea saptamanii din data_expirare (vineri) - 4 zile
-  const getLuniVineri = () => {
-    if (!dataExp) return '';
-    const luni = new Date(dataExp);
-    luni.setDate(dataExp.getDate() - 4);
-    return `${format(luni, 'd MMMM', { locale: ro })} – ${format(dataExp, 'd MMMM yyyy', { locale: ro })}`;
-  };
+  // Datele calendaristice per zi (calculate din data_expirare)
+  const dateZile = calculeazaDateZile(meniu.data_expirare);
+
+  // Determina alergenii unici (normalizati) pentru highlight
+  const alergeniActivi = new Set(
+    (meniu.alergeni_unici || []).map(a => a.toLowerCase().trim())
+  );
+
+  // Verificam daca avem calorii per zi individuale (nu doar media)
+  const areCaloriiPerZi = meniu.calorii_per_zi && Object.keys(meniu.calorii_per_zi).length > 0;
 
   return (
-    <div className={embedded ? '' : 'space-y-4'}>
-      {!embedded && (
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-display font-bold">Meniu Saptamanal</h1>
-        </div>
-      )}
-
+    <div className={embedded ? 'space-y-4' : 'space-y-4'}>
       {/* Navigare saptamani */}
+      <div className="flex items-center justify-between gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={indexCurent >= totalMeniuri - 1}
+          onClick={() => loadMeniu(indexCurent + 1)}
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+        </Button>
+        <div className="text-center">
+          <span className="text-sm font-display font-bold">
+            Săptămâna {meniu.saptamana}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={indexCurent <= 0}
+            onClick={() => loadMeniu(indexCurent - 1)}
+          >
+            Următor <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1" onClick={() => window.print()}>
+            <Printer className="h-4 w-4" /> Print
+          </Button>
+        </div>
+      </div>
+
+      {/* Toggle-uri: Emoji, Nutrienți, kcal/zi */}
+      <div className="flex flex-wrap items-center gap-5 text-sm">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <Switch checked={showEmoji} onCheckedChange={setShowEmoji} />
+          <span className="font-medium">Emoji</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <Switch checked={showNutrienti} onCheckedChange={setShowNutrienti} />
+          <span className="font-medium">Nutrienți</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <Switch checked={showKcal} onCheckedChange={setShowKcal} />
+          <span className="font-medium">kcal/zi</span>
+        </label>
+      </div>
+
+      {/* Tabel meniu structurat */}
       <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={indexCurent >= meniuri.length - 1}
-              onClick={() => setIndexCurent(i => Math.min(i + 1, meniuri.length - 1))}
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-            </Button>
-            <CardTitle className="text-base font-display">
-              {getLuniVineri()}
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={indexCurent <= 0}
-              onClick={() => setIndexCurent(i => Math.max(i - 1, 0))}
-            >
-              Urmator <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
+              <thead>
+                <tr className="bg-muted/60">
+                  <th className="border p-2.5 text-left w-20 text-xs font-bold">Ora</th>
+                  {ZILE_ORDINE.map(zi => (
+                    <th key={zi} className="border p-2.5 text-center text-xs font-bold" style={{ color: ZILE_CULORI[zi] }}>
+                      <div>{ZILE_LABEL[zi]}</div>
+                      {dateZile[zi] && (
+                        <div className="font-normal text-[10px] opacity-80">({dateZile[zi]})</div>
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(meniu.mese || []).map(masa => (
+                  <tr key={masa.masa}>
+                    <td className="border p-2.5 font-medium bg-muted/50 text-xs align-top whitespace-nowrap text-center">
+                      <div className="font-bold text-sm">{masa.ora}</div>
+                      <div className="text-[10px] text-muted-foreground">{masa.label}</div>
+                    </td>
+                    {ZILE_ORDINE.map(zi => {
+                      let text = masa.zile[zi] || '';
+                      // Curatam emoji daca toggle-ul e off
+                      if (!showEmoji) {
+                        text = text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1FA00}-\u{1FAFF}]/gu, '').trim();
+                      }
+                      return (
+                        <td key={zi} className="border p-2.5 text-xs align-top">
+                          {text || <span className="text-muted-foreground">—</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+                {/* Rand kcal/zi (vizibil doar cu toggle, doar daca avem date per zi) */}
+                {showKcal && areCaloriiPerZi && (
+                  <tfoot>
+                    <tr className="bg-muted/30 font-semibold">
+                      <td className="border p-2.5 text-xs font-bold text-center">
+                        <Scale className="h-3.5 w-3.5 inline mr-1" />kcal
+                      </td>
+                      {ZILE_ORDINE.map(zi => {
+                        const val = meniu.calorii_per_zi?.[zi];
+                        return (
+                          <td key={zi} className="border p-2.5 text-center text-xs">
+                            {val ? (
+                              <span className="font-bold">{val} kcal</span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tfoot>
+                )}
+              </tbody>
+            </table>
           </div>
-        </CardHeader>
-        <CardContent>
-          {/* Render HTML meniu din TID4K */}
-          <div
-            className="tid4k-meniu-html overflow-x-auto text-sm"
-            dangerouslySetInnerHTML={{ __html: meniu.continut || '' }}
-          />
         </CardContent>
       </Card>
+
+      {/* Valori nutriționale medie/zi (vizibil doar cu toggle) */}
+      {showNutrienti && (() => {
+        const nm = meniu.nutrienti_medie || {};
+        const NUTRIENTI_ITEMS: Array<{ label: string; cheie: string; unitate: string }> = [
+          { label: 'Calorii', cheie: 'calorii', unitate: 'kcal' },
+          { label: 'Proteine', cheie: 'proteine', unitate: 'g' },
+          { label: 'Lipide', cheie: 'lipide', unitate: 'g' },
+          { label: 'Carbohidrați', cheie: 'carbohidrati', unitate: 'g' },
+          { label: 'Glucide', cheie: 'glucide', unitate: 'g' },
+        ];
+        const areDate = NUTRIENTI_ITEMS.some(item => nm[item.cheie]?.valoare);
+        if (!areDate) return null;
+        return (
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="text-sm font-display font-bold mb-3">
+                Nutrienți și Calorii (medie/zi)
+              </h3>
+              <div className="flex flex-wrap gap-4 text-sm">
+                {NUTRIENTI_ITEMS.map(item => {
+                  const val = nm[item.cheie]?.valoare;
+                  if (!val) return null;
+                  return (
+                    <div key={item.cheie} className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground">{item.label}:</span>
+                      <span className="font-bold">{val} {item.unitate}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+      {/* Alergeni prezenti */}
+      {meniu.alergeni_unici && meniu.alergeni_unici.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="text-sm font-display font-bold mb-3">Alergeni prezenți</h3>
+            <div className="flex flex-wrap gap-2">
+              {ALERGENI_TOTI.map(alergen => {
+                const esteActiv = alergeniActivi.has(alergen.toLowerCase());
+                return (
+                  <Badge
+                    key={alergen}
+                    variant={esteActiv ? 'default' : 'outline'}
+                    className={cn(
+                      'text-xs',
+                      esteActiv
+                        ? 'bg-amber-500/20 text-amber-700 border-amber-500/40'
+                        : 'text-muted-foreground/50 border-muted/50'
+                    )}
+                  >
+                    {alergen}
+                  </Badge>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Semnaturi */}
+      {meniu.semnaturi && Object.keys(meniu.semnaturi).length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-wrap gap-6 text-sm">
+              {Object.entries(meniu.semnaturi).map(([functie, nume]) => (
+                <div key={functie}>
+                  <span className="text-muted-foreground capitalize">
+                    {functie.replace(/_/g, ' ')}:
+                  </span>{' '}
+                  <span className="font-semibold">{nume}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Referință OMS */}
+      <div className="text-[11px] text-muted-foreground text-left px-1">
+        <a
+          href="https://legislatie.just.ro/Public/DetaliiDocument/304795"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline hover:text-primary transition-colors"
+        >
+          Referință: Ordinul MS 1.582/2025 — 1290–1660 kcal/zi (copii 4-6 ani)
+        </a>
+      </div>
     </div>
   );
 }

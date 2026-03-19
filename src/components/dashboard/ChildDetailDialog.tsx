@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Check, X, MessageSquare, UtensilsCrossed, CalendarCheck, Send, Phone, Mail } from 'lucide-react';
 import { useGroup } from '@/contexts/GroupContext';
-import { getAttendanceStats } from '@/api/attendance';
+import { getAttendanceStats, getAttendance } from '@/api/attendance';
 import { useNavigate } from 'react-router-dom';
 import type { Child, AttendanceStats } from '@/types';
 import { format } from 'date-fns';
@@ -38,7 +38,12 @@ export default function ChildDetailDialog({ child, open, onOpenChange, avatarCol
   useEffect(() => {
     if (child && currentGroup && open) {
       getAttendanceStats(currentGroup.id, currentMonth, currentYear).then(setStats);
-      setPresentToday(Math.random() > 0.3);
+      // Prezenta reala a copilului din ziua curenta
+      const todayStr = format(today, 'yyyy-MM-dd');
+      getAttendance(currentGroup.id, todayStr).then(day => {
+        const rec = day.records.find(r => r.child_id === child.id);
+        setPresentToday(rec?.prezent ?? false);
+      }).catch(() => {});
     }
   }, [child, currentGroup, open, currentMonth, currentYear]);
 
