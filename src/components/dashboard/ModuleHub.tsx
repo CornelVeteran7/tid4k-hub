@@ -3,6 +3,7 @@ import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { ClipboardList, Image, FileText, BookOpen, UtensilsCrossed, MessageSquare, Paintbrush } from 'lucide-react';
 import SponsorCard from './SponsorCard';
 import { lazy, Suspense, useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useModuleConfig, type ModuleKey } from '@/config/moduleConfig';
 import { Loader2 } from 'lucide-react';
 import ModuleCard from './ModuleCard';
@@ -12,6 +13,9 @@ import { getCurrentMonthWorkshop, getCurrentMonthName } from '@/api/externalWork
 import type { ExternalWorkshop } from '@/api/externalWorkshops';
 import { useTouchReorder } from '@/hooks/useTouchReorder';
 import { useModuleCounts } from '@/hooks/useModuleCounts';
+
+// Module care se deschid ca pagina completa (prea complexe pentru panel)
+const FULL_PAGE_MODULES = ['meniu'];
 
 const Attendance = lazy(() => import('@/pages/Attendance'));
 const Documents = lazy(() => import('@/pages/Documents'));
@@ -95,7 +99,14 @@ interface ModuleHubProps {
   desktopSingleColumn?: boolean;
 }
 
+// Ruta asociata fiecarui modul (pentru navigare pagina completa)
+const MODULE_ROUTES: Record<string, string> = {
+  meniu: '/meniu',
+  prezenta: '/prezenta',
+};
+
 export default function ModuleHub({ visibility, searchQuery, editMode, onToggle, moduleOrder, onReorder, verticalModules, cardVariant = 'solid', desktopSingleColumn = false }: ModuleHubProps) {
+  const navigate = useNavigate();
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [shareModule, setShareModule] = useState<string | null>(null);
   const [workshopOfMonth, setWorkshopOfMonth] = useState<ExternalWorkshop | null>(null);
@@ -192,7 +203,13 @@ export default function ModuleHub({ visibility, searchQuery, editMode, onToggle,
                     countLabel={mod.countLabel}
                     showShare={mod.showShare}
                     onShare={() => setShareModule(mod.key)}
-                    onOpen={() => setOpenModule(mod.key)}
+                    onOpen={() => {
+                      if (FULL_PAGE_MODULES.includes(mod.key)) {
+                        navigate(MODULE_ROUTES[mod.key] || `/${mod.key}`);
+                      } else {
+                        setOpenModule(mod.key);
+                      }
+                    }}
                     layoutId={`module-${mod.key}`}
                     editMode={editMode}
                     visible={visibility[mod.key as keyof ModuleVisibility]}

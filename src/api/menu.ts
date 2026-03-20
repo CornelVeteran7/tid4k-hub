@@ -6,7 +6,7 @@
  */
 
 import { tid4kApi } from './tid4kClient';
-import { USE_TID4K_BACKEND } from './config';
+import { USE_TID4K_BACKEND, API_BASE_URL } from './config';
 import type { WeeklyMenu, NutritionalData } from '@/types';
 
 export async function getMenu(saptamana: string): Promise<WeeklyMenu> {
@@ -125,6 +125,189 @@ export async function getMeniuStructurat(index: number = 0): Promise<MeniuStruct
     console.error('[Menu] Eroare la incarcarea meniului structurat:', err);
     return null;
   }
+}
+
+export interface MeniuDisponibil {
+  id_info: string;
+  data_expirare: string;
+  denumire_meniu: string | null;
+  saptamana: string;
+}
+
+export async function getListaMeniuri(): Promise<MeniuDisponibil[]> {
+  if (!USE_TID4K_BACKEND) return [];
+
+  try {
+    const data = await tid4kApi.call<any>('fetch_meniu_structurat', { lista: 1 });
+    return data?.meniuri || [];
+  } catch (err) {
+    console.error('[Menu] Eroare la incarcarea listei meniuri:', err);
+    return [];
+  }
+}
+
+/**
+ * Limite OMS din baza de date (Strat 2: apeleaza endpoint PHP existent)
+ */
+export interface LimiteOMS {
+  calorii_min: number;
+  calorii_max: number;
+  proteine_min: number;
+  proteine_max: number;
+  lipide_min: number;
+  lipide_max: number;
+  carbohidrati_min: number;
+  carbohidrati_max: number;
+  [key: string]: any;
+}
+
+export async function getLimiteOMS(): Promise<LimiteOMS | null> {
+  if (!USE_TID4K_BACKEND) return null;
+  try {
+    const data = await tid4kApi.call<any>('get_limite_oms', {});
+    return data?.limite || null;
+  } catch (err) {
+    console.error('[Menu] Eroare la incarcarea limitelor OMS:', err);
+    return null;
+  }
+}
+
+/**
+ * Aliment din normator (Strat 2: apeleaza endpoint PHP existent)
+ */
+export interface AlimentNormator {
+  id: number;
+  denumire: string;
+  emoji: string;
+  alergeni: string;
+  calorii: number;
+  proteine: number;
+  lipide: number;
+  carbohidrati: number;
+  glucide: number;
+  cantitate: string;
+  cuvinte_cheie: string;
+  /** Camp calculat in Strat 2: "🍌 banană (100gr)" — asamblat din emoji+denumire+cantitate */
+  textComplet: string;
+}
+
+/**
+ * Strat 2 conversie: asambleaza textul complet din campurile separate ale normatorului
+ * Format identic cu cuvinte_cheie_meniu.php: "🍌 Banană (100gr)"
+ */
+function asambleazaTextComplet(aliment: any): string {
+  const emoji = aliment.emoji || '';
+  const denumire = aliment.denumire || '';
+  const cantitate = aliment.cantitate || '';
+  return (emoji ? emoji + ' ' : '') + denumire + (cantitate ? ' (' + cantitate + ')' : '');
+}
+
+export async function cautaInNormator(cuvant: string): Promise<AlimentNormator | null> {
+  if (!USE_TID4K_BACKEND) return null;
+  try {
+    const data = await tid4kApi.call<any>('cauta_in_normator_alimente', { cuvant });
+    const aliment = data?.aliment;
+    if (!aliment) return null;
+    return { ...aliment, textComplet: asambleazaTextComplet(aliment) };
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function getToateAlimentele(): Promise<AlimentNormator[]> {
+  if (!USE_TID4K_BACKEND) return [];
+  try {
+    const data = await tid4kApi.call<any>('cauta_in_normator_alimente', { toate: 1 });
+    const alimente = data?.alimente || [];
+    // Strat 2: asambleaza textComplet pentru fiecare aliment
+    return alimente.map((a: any) => ({ ...a, textComplet: asambleazaTextComplet(a) }));
+  } catch (err) {
+    console.error('[Menu] Eroare la incarcarea normatorului:', err);
+    return [];
+  }
+}
+
+/**
+ * Construieste URL-ul pentru print PDF meniu (deschis in tab nou)
+ * Foloseste mecanismul PHP existent print_meniu_saptamana.php
+ */
+export function getPrintMeniuURL(dataVineri: string): string {
+  return `${API_BASE_URL}/pages/print_meniu_saptamana.php?data_vineri=${encodeURIComponent(dataVineri)}`;
+}
+
+/**
+ * Salvare meniu structurat: reconstruieste HTML din celule si trimite la backend
+ * Folosit de editorul React (TID4KMenuViewer in mod editare)
+ */
+export async function salvareMeniuStructurat(
+  mese: Array<{ masa: string; label: string; ora: string; zile: Record<string, string> }>,
+  dataVineri: string,
+  denumireMeniu?: string | null,
+  nutrientiText?: string,
+  semnaturi?: Record<string, string>,
+): Promise<void> {
+  if (!USE_TID4K_BACKEND) return;
+
+  const ZILE_HEAD: Record<string, string> = {
+    luni: 'Luni', marti: 'Marți', miercuri: 'Miercuri', joi: 'Joi', vineri: 'Vineri',
+  };
+  const ZILE_ORD = ['luni', 'marti', 'miercuri', 'joi', 'vineri'];
+
+  // Calculeaza datele calendaristice Luni-Vineri din vineri
+  const vineriDate = new Date(dataVineri + 'T12:00:00');
+  const LUNI = ['ianuarie','februarie','martie','aprilie','mai','iunie',
+    'iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+  const dateZile: Record<string, string> = {};
+  const offset: Record<string, number> = { luni: -4, marti: -3, miercuri: -2, joi: -1, vineri: 0 };
+  for (const [zi, diff] of Object.entries(offset)) {
+    const d = new Date(vineriDate);
+    d.setDate(vineriDate.getDate() + diff);
+    dateZile[zi] = `${d.getDate()} ${LUNI[d.getMonth()]}`;
+  }
+
+  // Construieste HTML identic cu formatul vechi
+  let html = '<table id="tabelMeniuSaptamanal" class="tabel-meniu">';
+  // Header
+  html += '<tr>';
+  html += '<th class="coloana-ore"><div class="inputText oraInput">Ora</div></th>';
+  for (const zi of ZILE_ORD) {
+    html += `<th><div class="inputText">${ZILE_HEAD[zi]} (${dateZile[zi]})</div></th>`;
+  }
+  html += '</tr>';
+
+  // Mese
+  for (const masa of mese) {
+    html += '<tr>';
+    html += `<td class="coloana-ore"><div class="inputText oraInput">${masa.ora}</div></td>`;
+    for (const zi of ZILE_ORD) {
+      const continut = masa.zile[zi] || '';
+      html += `<td><div class="inputText">${continut}</div></td>`;
+    }
+    html += '</tr>';
+  }
+
+  // Nutrienti
+  if (nutrientiText) {
+    html += `<div id="NutrientiSiCalorii">Nutrienti si Calorii (medie/zi): ${nutrientiText}</div>`;
+  }
+
+  // Semnaturi
+  if (semnaturi && Object.keys(semnaturi).length > 0) {
+    html += '<div id="semnaturi">';
+    for (const [functie, nume] of Object.entries(semnaturi)) {
+      const titlu = functie.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      html += `<div class="functie-container"><div class="functie-titlu">${titlu}:</div><div class="nume-prenume">${nume}</div></div>`;
+    }
+    html += '</div>';
+  }
+
+  html += '</table>';
+
+  await tid4kApi.call('salveaza_meniuHTML', {
+    html: html,
+    data_vineri: dataVineri,
+    denumire_meniu: denumireMeniu || null,
+  });
 }
 
 export async function saveMenu(menu: WeeklyMenu): Promise<void> {

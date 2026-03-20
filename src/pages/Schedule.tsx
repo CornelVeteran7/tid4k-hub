@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { getScheduleWithAvatars, saveSchedule } from '@/api/schedule';
@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Calendar, Printer, Save, Edit2, QrCode, X, DoorOpen } from 'lucide-react';
+import { Calendar, Printer, Save, Edit2, QrCode, X, DoorOpen, Camera, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import { API_BASE_URL } from '@/api/config';
@@ -33,9 +33,64 @@ export default function Schedule() {
   const [dirty, setDirty] = useState(false);
   const [profesorAvatars, setProfesorAvatars] = useState<Record<string, string>>({});
   const [profesorQrcodes, setProfesorQrcodes] = useState<Record<string, string>>({});
+  const [avatarProfesorTinta, setAvatarProfesorTinta] = useState<string>('');
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Doar secretara si Inky pot edita orarul (unic per unitate scolara)
   const canEdit = user && (areRol(user.status, 'secretara') || isInky(user.status, user.nume_prenume));
+
+  // Extrage cheia avatar (fara prefixul "prof. ")
+  const getAvatarKey = (profesor: string) => (profesor || '').replace(/^prof\.\s*/i, '');
+
+  // Deschide file picker pentru avatarul unui profesor
+  const deschideAvatarPicker = (numeProfesor: string) => {
+    const key = getAvatarKey(numeProfesor);
+    if (!key) {
+      toast.error('Completează numele profesorului mai întâi');
+      return;
+    }
+    setAvatarProfesorTinta(key);
+    avatarInputRef.current?.click();
+  };
+
+  // Proceseaza fisierul selectat
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selectează un fișier imagine (JPG, PNG, etc.)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imaginea nu poate depăși 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      setProfesorAvatars(prev => ({ ...prev, [avatarProfesorTinta]: base64 }));
+      setDirty(true);
+      toast.success(`Avatar setat pentru ${avatarProfesorTinta}`);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input pentru a permite reselectarea aceluiasi fisier
+    e.target.value = '';
+  };
+
+  // Sterge avatarul unui profesor
+  const stergeAvatar = (numeProfesor: string) => {
+    const key = getAvatarKey(numeProfesor);
+    setProfesorAvatars(prev => {
+      const nou = { ...prev };
+      delete nou[key];
+      return nou;
+    });
+    setDirty(true);
+    toast.success(`Avatar șters pentru ${key}`);
+  };
 
   useEffect(() => {
     getScheduleWithAvatars().then((data) => {
@@ -124,7 +179,7 @@ export default function Schedule() {
 
   const handleSaveAll = async () => {
     try {
-      await saveSchedule(cells);
+      await saveSchedule(cells, profesorAvatars);
       toast.success('Orar salvat!');
       setDirty(false);
     } catch (e: any) {
@@ -168,7 +223,7 @@ export default function Schedule() {
                 onClick={async () => {
                   if (editing && dirty) {
                     try {
-                      await saveSchedule(cells);
+                      await saveSchedule(cells, profesorAvatars);
                       toast.success('Orar salvat!');
                       setDirty(false);
                     } catch (e: any) {
@@ -194,6 +249,15 @@ export default function Schedule() {
           </Button>
         </div>
       </div>
+
+      {/* Input file ascuns pentru avatar (cross-platform compatible) */}
+      <input
+        ref={avatarInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif"
+        onChange={handleAvatarChange}
+        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
+      />
 
       {/* Teacher QR codes */}
       {uniqueTeachers.length > 0 && (
@@ -327,12 +391,45 @@ export default function Schedule() {
                 </div>
                 <div>
                   <Label>Profesor</Label>
-                  <Input
-                    list="profesori-autocomplete"
-                    value={entry.profesor}
-                    onChange={e => updateEntry(idx, 'profesor', e.target.value)}
-                    placeholder="Ex: Prof. Ionescu"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      list="profesori-autocomplete"
+                      value={entry.profesor}
+                      onChange={e => updateEntry(idx, 'profesor', e.target.value)}
+                      placeholder="Ex: Prof. Ionescu"
+                      className="flex-1"
+                    />
+                    {(() => {
+                      const key = getAvatarKey(entry.profesor);
+                      const avatarExistent = key ? profesorAvatars[key] : null;
+                      return (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            className="h-9 w-9 rounded-md border border-input flex items-center justify-center hover:bg-accent transition-colors overflow-hidden"
+                            title={avatarExistent ? 'Schimbă avatarul' : 'Adaugă avatar'}
+                            onClick={() => deschideAvatarPicker(entry.profesor)}
+                          >
+                            {avatarExistent ? (
+                              <img src={avatarExistent} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <Camera className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </button>
+                          {avatarExistent && (
+                            <button
+                              type="button"
+                              className="h-9 w-9 rounded-md border border-input flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
+                              title="Șterge avatarul"
+                              onClick={() => stergeAvatar(entry.profesor)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>

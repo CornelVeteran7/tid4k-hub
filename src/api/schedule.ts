@@ -88,7 +88,7 @@ export async function getScheduleWithAvatars(): Promise<ScheduleData> {
   }
 }
 
-export async function saveSchedule(cells: ScheduleCell[]): Promise<void> {
+export async function saveSchedule(cells: ScheduleCell[], profesorAvatars?: Record<string, string>): Promise<void> {
   if (!USE_TID4K_BACKEND) return;
 
   try {
@@ -121,10 +121,16 @@ export async function saveSchedule(cells: ScheduleCell[]): Promise<void> {
       }
     }
 
-    await tid4kApi.call('salveaza_orar_structurat', {
+    const params: Record<string, any> = {
       clasa_grupa: 'CANCELARIE',
       celule: celuleExpandate,
-    });
+    };
+
+    if (profesorAvatars && Object.keys(profesorAvatars).length > 0) {
+      params.profesor_avatars = profesorAvatars;
+    }
+
+    await tid4kApi.call('salveaza_orar_structurat', params);
   } catch (err) {
     console.error('[Orar] Eroare la salvarea orarului:', err);
     throw err;
