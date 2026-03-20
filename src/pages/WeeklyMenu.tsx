@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
 import { USE_TID4K_BACKEND } from '@/api/config';
-import { getMeniuStructurat, type MeniuStructurat } from '@/api/menu';
+import { getMeniuStructurat, getListaMeniuri, getMeniuriTID4K, salvareMeniuStructurat, getLimiteOMS, getPrintMeniuURL, getToateAlimentele, type MeniuStructurat, type MeniuDisponibil, type TID4KMenuEntry, type LimiteOMS, type AlimentNormator } from '@/api/menu';
+import { isInky } from '@/utils/roles';
 import {
   getMenuWeek, ensureMenuWeek, getNutritionalReference, addDish, addIngredient,
   updateIngredient, deleteIngredient, deleteDish, updateDishName, publishMenu,
@@ -25,7 +26,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import {
   Save, Printer, ChevronLeft, ChevronRight, CalendarIcon, Plus, Trash2, AlertTriangle,
-  Check, Eye, EyeOff, Send, Undo2, ChefHat, Scale, ShieldAlert, FileText, Award,
+  Check, Eye, EyeOff, Send, Undo2, ChefHat, Scale, ShieldAlert, FileText, Award, X, Edit2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -109,25 +110,318 @@ const ALERGENI_TOTI = [
   'Fructe cu coajă', 'Țelină', 'Muștar', 'Susan', 'Sulfați', 'Lupin', 'Moluște', 'Crustacee',
 ];
 
+// Fallback OMS (folosit doar daca endpoint-ul BD nu raspunde)
+const OMS_FALLBACK = { calorii_min: 1290, calorii_max: 1660, proteine_min: 45, lipide_min: 36 };
+
 function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
+  const { user } = useAuth();
   const [meniu, setMeniu] = useState<MeniuStructurat | null>(null);
   const [indexCurent, setIndexCurent] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showEmoji, setShowEmoji] = useState(true);
-  const [showNutrienti, setShowNutrienti] = useState(false);
-  const [showKcal, setShowKcal] = useState(false);
+  const [showNutrienti, setShowNutrienti] = useState(true);
+  const [showKcal, setShowKcal] = useState(true);
+  const [cautare, setCautare] = useState('');
+  const [listaMeniuri, setListaMeniuri] = useState<MeniuDisponibil[]>([]);
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  // Editare
+  const [editing, setEditing] = useState(false);
+  const [continutCelule, setContinutCelule] = useState<Record<string, string>>({});
+  const [dirty, setDirty] = useState(false);
+
+  // Limite OMS din BD (Strat 2: endpoint PHP existent)
+  const [limiteOMS, setLimiteOMS] = useState<LimiteOMS | null>(null);
+
+  // Normator alimente pentru autocompletare (Strat 2: endpoint PHP existent)
+  const [alimenteNormator, setAlimenteNormator] = useState<AlimentNormator[]>([]);
+
+  // Print PDF — dialog cu iframe (userul ramane in /app/)
+  const [printURL, setPrintURL] = useState<string | null>(null);
+
+  // Cautare globala — toate meniurile din BD (Strat 2: endpoint PHP existent fetch_meniuri)
+  const [meniuriGlobale, setMeniuriGlobale] = useState<TID4KMenuEntry[]>([]);
+  const [rezultateCautare, setRezultateCautare] = useState<Array<{ saptamana: string; dataExpirare: string; index: number }>>([]);
+
+  // Acces editare: administrator, director, secretara, Inky
+  const canEdit = user && (
+    areRol(user.status, 'administrator') ||
+    areRol(user.status, 'director') ||
+    areRol(user.status, 'secretara') ||
+    isInky(user.status, user.nume_prenume)
+  );
 
   const loadMeniu = useCallback(async (idx: number) => {
     setLoading(true);
     const data = await getMeniuStructurat(idx);
     setMeniu(data);
     setIndexCurent(idx);
+    setEditing(false);
+    setDirty(false);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     loadMeniu(0);
+    getListaMeniuri().then(setListaMeniuri);
+    // Incarca limite OMS din BD (endpoint PHP existent)
+    getLimiteOMS().then(l => { if (l) setLimiteOMS(l); });
+    // Incarca normator alimente pentru autocompletare (endpoint PHP existent)
+    getToateAlimentele().then(setAlimenteNormator);
+    // Incarca toate meniurile din BD pentru cautare globala (endpoint PHP existent)
+    getMeniuriTID4K().then(setMeniuriGlobale);
   }, [loadMeniu]);
+
+  // Populeaza continutCelule din meniu cand intra in mod editare
+  const startEditing = () => {
+    if (!meniu) return;
+    const celule: Record<string, string> = {};
+    for (const masa of meniu.mese || []) {
+      for (const zi of ZILE_ORDINE) {
+        celule[`${masa.masa}_${zi}`] = masa.zile[zi] || '';
+      }
+    }
+    setContinutCelule(celule);
+    setEditing(true);
+    setDirty(false);
+  };
+
+  // Autocompletare INLINE din normator — completare directa in textarea pe masura ce userul tasteaza
+  // Pattern identic cu mecanismul vechi: "kiw" → "🥝 kiwi (50gr)" direct in text
+  const normalizezText = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const updateCelula = (key: string, value: string) => {
+    const prevValue = continutCelule[key] || '';
+    setContinutCelule(prev => ({ ...prev, [key]: value }));
+    setDirty(true);
+
+    // Blocam autocompletarea la stergere (textul s-a scurtat)
+    if (value.length <= prevValue.length) return;
+
+    // Autocompletare inline: verificam ultimul cuvant tastat
+    if (alimenteNormator.length === 0) return;
+
+    // Extragem ultimul cuvant (dupa virgula, spatiu, linie noua sau inceput text)
+    const match = value.match(/(?:^|[,\n]\s*|\s)([a-zA-ZăâîșțĂÂÎȘȚ]{3,})$/);
+    if (!match) return;
+
+    const cuvant = match[1];
+    const cuvantNorm = normalizezText(cuvant);
+
+    // Cautam cel mai bun match in normator (denumirea incepe cu cuvantul tastat)
+    const bestMatch = alimenteNormator.find(a => {
+      const denumireNorm = normalizezText(a.denumire || '');
+      return denumireNorm.startsWith(cuvantNorm) && denumireNorm !== cuvantNorm;
+    });
+
+    // Match EXACT (cuvant complet) — inlocuieste cu emoji
+    const exactMatch = alimenteNormator.find(a => {
+      return normalizezText(a.denumire || '') === cuvantNorm;
+    });
+
+    if (exactMatch) {
+      // Cuvant complet recunoscut → folosim textComplet din Strat 2 (deja asamblat in menu.ts)
+      const pozitie = value.length - cuvant.length;
+      const textNou = value.slice(0, pozitie) + exactMatch.textComplet;
+      setContinutCelule(prev => ({ ...prev, [key]: textNou }));
+    }
+  };
+
+  // Salveaza meniul editat
+  const handleSave = async () => {
+    if (!meniu) return;
+    setSaving(true);
+    try {
+      // Reconstruieste mesele cu continut actualizat
+      const meseActualizate = (meniu.mese || []).map(masa => ({
+        ...masa,
+        zile: Object.fromEntries(
+          ZILE_ORDINE.map(zi => [zi, continutCelule[`${masa.masa}_${zi}`] || ''])
+        ),
+      }));
+
+      // Calculeaza data_vineri din data_expirare
+      const dataVineri = meniu.data_expirare.split(' ')[0];
+
+      // Construieste textul nutrienti (daca exista)
+      const nm = meniu.nutrienti_medie || {};
+      const nutrientiParts = [];
+      if (nm.calorii?.valoare) nutrientiParts.push(`calorii (${nm.calorii.valoare}kcal)`);
+      if (nm.proteine?.valoare) nutrientiParts.push(`proteine (${nm.proteine.valoare}gr)`);
+      if (nm.lipide?.valoare) nutrientiParts.push(`lipide (${nm.lipide.valoare}gr)`);
+      if (nm.carbohidrati?.valoare) nutrientiParts.push(`carbohidrati (${nm.carbohidrati.valoare}gr)`);
+      if (nm.glucide?.valoare) nutrientiParts.push(`glucide (${nm.glucide.valoare}gr)`);
+      const nutrientiText = nutrientiParts.length > 0 ? nutrientiParts.join(', ') : undefined;
+
+      await salvareMeniuStructurat(
+        meseActualizate,
+        dataVineri,
+        meniu.denumire_meniu,
+        nutrientiText,
+        meniu.semnaturi,
+      );
+
+      toast.success('Meniu salvat!');
+      setDirty(false);
+      setEditing(false);
+      // Reincarca meniul actualizat
+      await loadMeniu(indexCurent);
+    } catch (err: any) {
+      toast.error(err.message || 'Eroare la salvare');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Datele disponibile in calendar
+  const dateDisponibile = useMemo(() => {
+    return listaMeniuri.map(m => {
+      const d = new Date(m.data_expirare.split(' ')[0] + 'T12:00:00');
+      return isNaN(d.getTime()) ? null : d;
+    }).filter(Boolean) as Date[];
+  }, [listaMeniuri]);
+
+  // Calendar: selecteaza saptamana — calculeaza vineri-ul din orice zi Luni-Vineri selectata
+  // Identic cu logica din tabel_meniu_afisat.php: obtineDataVineriDinData()
+  const handleSelectData = (date: Date | undefined) => {
+    if (!date) return;
+    const dayOfWeek = date.getDay(); // 0=Duminica, 1=Luni, ..., 5=Vineri, 6=Sambata
+    const vineri = new Date(date);
+    // Calculam vineri-ul saptamanii: Luni(1)->+4, Marti(2)->+3, ..., Vineri(5)->+0, Sambata(6)->+6, Duminica(0)->+5
+    if (dayOfWeek === 0) {
+      vineri.setDate(date.getDate() + 5); // Duminica -> vineri urmatoare
+    } else if (dayOfWeek === 6) {
+      vineri.setDate(date.getDate() + 6); // Sambata -> vineri urmatoare
+    } else {
+      vineri.setDate(date.getDate() + (5 - dayOfWeek));
+    }
+    // Format YYYY-MM-DD fara conversie UTC (evita schimbarea zilei din cauza timezone)
+    const an = vineri.getFullYear();
+    const luna = String(vineri.getMonth() + 1).padStart(2, '0');
+    const zi = String(vineri.getDate()).padStart(2, '0');
+    const vineriStr = `${an}-${luna}-${zi}`;
+
+    const idx = listaMeniuri.findIndex(m => m.data_expirare.split(' ')[0] === vineriStr);
+    if (idx >= 0) {
+      // Incarca meniul si intra in editare daca are drepturi
+      loadMeniu(idx).then(() => {
+        if (canEdit) {
+          // Asteapta ca meniul sa fie incarcat, apoi intra in editare
+          setTimeout(() => startEditing(), 300);
+        }
+      });
+    } else {
+      toast.error('Nu există meniu pentru săptămâna selectată');
+    }
+    setShowCalendar(false);
+  };
+
+  const dataCurentaMeniu = useMemo(() => {
+    if (!meniu?.data_expirare) return undefined;
+    const d = new Date(meniu.data_expirare.split(' ')[0] + 'T12:00:00');
+    return isNaN(d.getTime()) ? undefined : d;
+  }, [meniu]);
+
+  // Cautare globala — cauta in TOATE meniurile din BD (pattern identic cu mecanism_cautare_meniuri.js)
+  useEffect(() => {
+    if (!cautare.trim() || meniuriGlobale.length === 0) {
+      setRezultateCautare([]);
+      return;
+    }
+    const query = normalizezText(cautare.trim());
+    const seen = new Set<string>();
+    const rezultate: Array<{ saptamana: string; dataExpirare: string; index: number }> = [];
+
+    meniuriGlobale.forEach((item, idx) => {
+      if (!item.continut) return;
+      // Strip HTML si normalizeaza textul (identic cu mecanismul vechi)
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = item.continut;
+      const textCurat = normalizezText(tempDiv.textContent || '');
+      if (!textCurat.includes(query)) return;
+
+      // Calculeaza intervalul saptamanii (deduplicare)
+      const datePart = (item.data_expirare || '').split(' ')[0];
+      const saptamana = calculeazaIntervalSaptamana(datePart);
+      if (seen.has(saptamana)) return;
+      seen.add(saptamana);
+
+      // Gasim indexul in listaMeniuri pentru navigare
+      const idxInLista = listaMeniuri.findIndex(m => m.data_expirare.split(' ')[0] === datePart);
+      rezultate.push({ saptamana, dataExpirare: datePart, index: idxInLista });
+    });
+
+    setRezultateCautare(rezultate);
+  }, [cautare, meniuriGlobale, listaMeniuri]);
+
+  // Calculeaza "Meniul din 24 - 28 februarie 2025" din data_expirare (identic cu JS vechi)
+  const calculeazaIntervalSaptamana = (dataExpirareStr: string): string => {
+    const expDate = new Date(dataExpirareStr + 'T12:00:00');
+    if (isNaN(expDate.getTime())) return dataExpirareStr;
+    const monday = new Date(expDate);
+    monday.setDate(expDate.getDate() - (expDate.getDay() - 1));
+    const mondayDay = monday.getDate();
+    const fridayDay = expDate.getDate();
+    const monthName = new Intl.DateTimeFormat('ro-RO', { month: 'long' }).format(expDate);
+    return `Meniul din ${mondayDay} - ${fridayDay} ${monthName} ${expDate.getFullYear()}`;
+  };
+
+  const cautareNormalizata = cautare.trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const textMatchesCautare = (text: string) => {
+    if (!cautareNormalizata) return true;
+    const norm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return norm.includes(cautareNormalizata);
+  };
+
+  // Highlight pe text cu suport diacritice
+  // Normalizam textul pentru cautare dar pastram textul original pentru afisare
+  const highlightText = (text: string): React.ReactNode => {
+    if (!cautareNormalizata || !text) return text;
+
+    // Normalizam textul pentru cautare (fara diacritice)
+    const textNorm = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const matchIdx = textNorm.indexOf(cautareNormalizata);
+    if (matchIdx === -1) return text;
+
+    // Gasim lungimea match-ului in textul ORIGINAL (poate diferi din cauza diacriticelor)
+    // Parcurgem char-by-char: fiecare caracter original poate genera 1+ caractere normalizate
+    let origStart = 0, origEnd = 0, normPos = 0;
+    for (let i = 0; i < text.length; i++) {
+      const charNorm = text[i].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (normPos === matchIdx) origStart = i;
+      normPos += charNorm.length;
+      if (normPos >= matchIdx + cautareNormalizata.length) { origEnd = i + 1; break; }
+    }
+
+    const before = text.slice(0, origStart);
+    const match = text.slice(origStart, origEnd);
+    const after = text.slice(origEnd);
+    return <>{before}<mark className="bg-yellow-300 dark:bg-yellow-600 rounded px-0.5">{match}</mark>{after}</>;
+  };
+
+  // Avertizari OMS — limite din BD (Strat 2: endpoint PHP existent), fallback local
+  const limite = limiteOMS || OMS_FALLBACK;
+  const avertizariOMS = useMemo(() => {
+    if (!meniu?.nutrienti_medie) return [];
+    const nm = meniu.nutrienti_medie;
+    const warnings: Array<{ mesaj: string; nivel: 'warning' | 'danger' }> = [];
+    const calorii = nm.calorii?.valoare || 0;
+    const proteine = nm.proteine?.valoare || 0;
+    const lipide = nm.lipide?.valoare || 0;
+
+    if (calorii > 0 && calorii < limite.calorii_min)
+      warnings.push({ mesaj: `Calorii insuficiente ${calorii} kcal/zi (minim ${limite.calorii_min})`, nivel: 'danger' });
+    if (calorii > limite.calorii_max)
+      warnings.push({ mesaj: `Calorii excesive ${calorii} kcal/zi (maxim ${limite.calorii_max})`, nivel: 'warning' });
+    if (proteine > 0 && proteine < limite.proteine_min)
+      warnings.push({ mesaj: `Proteine insuficiente ${proteine}g/zi (minim ${limite.proteine_min}g)`, nivel: 'danger' });
+    if (lipide > 0 && lipide < limite.lipide_min)
+      warnings.push({ mesaj: `Lipide insuficiente ${lipide}g/zi (minim ${limite.lipide_min}g)`, nivel: 'warning' });
+    return warnings;
+  }, [meniu, limite]);
 
   if (loading) {
     return (
@@ -148,51 +442,145 @@ function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
   }
 
   const totalMeniuri = meniu.total_meniuri || 1;
-
-  // Datele calendaristice per zi (calculate din data_expirare)
   const dateZile = calculeazaDateZile(meniu.data_expirare);
-
-  // Determina alergenii unici (normalizati) pentru highlight
-  const alergeniActivi = new Set(
-    (meniu.alergeni_unici || []).map(a => a.toLowerCase().trim())
-  );
-
-  // Verificam daca avem calorii per zi individuale (nu doar media)
+  const alergeniActivi = new Set((meniu.alergeni_unici || []).map(a => a.toLowerCase().trim()));
   const areCaloriiPerZi = meniu.calorii_per_zi && Object.keys(meniu.calorii_per_zi).length > 0;
 
+  // Filtreaza mesele daca cautarea e activa
+  const meseAfisate = cautareNormalizata
+    ? (meniu.mese || []).filter(masa =>
+        ZILE_ORDINE.some(zi => textMatchesCautare(masa.zile[zi] || ''))
+      )
+    : (meniu.mese || []);
+
   return (
-    <div className={embedded ? 'space-y-4' : 'space-y-4'}>
-      {/* Navigare saptamani */}
-      <div className="flex items-center justify-between gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={indexCurent >= totalMeniuri - 1}
-          onClick={() => loadMeniu(indexCurent + 1)}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-        </Button>
-        <div className="text-center">
-          <span className="text-sm font-display font-bold">
-            Săptămâna {meniu.saptamana}
-          </span>
+    <div className="space-y-4">
+      {/* Header cu titlu */}
+      {!embedded && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-display font-bold">Meniu Săptămânal</h1>
+            <p className="text-muted-foreground text-sm">Săptămâna {meniu.saptamana}</p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={indexCurent <= 0}
-            onClick={() => loadMeniu(indexCurent - 1)}
+      )}
+
+      {/* Câmp de căutare */}
+      <div className="relative">
+        <Input
+          placeholder="Caută în meniu..."
+          value={cautare}
+          onChange={e => setCautare(e.target.value)}
+          className="pr-8"
+        />
+        {cautare && (
+          <button
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            onClick={() => setCautare('')}
           >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+
+        {/* Rezultate cautare globala — meniuri din alte saptamani din BD */}
+        {rezultateCautare.length > 0 && (
+          <div className="absolute left-0 right-0 top-full z-30 bg-popover border rounded-md shadow-lg mt-1 max-h-[200px] overflow-y-auto">
+            <div className="px-3 py-1.5 text-[10px] text-muted-foreground border-b font-semibold">
+              {rezultateCautare.length} meniu(ri) găsite
+            </div>
+            {rezultateCautare.map((r, i) => (
+              <button
+                key={i}
+                type="button"
+                className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors border-b last:border-b-0"
+                onClick={() => {
+                  if (r.index >= 0) {
+                    loadMeniu(r.index);
+                    setCautare('');
+                  } else {
+                    toast.error('Nu s-a putut naviga la acest meniu');
+                  }
+                }}
+              >
+                {r.saptamana}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Navigare + Calendar + Editare + Print */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled={indexCurent >= totalMeniuri - 1}
+            onClick={() => loadMeniu(indexCurent + 1)}>
+            <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+          </Button>
+          <Button variant="outline" size="sm" disabled={indexCurent <= 0}
+            onClick={() => loadMeniu(indexCurent - 1)}>
             Următor <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
-          <Button variant="outline" size="sm" className="gap-1" onClick={() => window.print()}>
+        </div>
+
+        {embedded && (
+          <span className="text-sm font-display font-bold text-center flex-1 min-w-0">
+            Săptămâna {meniu.saptamana}
+          </span>
+        )}
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Calendar */}
+          <Popover open={showCalendar} onOpenChange={setShowCalendar}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1">
+                <CalendarIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={dataCurentaMeniu}
+                onSelect={handleSelectData}
+                modifiers={{ disponibil: dateDisponibile }}
+                modifiersClassNames={{ disponibil: 'bg-primary/20 font-bold' }}
+                className={cn("p-3 pointer-events-auto")}
+              />
+              <div className="px-3 pb-3 text-[10px] text-muted-foreground">
+                Zilele colorate au meniu disponibil
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Editare */}
+          {canEdit && !editing && (
+            <Button variant="outline" size="sm" className="gap-1" onClick={startEditing}>
+              <Edit2 className="h-4 w-4" /> Editează
+            </Button>
+          )}
+          {editing && (
+            <>
+              <Button size="sm" className="gap-1" onClick={handleSave} disabled={saving || !dirty}>
+                <Save className="h-4 w-4" /> {saving ? 'Salvez...' : 'Salvează'}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => { setEditing(false); setDirty(false); }}>
+                <X className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+
+          {/* Print PDF — deschide mecanismul PHP existent in iframe (userul ramane in /app/) */}
+          <Button variant="outline" size="sm" className="gap-1" onClick={() => {
+            const dataVineri = meniu?.data_expirare?.split(' ')[0] || '';
+            if (dataVineri) {
+              setPrintURL(getPrintMeniuURL(dataVineri));
+            }
+          }}>
             <Printer className="h-4 w-4" /> Print
           </Button>
         </div>
       </div>
 
-      {/* Toggle-uri: Emoji, Nutrienți, kcal/zi */}
+      {/* Toggle-uri */}
       <div className="flex flex-wrap items-center gap-5 text-sm">
         <label className="flex items-center gap-2 cursor-pointer">
           <Switch checked={showEmoji} onCheckedChange={setShowEmoji} />
@@ -208,7 +596,7 @@ function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
         </label>
       </div>
 
-      {/* Tabel meniu structurat */}
+      {/* Tabel meniu */}
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -219,98 +607,131 @@ function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
                   {ZILE_ORDINE.map(zi => (
                     <th key={zi} className="border p-2.5 text-center text-xs font-bold" style={{ color: ZILE_CULORI[zi] }}>
                       <div>{ZILE_LABEL[zi]}</div>
-                      {dateZile[zi] && (
-                        <div className="font-normal text-[10px] opacity-80">({dateZile[zi]})</div>
-                      )}
+                      {dateZile[zi] && <div className="font-normal text-[10px] opacity-80">({dateZile[zi]})</div>}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {(meniu.mese || []).map(masa => (
+                {meseAfisate.map(masa => (
                   <tr key={masa.masa}>
                     <td className="border p-2.5 font-medium bg-muted/50 text-xs align-top whitespace-nowrap text-center">
                       <div className="font-bold text-sm">{masa.ora}</div>
                       <div className="text-[10px] text-muted-foreground">{masa.label}</div>
                     </td>
                     {ZILE_ORDINE.map(zi => {
+                      const celKey = `${masa.masa}_${zi}`;
+
+                      if (editing) {
+                        return (
+                          <td key={zi} className="border p-1 align-top">
+                            <textarea
+                              className="w-full min-h-[60px] text-xs p-1.5 rounded border border-input bg-background resize-y focus:outline-none focus:ring-1 focus:ring-primary"
+                              value={continutCelule[celKey] || ''}
+                              onChange={e => updateCelula(celKey, e.target.value)}
+                              placeholder="..."
+                            />
+                          </td>
+                        );
+                      }
+
                       let text = masa.zile[zi] || '';
-                      // Curatam emoji daca toggle-ul e off
                       if (!showEmoji) {
                         text = text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1FA00}-\u{1FAFF}]/gu, '').trim();
                       }
+
+                      const matches = cautareNormalizata ? textMatchesCautare(text) : true;
+
                       return (
-                        <td key={zi} className="border p-2.5 text-xs align-top">
-                          {text || <span className="text-muted-foreground">—</span>}
+                        <td
+                          key={zi}
+                          className={cn(
+                            'border p-2.5 text-xs align-top transition-colors',
+                            canEdit && !editing && 'cursor-pointer hover:bg-primary/5',
+                            cautareNormalizata && !matches && 'opacity-30',
+                          )}
+                          onClick={() => { if (canEdit && !editing) startEditing(); }}
+                        >
+                          {text ? highlightText(text) : <span className="text-muted-foreground">—</span>}
                         </td>
                       );
                     })}
                   </tr>
                 ))}
-                {/* Rand kcal/zi (vizibil doar cu toggle, doar daca avem date per zi) */}
-                {showKcal && areCaloriiPerZi && (
-                  <tfoot>
-                    <tr className="bg-muted/30 font-semibold">
-                      <td className="border p-2.5 text-xs font-bold text-center">
-                        <Scale className="h-3.5 w-3.5 inline mr-1" />kcal
-                      </td>
-                      {ZILE_ORDINE.map(zi => {
-                        const val = meniu.calorii_per_zi?.[zi];
-                        return (
-                          <td key={zi} className="border p-2.5 text-center text-xs">
-                            {val ? (
-                              <span className="font-bold">{val} kcal</span>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  </tfoot>
-                )}
               </tbody>
+              {showKcal && areCaloriiPerZi && (
+                <tfoot>
+                  <tr className="bg-muted/30 font-semibold">
+                    <td className="border p-2.5 text-xs font-bold text-center">
+                      <Scale className="h-3.5 w-3.5 inline mr-1" />kcal
+                    </td>
+                    {ZILE_ORDINE.map(zi => {
+                      const val = meniu.calorii_per_zi?.[zi];
+                      return (
+                        <td key={zi} className="border p-2.5 text-center text-xs">
+                          {val ? <span className="font-bold">{val} kcal</span> : <span className="text-muted-foreground">—</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </CardContent>
       </Card>
 
-      {/* Valori nutriționale medie/zi (vizibil doar cu toggle) */}
+      {/* Nutrienți și Calorii */}
       {showNutrienti && (() => {
         const nm = meniu.nutrienti_medie || {};
-        const NUTRIENTI_ITEMS: Array<{ label: string; cheie: string; unitate: string }> = [
-          { label: 'Calorii', cheie: 'calorii', unitate: 'kcal' },
-          { label: 'Proteine', cheie: 'proteine', unitate: 'g' },
-          { label: 'Lipide', cheie: 'lipide', unitate: 'g' },
-          { label: 'Carbohidrați', cheie: 'carbohidrati', unitate: 'g' },
-          { label: 'Glucide', cheie: 'glucide', unitate: 'g' },
+        const items = [
+          { label: 'calorii', cheie: 'calorii', unitate: 'kcal' },
+          { label: 'proteine', cheie: 'proteine', unitate: 'gr' },
+          { label: 'lipide', cheie: 'lipide', unitate: 'gr' },
+          { label: 'carbohidrati', cheie: 'carbohidrati', unitate: 'gr' },
+          { label: 'glucide', cheie: 'glucide', unitate: 'gr' },
         ];
-        const areDate = NUTRIENTI_ITEMS.some(item => nm[item.cheie]?.valoare);
+        const areDate = items.some(item => nm[item.cheie]?.valoare);
         if (!areDate) return null;
         return (
           <Card>
             <CardContent className="p-4">
-              <h3 className="text-sm font-display font-bold mb-3">
-                Nutrienți și Calorii (medie/zi)
-              </h3>
-              <div className="flex flex-wrap gap-4 text-sm">
-                {NUTRIENTI_ITEMS.map(item => {
-                  const val = nm[item.cheie]?.valoare;
-                  if (!val) return null;
-                  return (
-                    <div key={item.cheie} className="flex items-center gap-1.5">
-                      <span className="text-muted-foreground">{item.label}:</span>
-                      <span className="font-bold">{val} {item.unitate}</span>
-                    </div>
-                  );
-                })}
-              </div>
+              <p className="text-sm font-display font-bold">
+                Nutrienți și Calorii (medie/zi):{' '}
+                <span className="font-normal">
+                  {items.map(item => {
+                    const val = nm[item.cheie]?.valoare;
+                    return val ? `${item.label} (${val} ${item.unitate})` : null;
+                  }).filter(Boolean).join(', ')}
+                </span>
+              </p>
             </CardContent>
           </Card>
         );
       })()}
 
-      {/* Alergeni prezenti */}
+      {/* Avertizări OMS */}
+      {avertizariOMS.length > 0 && (
+        <Card className="border-amber-500/40 bg-amber-500/5">
+          <CardContent className="p-4">
+            <h3 className="text-sm font-display font-bold mb-2 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600" /> Avertizări OMS:
+            </h3>
+            <div className="space-y-1">
+              {avertizariOMS.map((w, i) => (
+                <p key={i} className={cn('text-sm flex items-center gap-2',
+                  w.nivel === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400')}>
+                  <span className={cn('inline-block w-2 h-2 rounded-full shrink-0',
+                    w.nivel === 'danger' ? 'bg-red-500' : 'bg-amber-500')} />
+                  {w.mesaj}
+                </p>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Alergeni */}
       {meniu.alergeni_unici && meniu.alergeni_unici.length > 0 && (
         <Card>
           <CardContent className="p-4">
@@ -319,16 +740,10 @@ function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
               {ALERGENI_TOTI.map(alergen => {
                 const esteActiv = alergeniActivi.has(alergen.toLowerCase());
                 return (
-                  <Badge
-                    key={alergen}
-                    variant={esteActiv ? 'default' : 'outline'}
-                    className={cn(
-                      'text-xs',
-                      esteActiv
-                        ? 'bg-amber-500/20 text-amber-700 border-amber-500/40'
-                        : 'text-muted-foreground/50 border-muted/50'
-                    )}
-                  >
+                  <Badge key={alergen} variant={esteActiv ? 'default' : 'outline'}
+                    className={cn('text-xs', esteActiv
+                      ? 'bg-amber-500/20 text-amber-700 border-amber-500/40'
+                      : 'text-muted-foreground/50 border-muted/50')}>
                     {alergen}
                   </Badge>
                 );
@@ -345,9 +760,7 @@ function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
             <div className="flex flex-wrap gap-6 text-sm">
               {Object.entries(meniu.semnaturi).map(([functie, nume]) => (
                 <div key={functie}>
-                  <span className="text-muted-foreground capitalize">
-                    {functie.replace(/_/g, ' ')}:
-                  </span>{' '}
+                  <span className="text-muted-foreground capitalize">{functie.replace(/_/g, ' ')}:</span>{' '}
                   <span className="font-semibold">{nume}</span>
                 </div>
               ))}
@@ -358,15 +771,36 @@ function TID4KMenuViewer({ embedded }: { embedded?: boolean }) {
 
       {/* Referință OMS */}
       <div className="text-[11px] text-muted-foreground text-left px-1">
-        <a
-          href="https://legislatie.just.ro/Public/DetaliiDocument/304795"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hover:underline hover:text-primary transition-colors"
-        >
+        <a href="https://legislatie.just.ro/Public/DetaliiDocument/304795" target="_blank" rel="noopener noreferrer"
+          className="hover:underline hover:text-primary transition-colors">
           Referință: Ordinul MS 1.582/2025 — 1290–1660 kcal/zi (copii 4-6 ani)
         </a>
       </div>
+
+      {/* Dialog Print PDF — iframe cu mecanismul PHP existent, userul ramane in /app/ */}
+      <Dialog open={!!printURL} onOpenChange={(open) => { if (!open) setPrintURL(null); }}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 flex flex-col">
+          <DialogHeader className="p-4 pb-2 shrink-0">
+            <DialogTitle className="text-base flex items-center gap-2">
+              <Printer className="h-5 w-5" /> Print Meniu — Săptămâna {meniu?.saptamana}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-0">
+            {printURL && (
+              <iframe
+                src={printURL}
+                className="w-full h-full border-0"
+                title="Print meniu"
+              />
+            )}
+          </div>
+          <div className="p-3 border-t flex justify-end shrink-0">
+            <Button variant="outline" size="sm" onClick={() => setPrintURL(null)}>
+              Închide
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
