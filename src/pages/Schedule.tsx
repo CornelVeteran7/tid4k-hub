@@ -4,14 +4,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getScheduleWithAvatars, saveSchedule } from '@/api/schedule';
 import type { ScheduleData } from '@/api/schedule';
 import { areRol, isInky } from '@/utils/roles';
-import type { ScheduleCell, ScheduleEntry } from '@/types';
+import type { ScheduleCell, ScheduleEntry, ProfesorAbsenta } from '@/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Calendar, Printer, Save, Edit2, QrCode, X, DoorOpen, Camera, Trash2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarWidget } from '@/components/ui/calendar';
+import { ro } from 'date-fns/locale';
+import { Calendar, Printer, Save, Edit2, QrCode, X, DoorOpen, Camera, Trash2, Plus, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import { API_BASE_URL } from '@/api/config';
@@ -127,6 +131,8 @@ export default function Schedule() {
       setCells(prev => {
         const existingIdx = prev.findIndex(c => c.zi === zi && c.ora === ora);
         const first = validEntries[0];
+        // Verificăm dacă vreun entry are date de activitate/absențe
+        const areActivitate = validEntries.some(e => e.activitate_inceput || e.activitate_sfarsit || e.activitate_zile || (e.absente && e.absente.length > 0));
         const newCell: ScheduleCell = {
           zi, ora,
           materie: first.materie,
@@ -134,7 +140,7 @@ export default function Schedule() {
           sala: first.sala,
           clasa: first.clasa,
           culoare: editCuloare,
-          entries: validEntries.length > 1 ? validEntries : undefined,
+          entries: (validEntries.length > 1 || areActivitate) ? validEntries : undefined,
         };
         if (existingIdx >= 0) {
           const updated = [...prev];
@@ -148,7 +154,7 @@ export default function Schedule() {
     setDirty(true);
   };
 
-  const updateEntry = (index: number, field: keyof ScheduleEntry, value: string) => {
+  const updateEntry = (index: number, field: keyof ScheduleEntry, value: any) => {
     setEditEntries(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e));
   };
 
@@ -299,10 +305,12 @@ export default function Schedule() {
 
       <Card className="glass-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" /> Program Săptămânal
-            {editing && <Badge variant="secondary" className="text-xs">Mod editare</Badge>}
-          </CardTitle>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" /> Program Săptămânal
+              {editing && <Badge variant="secondary" className="text-xs">Mod editare</Badge>}
+            </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto -mx-px">
@@ -357,6 +365,27 @@ export default function Schedule() {
               </tbody>
             </table>
           </div>
+
+          {/* Legendă orar (identic cu editorul vechi PHP) */}
+          {cells.length > 0 && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3 pt-3 border-t text-[11px] text-muted-foreground">
+              {COLORS.map((c, i) => {
+                // Găsim o materie care folosește această culoare
+                const celulaCuCuloare = cells.find(cell => cell.culoare === c);
+                if (!celulaCuCuloare) return null;
+                return (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-sm border shrink-0" style={{ backgroundColor: c }} />
+                    <span>{celulaCuCuloare.materie}</span>
+                  </div>
+                );
+              })}
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm border bg-background shrink-0" />
+                <span>Liber</span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -451,6 +480,115 @@ export default function Schedule() {
                     />
                   </div>
                 </div>
+
+                {/* Activitate profesor + Absențe (identic cu editorul vechi PHP) */}
+                {entry.profesor.trim() && (
+                  <div className="border rounded-md p-2.5 mt-2 space-y-2 bg-muted/30">
+                    <p className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
+                      <CalendarDays className="h-3.5 w-3.5" /> Activitate Profesor
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-[11px]">De la</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="w-full h-8 text-xs justify-start font-normal">
+                              <CalendarDays className="h-3 w-3 mr-1.5" />
+                              {entry.activitate_inceput || 'Selectează'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarWidget mode="single" locale={ro}
+                              selected={entry.activitate_inceput ? new Date(entry.activitate_inceput + 'T12:00:00') : undefined}
+                              onSelect={d => { if (d) updateEntry(idx, 'activitate_inceput', d.toISOString().split('T')[0]); }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div>
+                        <Label className="text-[11px]">Până la</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="w-full h-8 text-xs justify-start font-normal">
+                              <CalendarDays className="h-3 w-3 mr-1.5" />
+                              {entry.activitate_sfarsit || 'Selectează'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarWidget mode="single" locale={ro}
+                              selected={entry.activitate_sfarsit ? new Date(entry.activitate_sfarsit + 'T12:00:00') : undefined}
+                              onSelect={d => { if (d) updateEntry(idx, 'activitate_sfarsit', d.toISOString().split('T')[0]); }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Zile activitate</Label>
+                      <Input type="number" min={1} max={31} className="text-xs h-8 w-24"
+                        value={entry.activitate_zile || ''}
+                        onChange={e => updateEntry(idx, 'activitate_zile', e.target.value ? parseInt(e.target.value) : undefined)}
+                        placeholder="Nr"
+                      />
+                    </div>
+
+                    {/* Absențe */}
+                    <div className="border-t pt-2 mt-2">
+                      <p className="text-[11px] font-semibold text-muted-foreground mb-1.5">Absențe</p>
+                      {(entry.absente || []).map((abs, absIdx) => (
+                        <div key={absIdx} className="flex items-center gap-1.5 mb-1">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-7 text-[11px] flex-1 justify-start font-normal">
+                                <CalendarDays className="h-3 w-3 mr-1" />
+                                {abs.data || 'Ziua'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <CalendarWidget mode="single" locale={ro}
+                                selected={abs.data ? new Date(abs.data + 'T12:00:00') : undefined}
+                                onSelect={d => {
+                                  if (!d) return;
+                                  const absNoi = [...(entry.absente || [])];
+                                  absNoi[absIdx] = { ...absNoi[absIdx], data: d.toISOString().split('T')[0] };
+                                  updateEntry(idx, 'absente', absNoi);
+                                }}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <Select value={abs.motiv || ''} onValueChange={val => {
+                            const absNoi = [...(entry.absente || [])];
+                            absNoi[absIdx] = { ...absNoi[absIdx], motiv: val };
+                            updateEntry(idx, 'absente', absNoi);
+                          }}>
+                            <SelectTrigger className="h-7 text-xs w-28">
+                              <SelectValue placeholder="Motiv" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="medical">Medical</SelectItem>
+                              <SelectItem value="personal">Personal</SelectItem>
+                              <SelectItem value="concediu">Concediu</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive"
+                            onClick={() => {
+                              const absNoi = (entry.absente || []).filter((_, i) => i !== absIdx);
+                              updateEntry(idx, 'absente', absNoi);
+                            }}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button variant="outline" size="sm" className="h-7 text-[11px] w-full"
+                        onClick={() => {
+                          const absNoi = [...(entry.absente || []), { data: '', motiv: '' }];
+                          updateEntry(idx, 'absente', absNoi);
+                        }}>
+                        <Plus className="h-3 w-3 mr-1" /> Adaugă absență
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
             <datalist id="materii-autocomplete">

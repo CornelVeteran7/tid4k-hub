@@ -33,12 +33,19 @@ function mapCelule(data: any): ScheduleCell[] {
       idx++;
     }
 
-    const entries: ScheduleEntry[] = group.map((c: any) => ({
-      materie: c.materie || c.disciplina || '',
-      profesor: c.profesor || c.nume_profesor || '',
-      sala: c.sala || '',
-      clasa: c.clasa || '',
-    }));
+    const entries: ScheduleEntry[] = group.map((c: any) => {
+      const entry: ScheduleEntry = {
+        materie: c.materie || c.disciplina || '',
+        profesor: c.profesor || c.nume_profesor || '',
+        sala: c.sala || '',
+        clasa: c.clasa || '',
+      };
+      if (c.activitate_inceput) entry.activitate_inceput = c.activitate_inceput;
+      if (c.activitate_sfarsit) entry.activitate_sfarsit = c.activitate_sfarsit;
+      if (c.activitate_zile) entry.activitate_zile = Number(c.activitate_zile);
+      if (c.absente && Array.isArray(c.absente) && c.absente.length > 0) entry.absente = c.absente;
+      return entry;
+    });
 
     return {
       id: String(first.id || `${first.zi}-${first.ora}`),
@@ -49,7 +56,8 @@ function mapCelule(data: any): ScheduleCell[] {
       sala: first.sala || '',
       clasa: first.clasa || '',
       culoare: first.culoare || culoareMaterie[materie] || '#E3F2FD',
-      entries: entries.length > 1 ? entries : undefined,
+      entries: (entries.length > 1 || entries.some(e => e.activitate_inceput || e.activitate_sfarsit || e.activitate_zile || (e.absente && e.absente.length > 0)))
+        ? entries : undefined,
     };
   });
 }
@@ -98,24 +106,23 @@ export async function saveSchedule(cells: ScheduleCell[], profesorAvatars?: Reco
     for (const c of cells) {
       if (c.entries && c.entries.length > 0) {
         for (const entry of c.entries) {
-          celuleExpandate.push({
-            zi: c.zi,
-            ora: c.ora,
-            materie: entry.materie,
-            profesor: entry.profesor,
-            sala: entry.sala || '',
-            clasa: entry.clasa || '',
+          const cel: any = {
+            zi: c.zi, ora: c.ora,
+            materie: entry.materie, profesor: entry.profesor,
+            sala: entry.sala || '', clasa: entry.clasa || '',
             culoare: c.culoare,
-          });
+          };
+          if (entry.activitate_inceput) cel.activitate_inceput = entry.activitate_inceput;
+          if (entry.activitate_sfarsit) cel.activitate_sfarsit = entry.activitate_sfarsit;
+          if (entry.activitate_zile) cel.activitate_zile = entry.activitate_zile;
+          if (entry.absente && entry.absente.length > 0) cel.absente = entry.absente;
+          celuleExpandate.push(cel);
         }
       } else {
         celuleExpandate.push({
-          zi: c.zi,
-          ora: c.ora,
-          materie: c.materie,
-          profesor: c.profesor,
-          sala: c.sala || '',
-          clasa: c.clasa || '',
+          zi: c.zi, ora: c.ora,
+          materie: c.materie, profesor: c.profesor,
+          sala: c.sala || '', clasa: c.clasa || '',
           culoare: c.culoare,
         });
       }

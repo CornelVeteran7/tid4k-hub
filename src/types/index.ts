@@ -127,11 +127,20 @@ export interface DocumentItem {
 }
 
 // ===== Schedule =====
+export interface ProfesorAbsenta {
+  data: string;       // YYYY-MM-DD
+  motiv: string;      // medical | personal | concediu
+}
+
 export interface ScheduleEntry {
   materie: string;
   profesor: string;
   sala?: string;
   clasa?: string;
+  activitate_inceput?: string;   // YYYY-MM-DD
+  activitate_sfarsit?: string;   // YYYY-MM-DD
+  activitate_zile?: number;
+  absente?: ProfesorAbsenta[];
 }
 
 export interface ScheduleCell {
