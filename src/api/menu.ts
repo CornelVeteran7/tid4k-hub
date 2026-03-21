@@ -186,20 +186,64 @@ export interface AlimentNormator {
   carbohidrati: number;
   glucide: number;
   cantitate: string;
+  cantitate_preferata?: string | null;
   cuvinte_cheie: string;
-  /** Camp calculat in Strat 2: "🍌 banană (100gr)" — asamblat din emoji+denumire+cantitate */
+  /** Camp calculat in Strat 2: "🍌 banană (100gr)" — asamblat din emoji+denumire+cantitate (sau cantitate_preferata) */
   textComplet: string;
 }
 
 /**
  * Strat 2 conversie: asambleaza textul complet din campurile separate ale normatorului
  * Format identic cu cuvinte_cheie_meniu.php: "🍌 Banană (100gr)"
+ * Foloseste cantitate_preferata (invatata) daca exista, altfel cantitatea standard
  */
 function asambleazaTextComplet(aliment: any): string {
   const emoji = aliment.emoji || '';
   const denumire = aliment.denumire || '';
-  const cantitate = aliment.cantitate || '';
+  const cantitate = aliment.cantitate_preferata || aliment.cantitate || '';
   return (emoji ? emoji + ' ' : '') + denumire + (cantitate ? ' (' + cantitate + ')' : '');
+}
+
+/**
+ * Salvare preferinta cantitate — apeleaza salveaza_preferinta_cantitate.php
+ * Mecanismul de invatare: detecteaza cand userul modifica cantitatea si o salveaza
+ */
+export async function salveazaPreferintaCantitate(
+  idAliment: number,
+  cantitateOriginala: string,
+  cantitatePreferata: string,
+): Promise<void> {
+  if (!USE_TID4K_BACKEND) return;
+  try {
+    await tid4kApi.call('salveaza_preferinta_cantitate', {
+      id_aliment: idAliment,
+      cantitate_originala: cantitateOriginala,
+      cantitate_preferata: cantitatePreferata,
+    });
+  } catch (err) {
+    console.error('[Menu] Eroare la salvarea preferinței cantitate:', err);
+  }
+}
+
+/**
+ * Învățare aliment nou — apelează invata_aliment_nou.php care folosește Claude Haiku
+ * Detectează aliment necunoscut, determină emoji/nutrienți/alergeni prin AI,
+ * și îl adaugă automat în normator_alimente
+ */
+export async function invataAlimentNou(
+  denumire: string,
+  cantitate: string,
+): Promise<AlimentNormator | null> {
+  if (!USE_TID4K_BACKEND) return null;
+  try {
+    const data = await tid4kApi.call<any>('invata_aliment_nou', { denumire, cantitate });
+    if (!data?.succes || !data?.aliment) return null;
+    console.log(`[Menu AI] Aliment nou învățat: ${data.aliment.denumire} (${data.actiune})`);
+    return { ...data.aliment, textComplet: asambleazaTextComplet(data.aliment) };
+  } catch (err) {
+    console.error('[Menu AI] Eroare la învățarea alimentului nou:', err);
+    return null;
+  }
 }
 
 export async function cautaInNormator(cuvant: string): Promise<AlimentNormator | null> {
@@ -245,6 +289,7 @@ export async function salvareMeniuStructurat(
   denumireMeniu?: string | null,
   nutrientiText?: string,
   semnaturi?: Record<string, string>,
+  caloriiPerZi?: Record<string, number>,
 ): Promise<void> {
   if (!USE_TID4K_BACKEND) return;
 
@@ -252,6 +297,11 @@ export async function salvareMeniuStructurat(
     luni: 'Luni', marti: 'Marți', miercuri: 'Miercuri', joi: 'Joi', vineri: 'Vineri',
   };
   const ZILE_ORD = ['luni', 'marti', 'miercuri', 'joi', 'vineri'];
+
+  // Mapare cheie zi → ID celula calorii (identic cu PHP vechi)
+  const ZILE_CALORII_ID: Record<string, string> = {
+    luni: 'caloriiLuni', marti: 'caloriiMarti', miercuri: 'caloriiMiercuri', joi: 'caloriiJoi', vineri: 'caloriiVineri',
+  };
 
   // Calculeaza datele calendaristice Luni-Vineri din vineri
   const vineriDate = new Date(dataVineri + 'T12:00:00');
@@ -286,28 +336,87 @@ export async function salvareMeniuStructurat(
     html += '</tr>';
   }
 
-  // Nutrienti
+  // Randul cu caloriile per zi (identic cu PHP vechi: id="randCaloriiZilnice")
+  // Print-ul cauta "kcal" in ultimul rand al tabelului
+  const areCaloriiDate = caloriiPerZi && Object.values(caloriiPerZi).some(v => v > 0);
+  if (areCaloriiDate) {
+    html += '<tr id="randCaloriiZilnice">';
+    html += '<td class="coloana-ore"><div class="inputText oraInput"></div></td>';
+    for (const zi of ZILE_ORD) {
+      const val = caloriiPerZi![zi] || 0;
+      html += `<td id="${ZILE_CALORII_ID[zi]}" class="caloriiZi"><div class="inputText">${val > 0 ? val + ' kcal' : ''}</div></td>`;
+    }
+    html += '</tr>';
+  }
+
+  // Inchidem tabelul INAINTE de nutrienti si semnaturi (identic cu PHP vechi: tabelHTML + nutrientiHTML + semnaturiHTML)
+  html += '</table>';
+
+  // Nutrienti (dupa tabel, nu inauntru)
   if (nutrientiText) {
     html += `<div id="NutrientiSiCalorii">Nutrienti si Calorii (medie/zi): ${nutrientiText}</div>`;
   }
 
-  // Semnaturi
+  // Semnaturi (dupa tabel — PHP vechi foloseste id="semnaturi-container")
+  // Convertim cheile la camelCase pentru data-role (print-ul cauta asistentMedical, nu asistent_medical)
   if (semnaturi && Object.keys(semnaturi).length > 0) {
-    html += '<div id="semnaturi">';
+    html += '<div id="semnaturi-container">';
     for (const [functie, nume] of Object.entries(semnaturi)) {
       const titlu = functie.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-      html += `<div class="functie-container"><div class="functie-titlu">${titlu}:</div><div class="nume-prenume">${nume}</div></div>`;
+      // data-role in camelCase (ex: asistent_medical → asistentMedical) — compatibil cu print
+      const roleCamel = functie.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+      html += `<div class="functie-container"><div class="functie-titlu">${titlu}:</div><div class="nume-prenume" data-role="${roleCamel}">${nume}</div></div>`;
     }
     html += '</div>';
   }
-
-  html += '</table>';
 
   await tid4kApi.call('salveaza_meniuHTML', {
     html: html,
     data_vineri: dataVineri,
     denumire_meniu: denumireMeniu || null,
   });
+}
+
+/**
+ * Ștergere meniu — apelează salveaza_meniuHTML.php cu actiune='sterge'
+ * Folosește mecanismul PHP existent (DELETE FROM informatii_meniul WHERE ...)
+ */
+export async function stergeMeniu(
+  dataVineri: string,
+  denumireMeniu?: string | null,
+): Promise<void> {
+  if (!USE_TID4K_BACKEND) return;
+  await tid4kApi.call('salveaza_meniuHTML', {
+    actiune: 'sterge',
+    data_vineri: dataVineri,
+    denumire_meniu: denumireMeniu || null,
+  });
+}
+
+/**
+ * Generare meniu aleator — apeleaza genereaza_meniu_real.php
+ * Returnează meniu generat + nutrienți + avertizări OMS
+ */
+export interface MeniuGenerat {
+  success: boolean;
+  meniu: Record<string, Record<string, string>>; // { Luni: { "08:15": "ceai...", "12:00": "..." }, ... }
+  nutrientiSiCalorii: Record<string, number>;
+  nutrientiPerZi: Record<string, Record<string, number>>;
+  avertizari_oms: string[];
+}
+
+export async function genereazaMeniuAleator(
+  constrangeri?: Record<string, { min: number; max: number }>
+): Promise<MeniuGenerat | null> {
+  if (!USE_TID4K_BACKEND) return null;
+  try {
+    const data = await tid4kApi.call<any>('genereaza_meniu_real', { constrangeri: constrangeri || {} });
+    if (!data?.success) return null;
+    return data as MeniuGenerat;
+  } catch (err) {
+    console.error('[Menu] Eroare la generare meniu:', err);
+    return null;
+  }
 }
 
 export async function saveMenu(menu: WeeklyMenu): Promise<void> {

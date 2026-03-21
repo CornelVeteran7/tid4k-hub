@@ -8,7 +8,7 @@ import { Camera, FileText, X, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
-const ADMIN_PATHS = ['/admin', '/sponsori', '/rapoarte', '/infodisplay', '/orar-cancelarie', '/social-facebook', '/social-whatsapp'];
+const ADMIN_PATHS = ['/admin', '/sponsori', '/rapoarte', '/infodisplay', '/orar-cancelarie', '/social-facebook', '/social-whatsapp', '/meniu'];
 
 const CATEGORIES = [
   { value: 'fotografii', label: 'Fotografie', icon: Camera },
