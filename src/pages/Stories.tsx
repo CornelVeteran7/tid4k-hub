@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
-import { getStories, createStory } from '@/api/stories';
+import { getStories, createStory, updateStory, deleteStory } from '@/api/stories';
 import { storyCharacters as fallbackCharacters, type StoryCharacter } from '@/data/storyCharacters';
 import { useStoryCharacters } from '@/hooks/useStoryCharacters';
 import type { Story } from '@/types';
@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BookOpen, Plus, Heart, Play, Pause, Volume2, ArrowLeft, Square, Headphones, Video, Loader2 } from 'lucide-react';
+import { BookOpen, Plus, Heart, Play, Pause, Volume2, ArrowLeft, Square, Headphones, Video, Loader2, Pencil, Save, X, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CATEGORIES = [
@@ -26,11 +26,15 @@ const CATEGORIES = [
 
 const AGE_COLORS: Record<string, string> = {
   '3-4': 'bg-success/10 text-success',
-  '4-5': 'bg-accent/10 text-accent',
-  '5-6': 'bg-warning/10 text-warning',
+  '4-5': 'bg-success/10 text-success',
+  '5-6': 'bg-accent/10 text-accent',
   '3-5': 'bg-success/10 text-success',
   '5-7': 'bg-accent/10 text-accent',
+  '6-8': 'bg-accent/10 text-accent',
   '7-10': 'bg-warning/10 text-warning',
+  '8-10': 'bg-warning/10 text-warning',
+  '10-12': 'bg-warning/10 text-warning',
+  '12-14': 'bg-destructive/10 text-destructive',
 };
 
 type MediaMode = 'all' | 'read' | 'audio' | 'video';
@@ -78,35 +82,61 @@ const DEMO_VIDEO_STORIES: Story[] = [
   },
 ];
 
-// ElevenLabs TTS audio cache (storyId:characterId → blob URL)
-const elevenLabsCache = new Map<string, string>();
+// TTS audio cache client-side (characterId:textHash:speed → audio URL)
+// Previne re-fetch-ul URL-ului din PHP dacă deja îl avem în sesiune
+const ttsUrlCache = new Map<string, string>();
 
-async function fetchElevenLabsTTS(text: string, characterId: string, speed: number): Promise<string> {
-  const cacheKey = `${characterId}:${text.slice(0, 50)}:${speed}`;
-  if (elevenLabsCache.has(cacheKey)) return elevenLabsCache.get(cacheKey)!;
+// Hash simplu pentru textul complet (evită chei de cache imense)
+function hashText(text: string): number {
+  let h = 0;
+  for (let i = 0; i < text.length; i++) {
+    h = ((h << 5) - h + text.charCodeAt(i)) | 0;
+  }
+  return h;
+}
 
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({ text, characterId, speed }),
+async function fetchTTSCuCache(text: string, characterId: string, speed: number, storyId?: string): Promise<string> {
+  const cacheKey = `${characterId}:${hashText(text)}:${speed}`;
+  if (ttsUrlCache.has(cacheKey)) return ttsUrlCache.get(cacheKey)!;
+
+  const { API_BASE_URL } = await import('@/api/config');
+  const body: Record<string, any> = { text, characterId, speed };
+  if (storyId) body.storyId = storyId;
+
+  // Retry automat (3 încercări, pauză 2s între ele)
+  const MAX_INCERCARI = 3;
+  let ultimaEroare = '';
+
+  for (let incercare = 1; incercare <= MAX_INCERCARI; incercare++) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/pages/openai_tts.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (data?.succes && data?.urlAudio) {
+        const audioUrl = data.urlAudio;
+        ttsUrlCache.set(cacheKey, audioUrl);
+        return audioUrl;
+      }
+
+      ultimaEroare = data?.eroare || `TTS eșuat (HTTP ${response.status})`;
+    } catch (err: any) {
+      ultimaEroare = err?.message || 'Eroare rețea TTS';
     }
-  );
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error || `TTS failed: ${response.status}`);
+    if (incercare < MAX_INCERCARI) {
+      console.warn(`[TTS] Încercarea ${incercare}/${MAX_INCERCARI} eșuată: ${ultimaEroare}. Reîncerc...`);
+      await new Promise(r => setTimeout(r, 2000));
+    }
   }
 
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  elevenLabsCache.set(cacheKey, url);
-  return url;
+  throw new Error(`TTS eșuat după ${MAX_INCERCARI} încercări: ${ultimaEroare}`);
+  ttsUrlCache.set(cacheKey, audioUrl);
+  return audioUrl;
 }
 
 export default function Stories({ embedded }: { embedded?: boolean }) {
@@ -123,11 +153,15 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [newStory, setNewStory] = useState({ titlu: '', continut: '', categorie: 'educative', varsta: '3-4' });
   const [selectedCharacter, setSelectedCharacter] = useState<StoryCharacter>(storyCharacters[0]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const progressIntervalRef = useRef<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const canCreate = user && areRol(user.status, 'profesor');
+  const canEdit = canCreate; // aceleași roluri: profesor, director, administrator
 
   useEffect(() => {
     getStories().then(data => {
@@ -157,11 +191,67 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
   });
 
   const handleCreate = async () => {
-    const s = await createStory(newStory as Partial<Story>);
-    setStories(prev => [...prev, s]);
+    await createStory(newStory as Partial<Story>);
+    // Reîncarc lista completă de pe server (id real, data, autor)
+    const fresh = await getStories();
+    const dbIds = new Set(fresh.map(s => s.id));
+    const demoToAdd = DEMO_VIDEO_STORIES.filter(d => !dbIds.has(d.id));
+    setStories([...fresh, ...demoToAdd]);
     setCreateOpen(false);
     setNewStory({ titlu: '', continut: '', categorie: 'educative', varsta: '3-5' });
     toast.success('Poveste adăugată!');
+  };
+
+  const handleStartEdit = () => {
+    if (!selectedStory) return;
+    setEditText(selectedStory.continut);
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditText('');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedStory || editText === selectedStory.continut) {
+      setIsEditing(false);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await updateStory(selectedStory.id, editText);
+      // Golesc cache-ul TTS client — textul s-a schimbat, audio-ul trebuie regenerat
+      ttsUrlCache.clear();
+      // Opresc audio-ul curent dacă rulează (textul vechi)
+      handleStopTTS();
+      // Actualizez povestea în lista locală
+      const updated = { ...selectedStory, continut: editText };
+      setStories(prev => prev.map(s => s.id === selectedStory.id ? updated : s));
+      setSelectedStory(updated);
+      setIsEditing(false);
+      toast.success('Povestea a fost salvată!');
+    } catch (err: any) {
+      console.error('Eroare salvare poveste:', err);
+      toast.error(err?.message || 'Eroare la salvarea poveștii');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string, titlu: string) => {
+    if (!confirm(`Ești sigur că vrei să ștergi povestea "${titlu}"?`)) return;
+    try {
+      await deleteStory(id);
+      setStories(prev => prev.filter(s => s.id !== id));
+      if (selectedStory?.id === id) {
+        handleStopTTS();
+        setSelectedStory(null);
+      }
+      toast.success('Povestea a fost ștearsă');
+    } catch (err: any) {
+      toast.error(err?.message || 'Eroare la ștergerea poveștii');
+    }
   };
 
   const toggleFavorite = (id: string) => {
@@ -191,10 +281,11 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
     // Generate new TTS
     setIsLoadingTTS(true);
     try {
-      const audioUrl = await fetchElevenLabsTTS(
+      const audioUrl = await fetchTTSCuCache(
         selectedStory.continut,
         selectedCharacter.id,
-        playbackSpeed
+        playbackSpeed,
+        selectedStory.id
       );
       const audio = new Audio(audioUrl);
       audio.playbackRate = 1; // Speed is baked into the ElevenLabs request
@@ -217,10 +308,10 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
       setIsPlaying(true);
       setProgress(0);
       startProgressFromAudio();
-    } catch (err) {
+    } catch (err: any) {
       console.error('TTS error:', err);
-      // Fallback to browser SpeechSynthesis
-      toast.info('Se folosește vocea browser-ului ca alternativă...');
+      // Fallback pe vocea browser-ului (SpeechSynthesis)
+      toast.info('Generarea vocii nu a reușit după 3 încercări. Se folosește vocea browser-ului. Verifică conexiunea la internet și reîncearcă mai târziu.');
       fallbackBrowserTTS();
     } finally {
       setIsLoadingTTS(false);
@@ -232,9 +323,11 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
     progressIntervalRef.current = window.setInterval(() => {
       if (audioRef.current && audioRef.current.duration) {
         const pct = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-        setProgress(pct);
-        if (pct >= 100) {
+        // Rotunjim la 100% dacă suntem aproape (evită blocarea la 99%)
+        setProgress(pct >= 99.5 ? 100 : pct);
+        if (pct >= 99.5) {
           if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+          setIsPlaying(false);
         }
       }
     }, 200);
@@ -378,9 +471,43 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
 
         <Card className="glass-card">
           <CardContent className="p-5 sm:p-6 lg:p-8">
-            <div className="font-serif text-base sm:text-lg leading-relaxed whitespace-pre-wrap">
-              {selectedStory.continut}
-            </div>
+            {isEditing ? (
+              <div className="space-y-3">
+                <Textarea
+                  value={editText}
+                  onChange={e => setEditText(e.target.value)}
+                  rows={Math.max(8, editText.split('\n').length + 2)}
+                  className="font-serif text-base sm:text-lg leading-relaxed resize-y"
+                  autoFocus
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={handleCancelEdit} disabled={isSaving} className="gap-1">
+                    <X className="h-3 w-3" /> Anulează
+                  </Button>
+                  <Button size="sm" onClick={handleSaveEdit} disabled={isSaving || editText === selectedStory.continut} className="gap-1">
+                    {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                    {isSaving ? 'Se salvează...' : 'Salvează'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="relative group">
+                <div className="font-serif text-base sm:text-lg leading-relaxed whitespace-pre-wrap">
+                  {selectedStory.continut}
+                </div>
+                {canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                    onClick={handleStartEdit}
+                    title="Editează povestea"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -472,6 +599,10 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
                         <SelectItem value="3-4">3-4 ani</SelectItem>
                         <SelectItem value="4-5">4-5 ani</SelectItem>
                         <SelectItem value="5-6">5-6 ani</SelectItem>
+                        <SelectItem value="6-8">6-8 ani (cls. pregătitoare - II)</SelectItem>
+                        <SelectItem value="8-10">8-10 ani (cls. III - IV)</SelectItem>
+                        <SelectItem value="10-12">10-12 ani (cls. V - VI)</SelectItem>
+                        <SelectItem value="12-14">12-14 ani (cls. VII - VIII)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -565,12 +696,23 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
                       {mediaBadge.label}
                     </Badge>
                   </div>
-                  <button
-                    onClick={e => { e.stopPropagation(); toggleFavorite(story.id); }}
-                    className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                  >
-                    <Heart className={`h-4 w-4 ${story.favorit ? 'fill-destructive text-destructive' : ''}`} />
-                  </button>
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={e => { e.stopPropagation(); toggleFavorite(story.id); }}
+                      className="text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <Heart className={`h-4 w-4 ${story.favorit ? 'fill-destructive text-destructive' : ''}`} />
+                    </button>
+                    {canEdit && !story.id.startsWith('demo-') && (
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDelete(story.id, story.titlu); }}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                        title="Șterge povestea"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${
@@ -584,6 +726,13 @@ export default function Stories({ embedded }: { embedded?: boolean }) {
                   <div className="min-w-0">
                     <h3 className="font-semibold text-sm truncate">{story.titlu}</h3>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{story.continut.slice(0, 100)}...</p>
+                    {(story.autor || story.data_upload) && (
+                      <p className="text-[10px] text-muted-foreground mt-1.5">
+                        {story.autor && <span>{story.autor}</span>}
+                        {story.autor && story.data_upload && <span> · </span>}
+                        {story.data_upload && <span>{new Date(story.data_upload).toLocaleDateString('ro-RO')}</span>}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>

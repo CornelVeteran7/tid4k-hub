@@ -199,12 +199,14 @@ export interface Story {
   titlu: string;
   continut: string;
   categorie: 'educative' | 'morale' | 'distractive';
-  varsta: '3-4' | '4-5' | '5-6' | '3-5' | '5-7' | '7-10';
+  varsta: '3-4' | '4-5' | '5-6' | '3-5' | '5-7' | '6-8' | '7-10' | '8-10' | '10-12' | '12-14';
   thumbnail?: string;
   audio_url?: string;
   video_url?: string;
   media_type?: 'text' | 'audio' | 'video';
   favorit?: boolean;
+  data_upload?: string;
+  autor?: string;
 }
 
 // ===== Reports =====

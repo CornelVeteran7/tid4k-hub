@@ -72,14 +72,25 @@ export async function createAnnouncement(ann: Partial<Announcement>): Promise<An
 }
 
 export async function markAsRead(announcementId: string): Promise<void> {
-  // TODO: endpoint de marcare ca citit pe server
-  console.log('[Anunturi] markAsRead:', announcementId);
+  // Anunțurile sunt globale — nu există concept de "citit" per user în BD
+  // Stocăm local în sessionStorage
+  const key = 'tid4k_anunturi_citite';
+  const citite = JSON.parse(sessionStorage.getItem(key) || '[]');
+  if (!citite.includes(announcementId)) {
+    citite.push(announcementId);
+    sessionStorage.setItem(key, JSON.stringify(citite));
+  }
 }
 
 export async function hideFromTicker(id: string): Promise<void> {
-  console.log('[Anunturi] hideFromTicker:', id);
+  await tid4kApi.call('scoate_anunt_banda', { id_anunt: id });
 }
 
 export async function restoreToTicker(id: string): Promise<void> {
-  console.log('[Anunturi] restoreToTicker:', id);
+  await tid4kApi.call('repune_anunt_banda', { id_anunt: id });
+}
+
+export async function deleteAnnouncement(id: string): Promise<void> {
+  // Ștergem direct din BD prin endpoint existent
+  await tid4kApi.call('sterge_anunt', { id_anunt: id });
 }

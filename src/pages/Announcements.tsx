@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useGroup } from '@/contexts/GroupContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { areRol } from '@/utils/roles';
-import { getAnnouncements, createAnnouncement, hideFromTicker, restoreToTicker, markAsRead } from '@/api/announcements';
+import { getAnnouncements, createAnnouncement, hideFromTicker, restoreToTicker, markAsRead, deleteAnnouncement } from '@/api/announcements';
 import type { Announcement } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Megaphone, Plus, Check, Eye, EyeOff, MessageCircle, Facebook } from 'lucide-react';
+import { Megaphone, Plus, Check, Eye, EyeOff, MessageCircle, Facebook, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -71,6 +71,17 @@ export default function Announcements() {
     setCreateOpen(false);
     setNewTitle(''); setNewContent(''); setNewExpiry('');
     toast.success('Anunț creat!');
+  };
+
+  const handleDelete = async (ann: Announcement) => {
+    if (!confirm(`Ești sigur că vrei să ștergi anunțul "${ann.titlu}"?`)) return;
+    try {
+      await deleteAnnouncement(ann.id);
+      setAnnouncements(prev => prev.filter(a => a.id !== ann.id));
+      toast.success('Anunțul a fost șters');
+    } catch (err: any) {
+      toast.error(err?.message || 'Eroare la ștergerea anunțului');
+    }
   };
 
   const handleTickerToggle = async (ann: Announcement) => {
@@ -167,6 +178,9 @@ export default function Announcements() {
                   <span className="flex-1 truncate">{ann.titlu}</span>
                   <Button variant="ghost" size="sm" onClick={() => handleTickerToggle(ann)}>
                     {ann.ascuns_banda ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(ann)} className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}

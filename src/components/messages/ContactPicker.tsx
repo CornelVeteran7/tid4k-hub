@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search, User, Users, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { getContacts } from '@/api/messages';
 import { areRol } from '@/utils/roles';
 import type { UserSession } from '@/types';
 
@@ -36,74 +36,16 @@ export default function ContactPicker({ open, onClose, user, onSelectContact, on
   const isParent = areRol(userRoles, 'parinte');
 
   useEffect(() => {
-    if (!open || !user.organization_id) return;
+    if (!open) return;
     loadContacts();
-  }, [open, user.organization_id]);
+  }, [open]);
 
   const loadContacts = async () => {
     setLoading(true);
     try {
-      if (isDirector) {
-        // Directors see everyone in org
-        const { data } = await supabase
-          .from('profiles')
-          .select('id, nume_prenume, status, email')
-          .eq('organization_id', user.organization_id!)
-          .neq('id', user.id)
-          .order('nume_prenume');
-        setContacts((data as Contact[]) || []);
-      } else if (isTeacher) {
-        // Teachers see: staff + parents from their groups
-        const { data: allProfiles } = await supabase
-          .from('profiles')
-          .select('id, nume_prenume, status, email')
-          .eq('organization_id', user.organization_id!)
-          .neq('id', user.id)
-          .order('nume_prenume');
-
-        if (!allProfiles) { setContacts([]); return; }
-
-        // Get teacher's group IDs
-        const groupIds = user.grupe_disponibile.map(g => g.id);
-
-        // Get parent IDs from children in those groups
-        const { data: children } = await supabase
-          .from('children')
-          .select('parinte_id')
-          .in('group_id', groupIds);
-
-        const parentIds = new Set((children || []).map(c => c.parinte_id).filter(Boolean));
-
-        // Filter: staff (non-parent roles) + parents from groups
-        const filtered = allProfiles.filter(p => {
-          const pStatus = p.status || '';
-          const isStaffProfile = areRol(pStatus, 'profesor') || areRol(pStatus, 'director') || areRol(pStatus, 'administrator') || areRol(pStatus, 'secretara');
-          const isGroupParent = parentIds.has(p.id);
-          return isStaffProfile || isGroupParent;
-        });
-
-        setContacts(filtered as Contact[]);
-      } else if (isParent) {
-        // Parents see: teachers from their children's groups
-        const groupIds = user.grupe_disponibile.map(g => g.id);
-
-        // We need to find which profiles are teachers/directors linked to these groups
-        // For simplicity, get all staff in org — parents can message any staff member assigned to their children
-        const { data: allProfiles } = await supabase
-          .from('profiles')
-          .select('id, nume_prenume, status, email')
-          .eq('organization_id', user.organization_id!)
-          .neq('id', user.id)
-          .order('nume_prenume');
-
-        // Filter to only staff
-        const staffOnly = (allProfiles || []).filter(p => {
-          const pStatus = p.status || '';
-          return areRol(pStatus, 'profesor') || areRol(pStatus, 'director') || areRol(pStatus, 'administrator');
-        });
-
-        setContacts(staffOnly as Contact[]);
-      }
+      // Endpoint PHP fetch_contacte.php — filtrează automat pe baza rolului
+      const lista = await getContacts();
+      setContacts(lista.map(c => ({ ...c, id: String(c.id) })));
     } catch (err) {
       console.error('Failed to load contacts:', err);
     } finally {

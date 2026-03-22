@@ -649,3 +649,9 @@ html, body {
     display: none !important;
   }
 }
+
+/* Mesaje — când secțiunea e activă, <main> nu scrollează și nu are padding de jos */
+main.tid4k-mesaje-activ {
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}

@@ -79,6 +79,9 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
 
   const vertical = (user?.vertical_type || 'kids') as VerticalType;
 
+  // Ref pentru containerul chat — folosit pentru a poziționa input-ul sticky
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
   const mesajeEnabled = isEnabled('mesaje');
   const sondajeEnabled = isEnabled('sondaje');
 
@@ -338,11 +341,11 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
   const unvotedPolls = polls.filter(p => !p.user_voted && !p.is_closed && new Date(p.deadline) > new Date()).length;
 
   const chatUI = (
-    <div className="flex gap-0 h-[calc(100dvh-10rem)] min-w-0 rounded-xl overflow-hidden border border-border/50 shadow-sm">
-      {/* Conversations List */}
+    <div className="flex gap-0 h-[calc(100dvh-4rem)] lg:h-[calc(100vh-6rem)] min-w-0 rounded-xl overflow-hidden border border-border/50 shadow-sm">
+      {/* Conversations List — pe mobile full screen, pe desktop sidebar compact */}
       <div className={cn(
-        "w-full md:w-80 lg:w-96 shrink-0 flex flex-col min-w-0 bg-card/80 backdrop-blur-sm border-r border-border/50",
-        mobileShowChat && "hidden md:flex"
+        "w-full lg:w-64 xl:w-80 shrink-0 flex flex-col min-w-0 bg-card/80 backdrop-blur-sm border-r border-border/50",
+        mobileShowChat && "hidden lg:flex"
       )}>
         <div className="p-3 border-b border-border/50 flex items-center gap-2">
           <div className="relative flex-1">
@@ -384,7 +387,7 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
                 )}
               >
                 <div className={cn(
-                  "h-11 w-11 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-sm",
+                  "h-9 w-9 lg:h-8 lg:w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm",
                   (convo as any).is_group ? 'bg-primary/80' : getAvatarColor(convo.contact_nume)
                 )}>
                   {(convo as any).is_group
@@ -433,24 +436,24 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
         </ScrollArea>
       </div>
 
-      {/* Chat View */}
-      <div className={cn(
-        "flex-1 flex flex-col min-w-0 bg-background",
-        !mobileShowChat && "hidden md:flex"
+      {/* Chat View — pe mobile full screen, pe desktop flex */}
+      <div ref={chatContainerRef} className={cn(
+        "flex-1 min-w-0 bg-background overflow-y-auto",
+        !mobileShowChat && "hidden lg:block"
       )}>
         {selectedConvo ? (
           <>
-            <div className="px-4 py-3 border-b border-border/50 flex items-center gap-3 bg-card/60 backdrop-blur-sm">
+            <div className="sticky top-0 z-10 px-4 py-2 border-b border-border/50 flex items-center gap-3 bg-card/90 backdrop-blur-md">
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden shrink-0 h-8 w-8"
+                className="lg:hidden shrink-0 h-8 w-8"
                 onClick={() => setMobileShowChat(false)}
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div className={cn(
-                "h-9 w-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm",
+                "h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm",
                 isGroupConvo ? 'bg-primary/80' : getAvatarColor(selectedConvo.contact_nume)
               )}>
                 {isGroupConvo
@@ -460,17 +463,11 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{selectedConvo.contact_nume}</p>
-                <p className="text-[11px] text-muted-foreground">
-                  {isGroupConvo
-                    ? 'Canal de grup · doar citire pentru părinți'
-                    : selectedConvo.grupa.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
-                  }
-                </p>
               </div>
             </div>
 
-            <ScrollArea className="flex-1">
-              <div className="p-4 space-y-1 min-h-full flex flex-col justify-end">
+            <div className="p-4 space-y-1">
+              <div className="flex flex-col justify-end" style={{ minHeight: 'calc(100% - 8rem)' }}>
                 {groupedMessages.map(group => (
                   <div key={group.date}>
                     <div className="flex items-center justify-center my-4">
@@ -543,27 +540,25 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
                 ))}
                 <div ref={messagesEndRef} />
               </div>
-            </ScrollArea>
+            </div>
 
-            {/* Input bar — hidden for parents in group convos */}
+            {/* Input bar — sticky la baza containerului, rămâne fix la scroll */}
             {canSendInConvo ? (
-              <div className="p-3 border-t border-border/50 bg-card/60 backdrop-blur-sm">
-                <div className="flex items-end gap-2">
-                  <div className="flex-1 relative">
-                    <Input
-                      ref={inputRef}
-                      placeholder={isGroupConvo ? "Anunț pentru grupă..." : "Scrie un mesaj..."}
-                      value={newMessage}
-                      onChange={e => setNewMessage(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSend();
-                        }
-                      }}
-                      className="pr-10 bg-muted/40 border-border/50 focus-visible:ring-1 rounded-xl"
-                    />
-                  </div>
+              <div className="sticky bottom-0 z-10 p-2 sm:p-3 border-t border-border/50 bg-card/95 backdrop-blur-md">
+                <div className="flex items-center gap-2">
+                  <Input
+                    ref={inputRef}
+                    placeholder={isGroupConvo ? "Anunț pentru grupă..." : "Scrie un mesaj..."}
+                    value={newMessage}
+                    onChange={e => setNewMessage(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    className="flex-1 bg-muted/40 border-border/50 focus-visible:ring-1 rounded-xl h-10"
+                  />
                   <Button
                     size="icon"
                     onClick={handleSend}
@@ -580,13 +575,13 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
                 </div>
               </div>
             ) : (
-              <div className="p-3 border-t border-border/50 bg-muted/30 text-center">
+              <div className="sticky bottom-0 z-10 p-3 border-t border-border/50 bg-muted/30 text-center">
                 <p className="text-xs text-muted-foreground">Canal de anunțuri — doar citire</p>
               </div>
             )}
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="h-full flex items-center justify-center">
             <div className="text-center space-y-3">
               <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto">
                 <MessageSquare className="h-8 w-8 text-muted-foreground/40" />
@@ -631,8 +626,8 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
   // If only one feature enabled and not director, show directly without tabs
   if (tabCount <= 1 && !hasVizitatori) {
     return (
-      <div className="space-y-4 min-w-0">
-        {!embedded && (
+      <div className="space-y-2 sm:space-y-4 min-w-0">
+        {!embedded && !(mobileShowChat && mesajeEnabled) && (
           <div className="flex items-center gap-3">
             <h1 className="text-xl sm:text-2xl font-display font-bold">
               {mesajeEnabled ? 'Mesaje' : 'Sondaje'}
@@ -660,8 +655,8 @@ export default function Messages({ embedded, initialTab, isGuest, guestOrgId, gu
   }
 
   return (
-    <div className="space-y-4 min-w-0">
-      {!embedded && (
+    <div className="space-y-2 sm:space-y-4 min-w-0">
+      {!embedded && !mobileShowChat && (
         <div className="flex items-center gap-3">
           <h1 className="text-xl sm:text-2xl font-display font-bold">Mesaje & Sondaje</h1>
           {totalUnread > 0 && (

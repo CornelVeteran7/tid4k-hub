@@ -50,10 +50,15 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
     ? allDocuments
     : allDocuments.filter(d => d.categorie === category);
 
-  const handleDelete = async (id: string) => {
-    await deleteDocument(id);
-    setAllDocuments((prev) => prev.filter((d) => d.id !== id));
-    toast.success('Document șters.');
+  const handleDelete = async (id: string, numeFisier: string) => {
+    if (!confirm(`Ești sigur că vrei să ștergi "${numeFisier}"?`)) return;
+    try {
+      await deleteDocument(id, currentGroup?.id);
+      setAllDocuments((prev) => prev.filter((d) => d.id !== id));
+      toast.success('Document șters.');
+    } catch (err: any) {
+      toast.error(err?.message || 'Eroare la ștergerea documentului');
+    }
   };
 
   const formatSize = (bytes: number) => {
@@ -162,7 +167,7 @@ export default function Documents({ embedded }: { embedded?: boolean }) {
                     </Button>
                   )}
                   {canManage && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(doc.id, doc.nume_fisier)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}

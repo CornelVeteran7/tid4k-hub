@@ -34,6 +34,8 @@ export async function getStories(): Promise<Story[]> {
         video_url: p.video_url || undefined,
         media_type,
         favorit: p.favorit || false,
+        data_upload: p.data_upload || undefined,
+        autor: p.uploader || undefined,
       };
     });
   } catch (err) {
@@ -72,21 +74,46 @@ export async function createStory(story: Partial<Story>): Promise<Story> {
   }
 }
 
-export async function generateTTS(text: string, characterId: string = 'inky'): Promise<string> {
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({ text, characterId }),
-    }
-  );
+export async function updateStory(id: string, text: string): Promise<boolean> {
+  if (!USE_TID4K_BACKEND) throw new Error('Backend indisponibil');
 
-  if (!response.ok) throw new Error(`TTS failed: ${response.status}`);
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
+  const data = await tid4kApi.call<any>('salveaza_poveste', {
+    id,
+    text,
+  });
+
+  console.log('[Povesti] Răspuns salvare:', data);
+
+  if (data?.succes === false) {
+    throw new Error(data?.mesaj || 'Eroare la salvarea poveștii');
+  }
+
+  return true;
+}
+
+export async function deleteStory(id: string): Promise<boolean> {
+  if (!USE_TID4K_BACKEND) throw new Error('Backend indisponibil');
+
+  const data = await tid4kApi.call<any>('delete_povesti', { id });
+
+  if (data?.success === false) {
+    throw new Error(data?.message || 'Eroare la ștergerea poveștii');
+  }
+
+  return true;
+}
+
+export async function generateTTS(text: string, characterId: string = 'inky', speed: number = 1): Promise<string> {
+  // Apelează PHP openai_tts.php prin gateway — cache pe server per text+voce+speed
+  const data = await tid4kApi.call<{ succes: boolean; urlAudio: string; dinCache: boolean }>('openai_tts', {
+    text,
+    characterId,
+    speed,
+  });
+
+  if (!data?.succes || !data?.urlAudio) {
+    throw new Error('TTS: răspuns invalid de la server');
+  }
+
+  return data.urlAudio;
 }

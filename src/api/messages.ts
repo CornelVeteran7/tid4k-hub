@@ -12,7 +12,8 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
   if (!USE_TID4K_BACKEND) return [];
 
   try {
-    const data = await tid4kApi.call<any>('fetch_mesaje', {});
+    // Folosim preia_mesajele_chat — include mesaje trimise + primite + nume
+    const data = await tid4kApi.call<any>('preia_mesajele_chat', {});
 
     // TID4K returneaza: {mesaje_utilizator: [...], numar_mesaje_nou: N}
     const mesaje = Array.isArray(data) ? data
@@ -64,24 +65,34 @@ export async function getConversations(userId: string): Promise<Conversation[]> 
 }
 
 export async function getMessages(grupa: string, userId: string, conversationId?: string): Promise<Message[]> {
-  if (!USE_TID4K_BACKEND || !conversationId) return [];
+  if (!USE_TID4K_BACKEND) return [];
 
   try {
-    const data = await tid4kApi.call<any>('fetch_mesaje', {
-      conversatie: conversationId,
-    });
+    // Folosim preia_mesajele_chat care returnează și numele expeditorului/destinatarului
+    const data = await tid4kApi.call<any>('preia_mesajele_chat', {});
 
-    const mesaje = Array.isArray(data) ? data : (data?.mesaje || []);
+    const mesaje = Array.isArray(data) ? data : (data?.mesaje || data?.mesaje_utilizator || []);
 
-    return mesaje.map((m: any) => ({
-      id: String(m.id || m.id_mesaj || Date.now()),
-      expeditor: String(m.expeditor || m.id_expeditor || ''),
-      expeditor_nume: m.expeditor_nume || m.nume_expeditor || '',
-      destinatar: String(m.destinatar || m.id_destinatar || ''),
-      mesaj: m.mesaj || m.continut || m.text || '',
-      data: m.data || m.created_at || '',
-      citit: m.citit || false,
-    }));
+    // Extragem contactId din conversationId (format: "conv-{contactId}")
+    const contactId = conversationId?.replace('conv-', '').replace('new-', '') || '';
+
+    // Filtrăm mesajele pentru conversația selectată
+    return mesaje
+      .filter((m: any) => {
+        const expId = String(m.id_expeditor || '');
+        const destId = String(m.id_destinatar || '');
+        return (expId === contactId || destId === contactId);
+      })
+      .map((m: any) => ({
+        id: String(m.id_mesaj || m.id || Date.now()),
+        expeditor: String(m.id_expeditor || ''),
+        expeditor_nume: m.nume_expeditor || '',
+        destinatar: String(m.id_destinatar || ''),
+        mesaj: m.mesaj || '',
+        data: m.data_trimitere || m.data || '',
+        citit: !!m.citit,
+      }))
+      .sort((a: Message, b: Message) => new Date(a.data).getTime() - new Date(b.data).getTime());
   } catch (err) {
     console.error('[Mesaje] Eroare la incarcarea mesajelor:', err);
     return [];
@@ -89,8 +100,17 @@ export async function getMessages(grupa: string, userId: string, conversationId?
 }
 
 export async function sendMessage(grupa: string, destinatar: string, mesaj: string, existingConvoId?: string): Promise<Message> {
-  // TODO: endpoint de trimitere mesaje pe server
-  console.warn('[Mesaje] sendMessage - de implementat endpoint pe server');
+  if (!USE_TID4K_BACKEND) throw new Error('Backend indisponibil');
+
+  const data = await tid4kApi.call<any>('trimite_mesaj', {
+    mesaj,
+    destinatari: destinatar,
+  });
+
+  if (data?.success === false) {
+    throw new Error(data?.error || 'Eroare la trimiterea mesajului');
+  }
+
   return {
     id: String(Date.now()),
     expeditor: '',
@@ -103,6 +123,29 @@ export async function sendMessage(grupa: string, destinatar: string, mesaj: stri
 }
 
 export async function getOrCreateGroupConversation(teacherId: string, groupId: string, groupName: string): Promise<string> {
-  // TODO: endpoint dedicat pe server
+  // Conversațiile de grup nu au tabel separat — se folosește broadcast la toți destinatarii
   return `group-${groupId}`;
+}
+
+export interface Contact {
+  id: string;
+  nume_prenume: string;
+  status: string;
+}
+
+export async function getContacts(): Promise<Contact[]> {
+  if (!USE_TID4K_BACKEND) return [];
+
+  try {
+    const data = await tid4kApi.call<any>('fetch_contacte', {});
+    const contacte = data?.contacte || [];
+    return contacte.map((c: any) => ({
+      id: String(c.id),
+      nume_prenume: c.nume_prenume || '',
+      status: c.status || '',
+    }));
+  } catch (err) {
+    console.error('[Mesaje] Eroare la incarcarea contactelor:', err);
+    return [];
+  }
 }

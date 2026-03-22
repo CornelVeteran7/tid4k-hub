@@ -13,13 +13,25 @@ const GroupContext = createContext<GroupContextType | undefined>(undefined);
 export function GroupProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const groups = user?.grupe_disponibile || [];
-  const [currentIndex, setCurrentIndex] = useState(user?.index_grupa_clasa_curenta || 0);
+
+  // Restaurăm grupa salvată din localStorage (persistă la reload)
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const saved = localStorage.getItem('tid4k_grupa_selectata');
+    if (saved && groups.length > 0) {
+      const idx = groups.findIndex((g) => g.id === saved);
+      if (idx !== -1) return idx;
+    }
+    return user?.index_grupa_clasa_curenta || 0;
+  });
 
   const currentGroup = groups[currentIndex] || null;
 
   const switchGroup = useCallback((groupId: string) => {
     const idx = groups.findIndex((g) => g.id === groupId);
-    if (idx !== -1) setCurrentIndex(idx);
+    if (idx !== -1) {
+      setCurrentIndex(idx);
+      localStorage.setItem('tid4k_grupa_selectata', groupId);
+    }
   }, [groups]);
 
   return (

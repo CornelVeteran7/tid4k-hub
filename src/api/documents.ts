@@ -71,10 +71,26 @@ export async function getDocuments(grupa: string): Promise<DocumentItem[]> {
 }
 
 export async function uploadDocument(grupa: string, file: File, categorie: string): Promise<DocumentItem> {
-  console.warn('[Documente] uploadDocument - de implementat endpoint pe server');
-  throw new Error('Upload documente nu este implementat inca');
+  // Upload se face direct din Documents.tsx via UploadForm → upload_fisier_hub.php
+  // Această funcție e păstrată pentru compatibilitate
+  throw new Error('Folosește UploadForm din Documents.tsx');
 }
 
-export async function deleteDocument(id: string): Promise<void> {
-  console.warn('[Documente] deleteDocument - de implementat endpoint pe server');
+export async function deleteDocument(id: string, grupa?: string): Promise<void> {
+  if (!USE_TID4K_BACKEND) return;
+
+  // Grupa vine din contextul GroupContext — o transmitem ca parametru
+  const grupaParam = grupa || '';
+  if (!grupaParam) {
+    throw new Error('Grupa lipsește — necesară pentru ștergere');
+  }
+
+  const data = await tid4kApi.call<any>('sterge_fisier', {
+    id_info: id,
+    grupa: grupaParam.replace(/ /g, '_'),
+  });
+
+  if (data?.success === false) {
+    throw new Error(data?.error || 'Eroare la ștergerea fișierului');
+  }
 }
